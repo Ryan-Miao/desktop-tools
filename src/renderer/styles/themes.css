@@ -1,0 +1,38 @@
+/* Theme variables - rich color themes */
+:root {
+  --background: rgba(255, 255, 255, 0.7);
+  --text-primary: #000000;
+  --text-secondary: rgba(0, 0, 0, 0.6);
+  --primary-color: #007AFF;
+  --secondary-color: #5AC8FA;
+  --accent-color: #FF2D55;
+  --success-color: #34C759;
+  --warning-color: #FF9500;
+  --error-color: #FF3B30;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark {
+  --background: rgba(30, 30, 30, 0.8);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --primary-color: #0A84FF;
+  --secondary-color: #64D2FF;
+  --accent-color: #FF375F;
+  --success-color: #30D158;
+  --warning-color: #FF9F0A;
+  --error-color: #FF453A;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Apply theme to main window */
+.main-window {
+  background: var(--background);
+  box-shadow: var(--shadow-color) 0 20px 40px;
+}
+
+.dark .main-window {
+  box-shadow: var(--shadow-color) 0 20px 60px;
+}

@@ -1,0 +1,10 @@
+{
+  "id": "com.desktop-tool.floating-clock",
+  "name": "悬浮时钟",
+  "version": "1.0.0",
+  "description": "桌面悬浮时钟，支持久坐提醒和统计功能",
+  "author": "Desktop Tool",
+  "icon": "⏰",
+  "entry": "index.ts",
+  "permissions": ["global-shortcut", "screen", "database"]
+}

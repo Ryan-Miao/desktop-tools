@@ -1,0 +1,381 @@
+import { ipcMain, BrowserWindow } from 'electron';
+import type MainProcess from '../index';
+import { BackupService } from '../services/BackupService';
+import logService from '../services/LogService';
+import { IPCChannels } from '@shared/constants/channels';
+
+export function setupIPCHandlers(mainProcess: MainProcess) {
+  const db = mainProcess.getDatabase();
+  const pluginManager = mainProcess.getPluginManager();
+  const windowManager = mainProcess.getWindowManager();
+  const inputMonitor = mainProcess.getInputMonitor();
+  const mainWindow = mainProcess.getMainWindow();
+  const backupService = new BackupService(db);
+
+  // ==================== Plugin Handlers ====================
+
+  // Plugin lifecycle
+  ipcMain.handle(IPCChannels.PLUGIN_LOAD, async (_, pluginId: string) => {
+    await pluginManager.load(pluginId);
+    return { loaded: true };
+  });
+
+  ipcMain.handle(IPCChannels.PLUGIN_UNLOAD, async (_, pluginId: string) => {
+    await pluginManager.load(pluginId);
+    return { unloaded: true };
+  });
+
+  ipcMain.handle(IPCChannels.PLUGIN_RELOAD, async (_, pluginId: string) => {
+    await pluginManager.reload(pluginId);
+    return { reloaded: true };
+  });
+
+  ipcMain.handle(IPCChannels.PLUGIN_LOAD_ALL, async () => {
+    await pluginManager.loadAll();
+    return { loadedAll: true };
+  });
+
+  ipcMain.handle(IPCChannels.PLUGIN_UNLOAD_ALL, async () => {
+    await pluginManager.unloadAll();
+    return { unloadedAll: true };
+  });
+
+  // Plugin activation
+  ipcMain.handle(IPCChannels.PLUGIN_ACTIVATE, async (_, pluginId: string) => {
+    await pluginManager.activate(pluginId);
+    return { activated: true };
+  });
+
+  ipcMain.handle(IPCChannels.PLUGIN_DEACTIVATE, async (_, pluginId: string) => {
+    await pluginManager.deactivate(pluginId);
+    return { deactivated: true };
+  });
+
+  // Plugin query
+  ipcMain.handle(IPCChannels.PLUGIN_LIST, async () => {
+    return pluginManager.getAll().map(p => p.manifest);
+  });
+
+  ipcMain.handle(IPCChannels.PLUGIN_GET, async (_, pluginId: string) => {
+    const plugin = pluginManager.get(pluginId);
+    return plugin ? plugin.manifest : null;
+  });
+
+  ipcMain.handle(IPCChannels.PLUGIN_GET_STATE, async (_, pluginId: string) => {
+    return await pluginManager.getState(pluginId);
+  });
+
+  ipcMain.handle(IPCChannels.PLUGIN_GET_ALL_STATES, async () => {
+    return await pluginManager.getAllStates();
+  });
+
+  // Plugin management
+  ipcMain.handle(IPCChannels.PLUGIN_INSTALL, async (_, pluginPath: string) => {
+    await pluginManager.install(pluginPath);
+    return { installed: true };
+  });
+
+  ipcMain.handle(IPCChannels.PLUGIN_UNINSTALL, async (_, pluginId: string) => {
+    await pluginManager.uninstall(pluginId);
+    return { uninstalled: true };
+  });
+
+  ipcMain.handle(IPCChannels.PLUGIN_EXPORT, async (_, pluginId: string, outputPath: string) => {
+    await pluginManager.export(pluginId, outputPath);
+    return { exported: true };
+  });
+
+  ipcMain.handle(IPCChannels.PLUGIN_UPDATE, async (_, pluginId: string) => {
+    await pluginManager.update(pluginId);
+    return { updated: true };
+  });
+
+  // Remote plugin
+  ipcMain.handle(IPCChannels.PLUGIN_FETCH_REMOTE, async (_, url: string) => {
+    await pluginManager.fetchFromRemote(url);
+    return { fetched: true };
+  });
+
+  ipcMain.handle(IPCChannels.PLUGIN_CHECK_UPDATES, async () => {
+    await pluginManager.checkUpdates();
+    return { checked: true };
+  });
+
+  // Plugin message
+  ipcMain.handle(IPCChannels.PLUGIN_MESSAGE, async (_, pluginId: string, channel: string, data: any) => {
+    const plugin = pluginManager.get(pluginId);
+    if (plugin?.handleMessage) {
+      return await plugin.handleMessage(channel, data);
+    }
+    return null;
+  });
+
+  // ==================== Window Handlers ====================
+
+  // Window lifecycle
+  ipcMain.handle(IPCChannels.WINDOW_SHOW, async () => {
+    mainWindow?.show();
+    return { shown: true };
+  });
+
+  ipcMain.handle(IPCChannels.WINDOW_HIDE, async () => {
+    mainWindow?.hide();
+    return { hidden: true };
+  });
+
+  ipcMain.handle(IPCChannels.WINDOW_MINIMIZE, async () => {
+    windowManager.minimize();
+    return { minimized: true };
+  });
+
+  ipcMain.handle(IPCChannels.WINDOW_MAXIMIZE, async () => {
+    windowManager.maximize();
+    return { maximized: windowManager.isMaximized() };
+  });
+
+  ipcMain.handle(IPCChannels.WINDOW_RESTORE, async () => {
+    if (mainWindow) {
+      mainWindow.restore();
+    }
+    return { restored: true };
+  });
+
+  ipcMain.handle(IPCChannels.WINDOW_CLOSE, async () => {
+    windowManager.close();
+    return { closed: true };
+  });
+
+  ipcMain.handle(IPCChannels.WINDOW_IS_MAXIMIZED, async () => {
+    return windowManager.isMaximized();
+  });
+
+  ipcMain.handle(IPCChannels.WINDOW_START_DRAG, async () => {
+    if (mainWindow) {
+      mainWindow.setResizable(true);
+    }
+    return { dragging: true };
+  });
+
+  // ==================== Database Handlers ====================
+
+  // Clock settings
+  ipcMain.handle(IPCChannels.DB_GET_CLOCK_SETTINGS, async () => {
+    return db.getClockSettings();
+  });
+
+  ipcMain.handle(IPCChannels.DB_UPDATE_CLOCK_SETTINGS, async (_, settings) => {
+    db.updateClockSettings(settings);
+    return { updated: true };
+  });
+
+  // Stats
+  ipcMain.handle(IPCChannels.DB_GET_STATS, async (_, startDate: Date, endDate: Date) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    const keyboardStats = db.getKeyboardStats(start, end);
+    const mouseClickStats = db.getMouseClickStats(start, end);
+    const mouseMoveStats = db.getMouseMoveStats(start, end);
+
+    // Combine stats by timestamp
+    const combinedStats: Map<string, any> = new Map();
+
+    keyboardStats.forEach((stat: any) => {
+      const timestamp = stat.timestamp.substring(0, 13);
+      combinedStats.set(timestamp, {
+        date: stat.timestamp,
+        keyboard_count: stat.count,
+        mouse_click_count: 0,
+        mouse_move_distance: 0
+      });
+    });
+
+    mouseClickStats.forEach((stat: any) => {
+      const timestamp = stat.timestamp.substring(0, 13);
+      const existing = combinedStats.get(timestamp);
+      if (existing) {
+        existing.mouse_click_count += stat.count;
+      } else {
+        combinedStats.set(timestamp, {
+          date: stat.timestamp,
+          keyboard_count: 0,
+          mouse_click_count: stat.count,
+          mouse_move_distance: 0
+        });
+      }
+    });
+
+    mouseMoveStats.forEach((stat: any) => {
+      const timestamp = stat.timestamp.substring(0, 13);
+      const existing = combinedStats.get(timestamp);
+      if (existing) {
+        existing.mouse_move_distance += stat.distance;
+      } else {
+        combinedStats.set(timestamp, {
+          date: stat.timestamp,
+          keyboard_count: 0,
+          mouse_click_count: 0,
+          mouse_move_distance: stat.distance
+        });
+      }
+    });
+
+    return Array.from(combinedStats.values()).sort((a, b) =>
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  });
+
+  // Save stats handlers
+  ipcMain.handle(IPCChannels.DB_SAVE_KEYBOARD_STATS, async (_, count: number) => {
+    db.saveKeyboardStats(count);
+    return { saved: true };
+  });
+
+  ipcMain.handle(IPCChannels.DB_SAVE_MOUSE_CLICK_STATS, async (_, button: string, count: number) => {
+    db.saveMouseClickStats(button, count);
+    return { saved: true };
+  });
+
+  ipcMain.handle(IPCChannels.DB_SAVE_MOUSE_MOVE_STATS, async (_, distance: number) => {
+    db.saveMouseMoveStats(distance);
+    return { saved: true };
+  });
+
+  // Export stats
+  ipcMain.handle(IPCChannels.DB_EXPORT_STATS, async (_, data) => {
+    return await db.exportStats(data);
+  });
+
+  // Plugin data
+  ipcMain.handle(IPCChannels.DB_GET_PLUGIN_DATA, async (_, pluginId: string) => {
+    return db.getPluginData(pluginId);
+  });
+
+  ipcMain.handle(IPCChannels.DB_GET_ALL_PLUGIN_DATA, async () => {
+    return db.getAllPluginData();
+  });
+
+  ipcMain.handle(IPCChannels.DB_SAVE_PLUGIN_DATA, async (_, pluginId: string, pluginName: string, pluginVersion: string, dataJson: string) => {
+    db.savePluginData(pluginId, pluginName, pluginVersion, dataJson);
+    return { saved: true };
+  });
+
+  ipcMain.handle(IPCChannels.DB_DELETE_PLUGIN_DATA, async (_, pluginId: string) => {
+    db.deletePluginData(pluginId);
+    return { deleted: true };
+  });
+
+  // ==================== Backup Handlers ====================
+
+  ipcMain.handle(IPCChannels.BACKUP_CREATE, async () => {
+    return backupService.createBackup();
+  });
+
+  ipcMain.handle(IPCChannels.BACKUP_RESTORE, async () => {
+    return backupService.restoreBackup();
+  });
+
+  ipcMain.handle(IPCChannels.BACKUP_PREVIEW, async (_, backupPath: string) => {
+    return backupService.previewBackup(backupPath);
+  });
+
+  ipcMain.handle(IPCChannels.BACKUP_CREATE_SELECTIVE, async (_, options) => {
+    return backupService.createBackup(options);
+  });
+
+  ipcMain.handle(IPCChannels.BACKUP_RESTORE_SELECTIVE, async (_, options) => {
+    return backupService.restoreBackup(options);
+  });
+
+  // ==================== Input Monitor Handlers ====================
+
+  ipcMain.handle(IPCChannels.INPUT_MONITOR_GET_STATS, async () => {
+    return inputMonitor.getStats();
+  });
+
+  ipcMain.handle(IPCChannels.INPUT_MONITOR_RESET, async () => {
+    inputMonitor.reset();
+    return { reset: true };
+  });
+
+  ipcMain.handle(IPCChannels.INPUT_MONITOR_SAVE, async () => {
+    await inputMonitor.saveStats();
+
+    const stats = inputMonitor.getStats();
+    BrowserWindow.getAllWindows().forEach(window => {
+      if (!window.isDestroyed()) {
+        window.webContents.send('input-stats:update', stats);
+      }
+    });
+
+    return { saved: true };
+  });
+
+  ipcMain.on('input-monitor:update', (_event, updates) => {
+    inputMonitor.updateStats(updates);
+  });
+
+  // ==================== System Handlers ====================
+
+  ipcMain.handle(IPCChannels.SYSTEM_NOTIFICATION, async (_, { title, body }) => {
+    const { Notification } = require('electron');
+    new Notification({ title, body }).show();
+    return { shown: true };
+  });
+
+  ipcMain.handle(IPCChannels.SYSTEM_CLIPBOARD, async (_, { type, value }) => {
+    const { clipboard } = require('electron');
+    if (type === 'write') {
+      clipboard.writeText(value);
+      return { written: true };
+    } else if (type === 'read') {
+      return clipboard.readText();
+    }
+    return null;
+  });
+
+  ipcMain.handle(IPCChannels.SYSTEM_GET_VERSION, async () => {
+    return {
+      version: require('../../../package.json').version
+    };
+  });
+
+  // ==================== Log Handlers ====================
+
+  ipcMain.handle(IPCChannels.LOG_WRITE, async (_, formattedLog) => {
+    try {
+      const entry = JSON.parse(formattedLog);
+      await logService.write(entry);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to write log:', error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  ipcMain.handle(IPCChannels.LOG_GET_DIRECTORY, async () => {
+    return logService.getLogDirectory();
+  });
+
+  ipcMain.handle(IPCChannels.LOG_SET_DIRECTORY, async (_, directory) => {
+    try {
+      logService.setLogDirectory(directory);
+      return { success: true, directory: logService.getLogDirectory() };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  ipcMain.handle(IPCChannels.LOG_READ_RECENT, async (_, lines = 100) => {
+    return logService.readRecentLogs(lines);
+  });
+
+  ipcMain.handle(IPCChannels.LOG_CLEAR, async () => {
+    logService.clearLogs();
+    return { cleared: true };
+  });
+
+  // ==================== Setup Auto Backup ====================
+
+  backupService.setupAutoBackup(24);
+}

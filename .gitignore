@@ -1,0 +1,148 @@
+# ============================================
+# Dependencies
+# ============================================
+node_modules/
+jspm_packages/
+
+# ============================================
+# Build outputs
+# ============================================
+dist/
+dist-web/
+release/
+out/
+build/
+*.log
+
+# ============================================
+# TypeScript & Vite
+# ============================================
+*.tsbuildinfo
+.vite/
+.vite-inspect/
+
+# ============================================
+# Testing
+# ============================================
+coverage/
+.nyc_output/
+test-results/
+
+# ============================================
+# Editor
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.bak
+*.backup
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# ============================================
+# OS
+# ============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ============================================
+# Temporary files
+# ============================================
+temp/
+tmp/
+*.tmp
+*.temp
+.cache/
+
+# ============================================
+# Environment & Secrets
+# ============================================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+credentials.json
+
+# ============================================
+# Database
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# ============================================
+# Electron
+# ============================================
+electron-builder.log
+electron-builder.yml.backup
+
+# ============================================
+# Package managers
+# ============================================
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+# Uncomment if you want to commit lock files:
+# !package-lock.json
+
+# ============================================
+# User data & Backups (development only)
+# ============================================
+# Runtime data (usually in ~/.config/desktop-tool/)
+# data/
+# backups/
+
+# ============================================
+# AI/LLM session files (optional - comment out if you want to commit them)
+# ============================================
+# Uncomment below to exclude AI session files from version control:
+# task_plan.md
+# findings.md
+# progress.md
+# plugin_*.md
+# *_findings.md
+# *_progress.md
+# *_task_plan.md
+
+# ============================================
+# Debug & Profiling
+# ============================================
+*.cpuprofile
+*.heapsnapshot
+chrome-user-data/
+
+# ============================================
+# Misc
+# ============================================
+# TODO.md
+# NOTES.md

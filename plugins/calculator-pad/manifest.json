@@ -1,0 +1,10 @@
+{
+  "id": "com.desktop-tool.calculator-pad",
+  "name": "计算稿纸",
+  "version": "1.0.0",
+  "description": "数学表达式计算，历史记录保存",
+  "author": "Desktop Tool",
+  "icon": "🧮",
+  "entry": "index.ts",
+  "permissions": ["database"]
+}

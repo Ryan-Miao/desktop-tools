@@ -1,0 +1,160 @@
+.calculator-modal {
+  max-width: 600px;
+}
+
+/* 当前计算区 */
+.current-calculation {
+  margin-bottom: 16px;
+}
+
+.calculation-input {
+  width: 100%;
+  padding: 16px;
+  font-size: 20px;
+  font-family: 'Courier New', monospace;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--panel-background);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.calculation-input:focus {
+  border-color: var(--primary-color);
+}
+
+.current-result {
+  margin-top: 12px;
+  padding: 16px;
+  font-size: 28px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  color: var(--primary-color);
+  text-align: right;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+}
+
+.dark .current-result {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.calculation-tips {
+  margin-bottom: 20px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.dark .calculation-tips {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* 历史记录 */
+.history-section {
+  margin-top: 24px;
+}
+
+.history-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.empty-state {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.history-list {
+  max-height: 400px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  position: relative;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s;
+}
+
+.dark .history-item {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.history-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.history-expression {
+  font-size: 16px;
+  font-family: 'Courier New', monospace;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.history-result {
+  font-size: 20px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  color: var(--primary-color);
+  margin-bottom: 8px;
+}
+
+.history-time {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.delete-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-button:hover {
+  opacity: 1;
+}
+
+/* 滚动条样式 */
+.history-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.history-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
