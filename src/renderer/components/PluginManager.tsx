@@ -242,10 +242,39 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
   // 导出插件
   const exportPlugin = async (pluginId: string) => {
     try {
-      // TODO: 添加导出插件的 IPC 处理
-      logger.info('Export plugin', { pluginId });
+      const result = await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_EXPORT, pluginId);
+      if (result?.canceled) {
+        logger.info('Export canceled');
+        return;
+      }
+      if (result?.exported) {
+        logger.info('Plugin exported successfully', { pluginId, path: result.path });
+        alert(`插件已导出到:\n${result.path}`);
+      }
     } catch (error) {
       logger.error('Failed to export plugin', { error });
+      alert(`导出插件失败: ${error}`);
+    }
+  };
+
+  // 导入插件
+  const importPlugin = async () => {
+    try {
+      const result = await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_IMPORT);
+      if (result?.canceled) {
+        logger.info('Import canceled');
+        return;
+      }
+      if (result?.imported) {
+        logger.info('Plugin imported successfully', { path: result.path });
+        alert(`插件导入成功！\n${result.path}`);
+        // 重新加载插件列表
+        loadPlugins();
+        loadPluginStates();
+      }
+    } catch (error) {
+      logger.error('Failed to import plugin', { error });
+      alert(`导入插件失败: ${error}`);
     }
   };
 
@@ -329,10 +358,10 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
           <div className="plugin-manager-actions">
             <button
               className="plugin-manager-button plugin-manager-button-import"
-              onClick={() => setShowImportDialog(true)}
-              title="导入插件"
+              onClick={importPlugin}
+              title="从 ZIP 文件导入插件"
             >
-              导入插件
+              📥 导入插件
             </button>
             <button
               className="plugin-manager-button plugin-manager-button-update"

@@ -23,6 +23,7 @@ export enum IPCChannels {
   PLUGIN_INSTALL = 'plugin:install',
   PLUGIN_UNINSTALL = 'plugin:uninstall',
   PLUGIN_EXPORT = 'plugin:export',
+  PLUGIN_IMPORT = 'plugin:import',
   PLUGIN_UPDATE = 'plugin:update',
 
   // Remote plugin

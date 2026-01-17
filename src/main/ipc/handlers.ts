@@ -1,4 +1,4 @@
-import { ipcMain, BrowserWindow } from 'electron';
+import { ipcMain, BrowserWindow, dialog } from 'electron';
 import path from 'path';
 import type MainProcess from '../index';
 import { BackupService } from '../services/BackupService';
@@ -81,9 +81,53 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
     return { uninstalled: true };
   });
 
-  ipcMain.handle(IPCChannels.PLUGIN_EXPORT, async (_, pluginId: string, outputPath: string) => {
-    await pluginManager.export(pluginId, outputPath);
-    return { exported: true };
+  ipcMain.handle(IPCChannels.PLUGIN_EXPORT, async (event, pluginId: string) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) {
+      throw new Error('Could not find window');
+    }
+
+    // 选择保存位置
+    const result = await dialog.showSaveDialog(win, {
+      defaultPath: `${pluginId}.zip`,
+      filters: [
+        { name: 'Plugin Files', extensions: ['zip'] },
+        { name: 'All Files', extensions: ['*'] }
+      ],
+      title: '导出插件'
+    });
+
+    if (result.canceled || !result.filePath) {
+      return { exported: false, canceled: true };
+    }
+
+    await pluginManager.export(pluginId, result.filePath);
+    return { exported: true, path: result.filePath };
+  });
+
+  ipcMain.handle(IPCChannels.PLUGIN_IMPORT, async (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) {
+      throw new Error('Could not find window');
+    }
+
+    // 选择插件文件
+    const result = await dialog.showOpenDialog(win, {
+      filters: [
+        { name: 'Plugin Files', extensions: ['zip'] },
+        { name: 'All Files', extensions: ['*'] }
+      ],
+      title: '导入插件',
+      properties: ['openFile']
+    });
+
+    if (result.canceled || result.filePaths.length === 0) {
+      return { imported: false, canceled: true };
+    }
+
+    const pluginPath = result.filePaths[0];
+    await pluginManager.install(pluginPath);
+    return { imported: true, path: pluginPath };
   });
 
   ipcMain.handle(IPCChannels.PLUGIN_UPDATE, async (_, pluginId: string) => {
