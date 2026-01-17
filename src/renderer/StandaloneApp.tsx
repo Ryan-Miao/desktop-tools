@@ -226,6 +226,7 @@ function StandaloneApp() {
         </div>
       }>
         <PluginComponent
+          pluginId={pluginId}
           onClose={handleClose}
           onMinimize={handleMinimize}
           onMaximize={handleMaximize}
