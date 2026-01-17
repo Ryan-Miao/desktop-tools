@@ -656,6 +656,25 @@ desktop-tool/
 │   ├── json-tool/manifest.json
 │   ├── base64-tool/manifest.json
 │   └── ... # 其他插件清单
+├── doc/                         # 用户文档（面向用户）
+│   ├── README.md                # 项目主文档
+│   ├── PLUGIN_DEVELOPMENT.md    # 插件开发指南
+│   ├── BUILD.md                 # 构建和打包文档
+│   └── UX_GUIDE.md              # UI/UX 设计指南
+├── devdoc/                      # 开发文档（面向开发者）
+│   ├── ai/                      # AI 辅助开发配置
+│   │   └── claude.md            # Claude Code 配置和规范
+│   ├── plans/                   # 开发计划和任务规划
+│   │   ├── task_plan.md         # 总体任务计划
+│   │   ├── plugin_task_plan.md  # 插件任务计划
+│   │   └── *_PLAN.md            # 其他计划文档
+│   ├── summaries/               # 开发总结和测试报告
+│   │   ├── *_SUMMARY.md         # 各种总结文档
+│   │   └── *_REPORT.md          # 各种测试报告
+│   └── progress/                # 项目进度跟踪
+│       ├── progress.md          # 项目进度
+│       ├── todo.md              # 待办事项
+│       └── *_STATUS.md          # 各种状态文档
 ├── build/                       # 打包资源
 ├── dist/                        # 构建输出
 ├── dist-web/                    # Web 应用输出
@@ -665,6 +684,56 @@ desktop-tool/
 ├── vite.config.ts
 └── electron-builder.yml
 ```
+
+### 文档组织规范
+
+**重要**：项目采用分离的文档组织结构，请严格遵守以下规范：
+
+#### 用户文档 (`doc/`)
+
+面向用户和外部开发者的文档：
+- **README.md** - 项目介绍、快速开始、特性说明
+- **PLUGIN_DEVELOPMENT.md** - 插件开发指南
+- **BUILD.md** - 构建和打包说明
+- **UX_GUIDE.md** - UI/UX 设计指南
+
+#### 开发文档 (`devdoc/`)
+
+面向项目团队的开发文档：
+
+1. **AI 配置 (`devdoc/ai/`)**
+   - `claude.md` - AI 辅助开发配置和开发规范（本文件）
+
+2. **开发计划 (`devdoc/plans/`)**
+   - 任务计划、架构设计、功能规划
+   - 测试计划、优化计划等
+
+3. **开发总结 (`devdoc/summaries/`)**
+   - 开发总结、测试报告、优化报告
+   - 性能测试、浏览器测试等
+   - 按日期或主题分类的总结文档
+
+4. **进度跟踪 (`devdoc/progress/`)**
+   - 当前进度、待办事项、状态更新
+   - 发现和问题记录
+
+#### 根目录符号链接
+
+- 根目录的 `README.md` 是指向 `doc/README.md` 的符号链接
+- 保持 GitHub/平台默认文档位置不变
+
+#### 文档创建指南
+
+创建新文档时，请按以下规则放置：
+
+| 文档类型 | 放置位置 | 命名规范 |
+|---------|---------|---------|
+| 用户指南 | `doc/` | `GUIDE.md` |
+| 插件文档 | `doc/` | `PLUGIN_*.md` |
+| AI 规范 | `devdoc/ai/` | `claude.md` |
+| 开发计划 | `devdoc/plans/` | `*_PLAN.md`, `*_DESIGN.md` |
+| 测试报告 | `devdoc/summaries/` | `*_REPORT.md`, `*_SUMMARY.md` |
+| 进度更新 | `devdoc/progress/` | `progress.md`, `todo.md`, `*_STATUS.md` |
 
 ---
 
