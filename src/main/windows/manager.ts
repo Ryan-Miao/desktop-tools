@@ -54,9 +54,15 @@ export class WindowManager {
       webPreferences: {
         preload: path.join(__dirname, '../preload/index.js'),
         contextIsolation: true,
-        nodeIntegration: false
+        nodeIntegration: false,
+        devTools: true // 启用开发者工具
       }
     });
+
+    // 开发模式下自动打开开发者工具
+    if (process.env.NODE_ENV === 'development') {
+      this.mainWindow.webContents.openDevTools();
+    }
 
     // Load app
     if (process.env.NODE_ENV === 'development') {
