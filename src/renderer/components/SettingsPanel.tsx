@@ -387,12 +387,11 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ themeId, onClose, onChang
       </div>
 
       {/* 延迟加载的面板 */}
-      <Suspense fallback={<Loading type="dots" text="加载中..." overlay fullscreen />}>
-        {/* 性能监控面板 */}
-        {showPerformanceMonitor && (
+      {showPerformanceMonitor && (
+        <Suspense fallback={<Loading type="dots" text="加载中..." overlay fullscreen />}>
           <PerformanceMonitor onClose={() => setShowPerformanceMonitor(false)} />
-        )}
-      </Suspense>
+        </Suspense>
+      )}
     </div>
   );
 };

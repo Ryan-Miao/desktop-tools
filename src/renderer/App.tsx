@@ -290,34 +290,40 @@ function App() {
       </div>
 
       {/* Plugin Modals */}
-      <Suspense fallback={<Loading type="dots" text="加载中..." overlay fullscreen />}>
-        {activePlugin === 'calculator-pad' && (
+      {activePlugin === 'calculator-pad' && (
+        <Suspense fallback={<Loading type="dots" text="加载中..." overlay fullscreen />}>
           <CalculatorPad onClose={handleClosePlugin} />
-        )}
+        </Suspense>
+      )}
 
-        {/* Settings Panel */}
-        {showSettings && (
+      {/* Settings Panel */}
+      {showSettings && (
+        <Suspense fallback={<Loading type="dots" text="加载中..." overlay fullscreen />}>
           <SettingsPanel
             themeId={themeId}
             onClose={() => setShowSettings(false)}
             onChangeTheme={handleChangeTheme}
             onOpenBackup={() => setShowBackup(true)}
           />
-        )}
+        </Suspense>
+      )}
 
-        {/* Plugin Manager */}
-        {showPluginManager && (
+      {/* Plugin Manager */}
+      {showPluginManager && (
+        <Suspense fallback={<Loading type="dots" text="加载中..." overlay fullscreen />}>
           <PluginManager
             visible={showPluginManager}
             onClose={() => setShowPluginManager(false)}
           />
-        )}
+        </Suspense>
+      )}
 
-        {/* Backup Panel */}
-        {showBackup && (
+      {/* Backup Panel */}
+      {showBackup && (
+        <Suspense fallback={<Loading type="dots" text="加载中..." overlay fullscreen />}>
           <BackupPanel onClose={() => setShowBackup(false)} />
-        )}
-      </Suspense>
+        </Suspense>
+      )}
     </div>
   );
 }
