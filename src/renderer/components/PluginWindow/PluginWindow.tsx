@@ -138,6 +138,8 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
       className={windowClassName}
       style={style}
       data-theme={themeId}
+      data-plugin-id={pluginId}
+      data-standalone-button={showStandaloneButton ? 'true' : 'false'}
     >
       {/* 标题栏 */}
       {showHeader && (
@@ -147,13 +149,13 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
             <span className="plugin-window-title-text">{title}</span>
             {/* 调试：显示插件 ID 和按钮状态 */}
             {pluginId && (
-              <span style={{ fontSize: '10px', opacity: 0.5, marginLeft: '8px' }}>
+              <span style={{ fontSize: '12px', opacity: 1, marginLeft: '8px', color: 'red', fontWeight: 'bold' }}>
                 [{pluginId}]
               </span>
             )}
             {showStandaloneButton && (
-              <span style={{ fontSize: '10px', color: '#0078d4', marginLeft: '4px' }}>
-                [BTN]
+              <span style={{ fontSize: '12px', color: 'red', marginLeft: '4px', fontWeight: 'bold' }}>
+                [BTN:YES]
               </span>
             )}
           </div>
