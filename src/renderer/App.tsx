@@ -1,14 +1,17 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import SearchBox from './components/SearchBox';
 import PluginList from './components/PluginList';
 import WindowControls from './components/WindowControls';
-import SettingsPanel from './components/SettingsPanel';
-import PluginManager from './components/PluginManager';
-import BackupPanel from './components/BackupPanel';
-import CalculatorPad from './components/CalculatorPad';
 import { storageService } from './services/StorageService';
 import { themes, applyTheme, getThemeById, getDefaultTheme, updatePanelOpacity } from './themes/themes';
 import { logger } from '../shared/logger';
+import { Loading } from './components/Loading';
+
+// 延迟加载非关键组件（优化启动时间）
+const SettingsPanel = lazy(() => import('./components/SettingsPanel'));
+const PluginManager = lazy(() => import('./components/PluginManager'));
+const BackupPanel = lazy(() => import('./components/BackupPanel'));
+const CalculatorPad = lazy(() => import('./components/CalculatorPad'));
 
 interface Plugin {
   id: string;
@@ -287,32 +290,34 @@ function App() {
       </div>
 
       {/* Plugin Modals */}
-      {activePlugin === 'calculator-pad' && (
-        <CalculatorPad onClose={handleClosePlugin} />
-      )}
+      <Suspense fallback={<Loading type="dots" text="加载中..." overlay fullscreen />}>
+        {activePlugin === 'calculator-pad' && (
+          <CalculatorPad onClose={handleClosePlugin} />
+        )}
 
-      {/* Settings Panel */}
-      {showSettings && (
-        <SettingsPanel
-          themeId={themeId}
-          onClose={() => setShowSettings(false)}
-          onChangeTheme={handleChangeTheme}
-          onOpenBackup={() => setShowBackup(true)}
-        />
-      )}
+        {/* Settings Panel */}
+        {showSettings && (
+          <SettingsPanel
+            themeId={themeId}
+            onClose={() => setShowSettings(false)}
+            onChangeTheme={handleChangeTheme}
+            onOpenBackup={() => setShowBackup(true)}
+          />
+        )}
 
-      {/* Plugin Manager */}
-      {showPluginManager && (
-        <PluginManager
-          visible={showPluginManager}
-          onClose={() => setShowPluginManager(false)}
-        />
-      )}
+        {/* Plugin Manager */}
+        {showPluginManager && (
+          <PluginManager
+            visible={showPluginManager}
+            onClose={() => setShowPluginManager(false)}
+          />
+        )}
 
-      {/* Backup Panel */}
-      {showBackup && (
-        <BackupPanel onClose={() => setShowBackup(false)} />
-      )}
+        {/* Backup Panel */}
+        {showBackup && (
+          <BackupPanel onClose={() => setShowBackup(false)} />
+        )}
+      </Suspense>
     </div>
   );
 }

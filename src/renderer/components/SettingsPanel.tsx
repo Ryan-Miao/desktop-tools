@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { themes, getThemeById, updatePanelOpacity } from '../themes/themes';
 import { storageService } from '../services/StorageService';
 import logger from '../services/LoggerService';
-import BackupPanel from './BackupPanel';
-import { PerformanceMonitor } from './PerformanceMonitor';
+import { Loading } from './Loading';
 import './SettingsPanel.css';
+
+// 延迟加载非关键组件（优化设置面板加载时间）
+const BackupPanel = lazy(() => import('./BackupPanel'));
+const PerformanceMonitor = lazy(() => import('./PerformanceMonitor'));
 
 interface SettingsPanelProps {
   themeId: string;
@@ -383,10 +386,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ themeId, onClose, onChang
         </div>
       </div>
 
-      {/* 性能监控面板 */}
-      {showPerformanceMonitor && (
-        <PerformanceMonitor onClose={() => setShowPerformanceMonitor(false)} />
-      )}
+      {/* 延迟加载的面板 */}
+      <Suspense fallback={<Loading type="dots" text="加载中..." overlay fullscreen />}>
+        {/* 性能监控面板 */}
+        {showPerformanceMonitor && (
+          <PerformanceMonitor onClose={() => setShowPerformanceMonitor(false)} />
+        )}
+      </Suspense>
     </div>
   );
 };

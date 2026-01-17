@@ -152,12 +152,55 @@ export default defineConfig(({ mode }) => {
     root: '.',
     build: {
       outDir: isWeb ? 'dist/renderer' : 'dist/renderer',
-      rollupOptions: isWeb ? {
+      rollupOptions: {
         output: {
-          // 确保在 Web 模式下不包含 Node.js 特定的模块
-          manualChunks: {}
+          // 代码分割优化（提升启动性能）
+          manualChunks: (id) => {
+            // 将大型依赖包分离到独立的 chunk
+            if (id.includes('node_modules')) {
+              // React 核心库
+              if (id.includes('react') || id.includes('react-dom')) {
+                return 'react-vendor';
+              }
+              // UI 组件库（如果有）
+              if (id.includes('@mui') || id.includes('antd')) {
+                return 'ui-vendor';
+              }
+              // 其他 node_modules
+              return 'vendor';
+            }
+
+            // 分离大型组件
+            if (id.includes('/components/SettingsPanel')) {
+              return 'settings-panel';
+            }
+            if (id.includes('/components/PluginManager')) {
+              return 'plugin-manager';
+            }
+            if (id.includes('/components/BackupPanel')) {
+              return 'backup-panel';
+            }
+            if (id.includes('/components/PerformanceMonitor')) {
+              return 'performance-monitor';
+            }
+            if (id.includes('/components/CalculatorPad')) {
+              return 'calculator-pad';
+            }
+            if (id.includes('/components/Loading')) {
+              return 'loading';
+            }
+            if (id.includes('/components/Skeleton')) {
+              return 'skeleton';
+            }
+            if (id.includes('/components/Toast')) {
+              return 'toast';
+            }
+            if (id.includes('/components/ProgressBar')) {
+              return 'progress-bar';
+            }
+          }
         }
-      } : undefined
+      }
     },
     server: {
       port: 5173
