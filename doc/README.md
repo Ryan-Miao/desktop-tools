@@ -10,12 +10,11 @@
 ## 目录
 
 - [特性](#-特性)
-- [内置工具](#-内置工具)
+- [核心组件](#-核心组件)
 - [快速开始](#-快速开始)
 - [项目结构](#-项目结构)
 - [主题系统](#-主题系统)
 - [插件开发](#-插件开发)
-- [统计功能](#-统计功能)
 - [数据备份](#-数据备份)
 - [性能优化](#-性能优化)
 - [常见问题](#-常见问题)
@@ -26,12 +25,14 @@
 
 ### 核心功能
 
-- 🎨 **精美界面** - Mac 风格毛玻璃效果，流畅动画，8 种预设主题
+- 🎨 **精美界面** - Mac 风格毛玻璃效果，流畅动画，18+ 种预设主题（包括高对比度主题）
 - 🔌 **插件系统** - 可扩展的插件架构，独立窗口，完整窗口控制
-- ⏰ **悬浮时钟** - 桌面悬浮时钟，久坐提醒， productivity tracking
-- 📊 **统计报表** - 键盘鼠标使用统计，Chart.js 数据可视化
-- 💾 **数据备份** - 支持全量备份和恢复，ZIP 格式
+- 💾 **数据备份** - 支持全量备份和选择性备份，ZIP 格式
+- ⚙️ **插件管理** - 完整的插件管理界面，支持导入/导出/启用/禁用
+- 📊 **性能监控** - 实时性能监控面板
 - 🌐 **双模式** - 支持 Electron 桌面应用和 Web 应用
+- ✨ **事件总线** - 渲染进程组件间高效通信
+- 📝 **日志系统** - 跨平台日志系统，支持主进程和渲染进程
 
 ### 插件窗口特性
 
@@ -49,47 +50,32 @@
 - 📦 **模块化** - 清晰的代码结构，易于维护
 - 🛡️ **数据持久化** - SQLite 数据库 + localStorage
 - 🎯 **响应式** - 支持 DPI 缩放，适配高分屏
+- 🎨 **主题系统** - CSS 变量驱动的主题系统，支持自定义主题
+- 🔄 **事件驱动** - 基于 EventBus 的组件间通信机制
 
-## 内置工具
+## 核心组件
 
-### 文本处理
+### 已实现的插件
 
-| 工具 | 功能 |
+| 插件 | 功能 | 状态 |
+|------|------|------|
+| **计算器** | 基础计算功能，支持键盘输入 | ✅ 生产就绪 |
+
+### 核心功能组件
+
+| 组件 | 功能 |
 |------|------|
-| **JSON 工具** | JSON 序列化、压缩、转义、与 Excel 互转 |
-| **Markdown 编辑器** | 实时预览、支持 GFM、导出 HTML |
-| **正则表达式测试器** | 常用正则库、实时测试匹配 |
-| **代码格式化工具** | JSON/XML/SQL/HTML 格式化 |
+| **插件管理器** | 插件列表、启用/禁用、导入/导出、卸载 |
+| **设置面板** | 主题切换、面板透明度、应用设置 |
+| **备份面板** | 数据备份和恢复，支持预览 |
+| **性能监控** | 实时性能指标监控 |
 
-### 编码转换
+### 未来计划
 
-| 工具 | 功能 |
-|------|------|
-| **Base64 编码** | Base64 编码和解码工具 |
-| **加密解密工具** | AES/DES/Rabbit 加密、Hash 计算（MD5/SHA1/SHA256/SHA512） |
-
-### 生成工具
-
-| 工具 | 功能 |
-|------|------|
-| **UUID 生成器** | 批量生成 UUID v4 |
-| **二维码生成器** | 生成各种类型的二维码（WiFi、网址、邮件、电话、短信、名片） |
-
-### 转换工具
-
-| 工具 | 功能 |
-|------|------|
-| **时间戳转换器** | Unix 时间戳与日期时间互转 |
-| **单位转换器** | 长度、重量、温度、面积、体积、时间单位转换 |
-| **汇率转换器** | 支持 20+ 种货币实时转换 |
-
-### 实用工具
-
-| 工具 | 功能 |
-|------|------|
-| **IP 地址查询** | 查询 IP 地址位置、运营商等信息 |
-| **图片压缩工具** | 批量压缩图片，支持拖拽 |
-| **颜色选择器** | 颜色选择和格式转换工具 |
+- 🚀 更多内置插件（JSON 工具、Markdown 编辑器、正则测试器等）
+- 🌐 在线插件市场
+- ☁️ 云同步功能
+- 🔌 外部插件支持
 
 ## 快速开始
 
@@ -125,12 +111,14 @@ npm run dev:web
 ### 构建
 
 ```bash
-# 构建 Electron 应用
+# 构建所有（Electron + Web）
+npm run build
+
+# 仅构建 Electron 应用
 npm run build:electron
 
-# 构建 Web 应用
+# 仅构建 Web 应用
 npm run build:web
-npm run dist:web  # 构建并复制到 dist-web 目录
 ```
 
 ### 打包
@@ -167,7 +155,8 @@ desktop-tool/
 │   │   ├── plugins/             # 插件管理
 │   │   │   └── manager.ts       # 插件管理器
 │   │   └── services/            # 后台服务
-│   │       └── InputMonitor.ts  # 输入监控服务
+│   │       ├── BackupService.ts # 备份服务
+│   │       └── LogService.ts    # 日志服务
 │   ├── preload/                 # 预加载脚本
 │   │   └── index.ts             # 预加载入口
 │   ├── renderer/                # React 渲染进程
@@ -176,20 +165,26 @@ desktop-tool/
 │   │   ├── components/          # React 组件
 │   │   │   ├── SearchBox.tsx    # 搜索框
 │   │   │   ├── PluginList.tsx   # 插件列表
+│   │   │   ├── PluginManager.tsx # 插件管理器
+│   │   │   ├── SettingsPanel.tsx # 设置面板
+│   │   │   ├── BackupPanel.tsx  # 备份面板
+│   │   │   ├── CalculatorPad.tsx # 计算器插件
 │   │   │   ├── WindowControls.tsx # 窗口控制
-│   │   │   └── ...              # 其他组件
+│   │   │   └── PluginWindow/    # 插件窗口组件
 │   │   ├── services/            # 前端服务
-│   │   │   ├── StorageService.ts    # 存储服务
-│   │   │   └── InputEventTracker.ts # 事件跟踪
+│   │   │   └── StorageService.ts # 存储服务
+│   │   ├── utils/               # 工具函数
+│   │   │   └── eventBus.ts      # 事件总线
 │   │   └── themes/              # 主题配置
 │   │       └── themes.ts        # 主题定义
 │   └── shared/                  # 共享代码
 │       ├── types/               # TypeScript 类型定义
-│       └── constants/           # 常量定义
-├── plugins/                     # 插件目录
-│   ├── json-tool/               # JSON 工具插件
-│   ├── base64-tool/             # Base64 工具插件
-│   └── ...                      # 其他插件
+│       ├── constants/           # 常量定义
+│       └── logger/              # 日志系统
+│           ├── index.ts         # 日志核心
+│           └── formats.ts       # 日志格式化
+├── plugins/                     # 外部插件目录
+│   └── calculator-pad/          # 计算器插件示例
 ├── build/                       # 打包资源
 │   ├── icon.ico                 # Windows 图标
 │   ├── icon.icns                # macOS 图标
@@ -197,6 +192,11 @@ desktop-tool/
 ├── dist/                        # 构建输出
 ├── dist-web/                    # Web 应用输出
 ├── release/                     # Electron 打包输出
+├── doc/                         # 用户文档
+├── devdoc/                      # 开发文档
+│   ├── ai/                      # AI 开发规范
+│   ├── progress/                # 项目进度
+│   └── plans/                   # 开发计划
 ├── package.json                 # 项目配置
 ├── tsconfig.json                # TypeScript 配置
 ├── vite.config.ts               # Vite 构建配置
@@ -206,25 +206,43 @@ desktop-tool/
 
 ## 主题系统
 
-支持 8 种预设主题：
+支持 18+ 种预设主题：
 
 ### 浅色主题
 
-| 主题 | 预览 |
+| 主题 | 特点 |
 |------|------|
-| **Light Blue** | 🎨 默认蓝色主题 |
-| **Light Purple** | 🎨 优雅紫色主题 |
-| **Light Green** | 🎨 清新绿色主题 |
-| **Light Orange** | 🎨 温暖橙色主题 |
+| **Light Blue** | 默认蓝色主题，清爽明亮 |
+| **Light Purple** | 薰衣草紫，优雅浪漫 |
+| **Light Pink** | 樱花粉，温馨柔和 |
+| **Light Green** | 薄荷绿，清新自然 |
+| **Light Orange** | 暖阳橙，温暖活力 |
+| **Light Teal** | 清新青，宁静舒适 |
 
 ### 深色主题
 
-| 主题 | 预览 |
+| 主题 | 特点 |
 |------|------|
-| **Dark Blue** | 🎨 深邃蓝色主题 |
-| **Dark Purple** | 🎨 神秘紫色主题 |
-| **Dark Green** | 🎨 护眼绿色主题 |
-| **Dark Orange** | 🎨 沉稳橙色主题 |
+| **Dark Ocean** | 深海蓝，深邃宁静 |
+| **Dark Purple** | 星云紫，神秘优雅 |
+| **Dark Forest** | 森林绿，护眼舒适 |
+| **Dark Sunset** | 日落红，温暖沉稳 |
+| **Dark Midnight** | 午夜黑，纯粹简约 |
+| **Dark Slate** | 岩板灰，沉稳大气 |
+| **Cyberpunk** | 赛博朋克，霓虹炫酷 |
+| **Sunset Gradient** | 日落渐变，温暖视觉 |
+| **Northern Lights** | 极光幻彩，绚丽多彩 |
+| **Rose Gold** | 玫瑰金，精致优雅 |
+| **Ocean Depth** | 海洋深邃，湛蓝深邃 |
+
+### 高对比度主题
+
+| 主题 | 特点 |
+|------|------|
+| **深邃黑** | 纯黑背景，最高对比度 |
+| **纯粹白** | 纯白背景，清晰锐利 |
+| **赛博紫** | 霓虹紫/青色，赛博风格 |
+| **日落橙** | 金橙配色，温暖醒目 |
 
 ### 自定义主题
 
@@ -234,11 +252,28 @@ desktop-tool/
 {
   id: 'custom-theme',
   name: '自定义主题',
+  icon: '🎨',
   mode: 'light', // or 'dark'
   colors: {
-    primary: '#YOUR_COLOR',
     background: 'rgba(255, 255, 255, 0.8)',
-    // ... 其他颜色
+    foreground: '#0a0a0a',
+    primary: '#YOUR_COLOR',
+    secondary: '#YOUR_COLOR',
+    accent: '#YOUR_COLOR',
+    success: '#28A745',
+    warning: '#FF9500',
+    error: '#DC3545',
+    // 可选：文字颜色层级
+    textPrimary: '#000000',
+    textSecondary: '#333333',
+    textTertiary: '#666666',
+    border: '#cccccc',
+    overlay: 'rgba(0, 0, 0, 0.5)'
+  },
+  glass: {
+    blur: 0,
+    opacity: 1,
+    saturate: 100
   }
 }
 ```
@@ -250,7 +285,7 @@ desktop-tool/
 插件在独立的 Electron BrowserWindow 中运行，具备以下特性：
 
 - ✅ **独立窗口** - 完整的窗口控制（最小化、最大化、关闭）
-- ✅ **自定义标题栏** - 无原生菜单栏，使用 PluginWindow 组件
+- ✅ **自定义标题栏** - 使用 PluginWindow 组件
 - ✅ **拖拽支持** - 标题栏可拖拽移动窗口
 - ✅ **ESC 关闭** - 按 ESC 键快速关闭窗口
 - ✅ **状态持久化** - 自动保存和恢复窗口状态
@@ -314,9 +349,8 @@ export default YourPlugin;
 
 ### 注册插件
 
-在 `src/renderer/App.tsx` 和 `src/renderer/StandaloneApp.tsx` 中注册：
+在 `src/renderer/App.tsx` 中注册插件：
 
-**App.tsx (添加到插件列表):**
 ```tsx
 const plugins: Plugin[] = [
   // ... 其他插件
@@ -329,47 +363,7 @@ const plugins: Plugin[] = [
 ];
 ```
 
-**StandaloneApp.tsx (添加渲染逻辑):**
-```tsx
-import YourPlugin from './components/YourPlugin';
-
-// 在组件中添加
-if (pluginId === 'your-plugin') {
-  return (
-    <div className="standalone-container">
-      <Suspense fallback={<div className="plugin-loading"><p>加载中...</p></div>}>
-        <YourPlugin
-          onClose={handleClose}
-          onMinimize={handleMinimize}
-          onMaximize={handleMaximize}
-        />
-      </Suspense>
-    </div>
-  );
-}
-```
-
-详细插件开发指南请查看 [PLUGIN_DEVELOPMENT.md](./PLUGIN_DEVELOPMENT.md)
-
-## 统计功能
-
-### 功能特性
-
-- ⌨️ **键盘统计** - 记录键盘按键次数
-- 🖱️ **鼠标统计** - 记录鼠标点击次数和移动距离
-- ⏱️ **工作时长** - 统计有效工作时间
-- 💪 **工作评价** - 基于活动量的健康评价系统
-
-### 数据可视化
-
-使用 Chart.js 绘制统计图表：
-- 折线图 - 趋势分析
-- 柱状图 - 对比分析
-- 饼图 - 分布分析
-
-### 数据导出
-
-支持导出为 CSV 格式，便于进一步分析。
+详细插件开发指南请查看 [PLUGIN_DEVELOPMENT.md](./doc/PLUGIN_DEVELOPMENT.md)
 
 ## 数据备份
 
@@ -381,14 +375,15 @@ if (pluginId === 'your-plugin') {
 ### 备份方式
 
 1. **手动备份** - 设置 → 数据备份 → 立即备份
-2. **自动备份** - 可设置每日自动备份（计划功能）
+2. **选择性备份** - 选择需要备份的数据类型
 
 ### 恢复流程
 
 1. 点击"选择备份文件"
 2. 选择 ZIP 备份文件
-3. 确认恢复
-4. 重启应用
+3. 预览备份内容
+4. 确认恢复
+5. 重启应用
 
 ## 性能优化
 
@@ -492,7 +487,8 @@ A: 检查：
 - 使用 TypeScript 编写
 - 遵循 ESLint 规则
 - 添加必要的注释
-- 编写单元测试（计划中）
+- 所有样式必须使用 CSS 变量
+- 避免使用原生 confirm/alert，使用内联确认 + Toast 通知
 
 ### Commit 规范
 
@@ -511,16 +507,20 @@ chore: 构建/工具链更新
 
 ## 路线图
 
-- [x] 基础插件系统
-- [x] 统计功能
-- [x] 数据备份
-- [ ] 在线插件市场
-- [ ] 离线插件加载
-- [ ] 自动更新功能
-- [ ] 云同步功能
-- [ ] 账户系统
-- [ ] 插件开发工具
-- [ ] 更多内置插件
+- [x] 基础插件系统架构
+- [x] 主题系统（18+ 主题，包括高对比度主题）
+- [x] 数据备份功能
+- [x] 性能监控
+- [x] 插件管理器
+- [x] 事件总线系统
+- [x] 跨平台日志系统
+- [x] UI/UX 改进（内联确认、Toast 通知）
+- [ ] 更多内置插件（开发中）
+- [ ] 在线插件市场（计划中）
+- [ ] 外部插件加载（计划中）
+- [ ] 自动更新功能（计划中）
+- [ ] 云同步功能（计划中）
+- [ ] 账户系统（计划中）
 
 ## 许可证
 
@@ -531,7 +531,6 @@ chore: 构建/工具链更新
 - [Electron](https://electronjs.org) - 跨平台桌面应用框架
 - [React](https://reactjs.org) - UI 框架
 - [Vite](https://vitejs.dev) - 构建工具
-- [Ant Design](https://ant.design) - UI 组件库
 - [uTools](https://u.tools) - 设计灵感来源
 
 ## 联系方式

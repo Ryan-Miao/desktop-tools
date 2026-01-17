@@ -256,6 +256,391 @@ logger.info('Data:', data); // 数据应该作为第二个参数
 
 ---
 
+### 跨平台日志架构
+
+#### 日志系统架构
+
+项目的日志系统基于 `UnifiedLogger`，支持三种运行环境：
+
+```
+┌─────────────┐
+│ 主进程      │  logger → LogService → 文件
+│ (Main)      │  ✅ console + file
+└─────────────┘
+
+┌─────────────┐
+│ 渲染进程    │  logger → IPC → 主进程 LogService → 文件
+│ (Renderer)  │  ✅ console + file
+└─────────────┘
+
+┌─────────────┐
+│ Web 模式    │  logger → console only
+│ (Web)       │  ✅ console only
+└─────────────┘
+```
+
+#### 平台差异说明
+
+| 平台 | isDesktop | 日志输出 | 文件写入 | 实现方式 |
+|------|-----------|----------|----------|----------|
+| **主进程** | true | console + file | ✅ | 直接调用 LogService |
+| **渲染进程** | true | console + file | ✅ | IPC → 主进程 LogService |
+| **Web 模式** | false | console | ❌ | 仅 console 输出 |
+
+#### detectPlatform() 方法
+
+日志系统使用 `detectPlatform()` 方法自动检测运行平台：
+
+```typescript
+private detectPlatform(): 'main' | 'renderer' | 'web' {
+  if (typeof window !== 'undefined' && window) {
+    if ((window as any).electron?.ipcRenderer) {
+      return 'renderer';  // 渲染进程
+    }
+    return 'web';          // Web 模式
+  }
+  return 'main';            // 主进程
+}
+```
+
+**日志条目包含平台标识**：
+```typescript
+interface LogEntry {
+  timestamp: string;
+  level: LogLevel;
+  message: string;
+  data?: any;
+  platform: 'main' | 'renderer' | 'web';  // 平台标识
+  module: string;
+}
+```
+
+#### 主进程 vs 渲染进程日志行为
+
+**主进程** (`src/main/`):
+```typescript
+import { createLogger } from '../shared/logger';
+
+const logger = createLogger('PluginManager');
+logger.info('Plugin loaded', { pluginId: 'json-tool' });
+// → console: [PluginManager] Plugin loaded
+// → file:    写入到 ~/.config/desktop-tool/logs/app.log
+```
+
+**渲染进程** (`src/renderer/`):
+```typescript
+import { createLogger } from '@shared/logger';
+
+const logger = createLogger('App');
+logger.info('Component mounted', { component: 'PluginList' });
+// → console: [App] Component mounted
+// → IPC:     发送到主进程
+// → file:    主进程写入到 ~/.config/desktop-tool/logs/app.log
+```
+
+#### 何时使用 logger vs console.log
+
+```typescript
+// ✅ 使用 createLogger (所有生产代码)
+import { createLogger } from '@shared/logger';
+const logger = createLogger('ModuleName');
+logger.info('Important event');
+
+// ❌ 避免使用 console.log (生产代码)
+console.log('Debug info');  // 不写入日志文件，不利于调试
+
+// ✅ 仅在以下情况使用 console:
+// 1. 临时调试（开发阶段，调试后删除）
+// 2. 测试代码中的断点辅助
+// 3. 快速原型（后续替换为 logger）
+```
+
+#### 查看日志文件
+
+日志文件位置：
+- **Linux**: `~/.config/desktop-tool/logs/app.log`
+- **macOS**: `~/Library/Application Support/desktop-tool/logs/app.log`
+- **Windows**: `%APPDATA%/desktop-tool/logs/app.log`
+
+```bash
+# 查看最近的日志
+tail -f ~/.config/desktop-tool/logs/app.log
+
+# 搜索特定平台的日志
+grep "\[main\]" ~/.config/desktop-tool/logs/app.log
+grep "\[renderer\]" ~/.config/desktop-tool/logs/app.log
+```
+
+---
+
+### 事件广播最佳实践
+
+#### 主进程到渲染进程的事件广播
+
+在 Electron 应用中，主进程需要向渲染进程广播事件以更新 UI：
+
+**实现模式**：
+```typescript
+// src/main/plugins/manager.ts
+
+export class PluginManager {
+  private mainWindow: Electron.BrowserWindow | null = null;
+
+  constructor(store: PluginStore, mainWindow: Electron.BrowserWindow | null = null) {
+    this.store = store;
+    this.mainWindow = mainWindow;
+  }
+
+  setMainWindow(window: Electron.BrowserWindow | null): void {
+    this.mainWindow = window;
+  }
+
+  private broadcastEvent(channel: string, ...args: any[]): void {
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      this.mainWindow.webContents.send(channel, ...args);
+    }
+  }
+
+  async install(pluginPath: string): Promise<void> {
+    // ... 安装逻辑 ...
+
+    // 广播事件
+    this.emit(PluginEventType.LOADED, manifest.id);
+    this.broadcastEvent('plugin:loaded', manifest.id);
+    this.broadcastEvent('plugin:installed', manifest.id);
+  }
+}
+```
+
+**渲染进程监听事件**：
+```typescript
+// src/renderer/App.tsx
+
+useEffect(() => {
+  const handlePluginLoaded = (event: any, pluginId: string) => {
+    logger.info(`Plugin loaded: ${pluginId}`);
+    loadPluginsInit();  // 刷新插件列表
+  };
+
+  if (window.electron?.ipcRenderer) {
+    window.electron.ipcRenderer.on('plugin:loaded', handlePluginLoaded);
+    window.electron.ipcRenderer.on('plugin:unloaded', handlePluginLoaded);
+    window.electron.ipcRenderer.on('plugin:installed', handlePluginLoaded);
+    window.electron.ipcRenderer.on('plugin:uninstalled', handlePluginLoaded);
+  }
+
+  return () => {
+    // 清理监听器
+    if (window.electron?.ipcRenderer) {
+      window.electron.ipcRenderer.off('plugin:loaded', handlePluginLoaded);
+      window.electron.ipcRenderer.off('plugin:unloaded', handlePluginLoaded);
+    }
+  };
+}, []);
+```
+
+#### 事件命名规范
+
+遵循一致的命名约定：
+
+| 事件名称 | 用途 | 示例 |
+|----------|------|------|
+| `plugin:loaded` | 插件已加载（内部状态） | 启动时加载、重新加载 |
+| `plugin:unloaded` | 插件已卸载（内部状态） | 禁用插件 |
+| `plugin:installed` | 插件已安装（用户操作） | 导入 ZIP 文件 |
+| `plugin:uninstalled` | 插件已卸载（用户操作） | 删除插件 |
+| `plugin:activated` | 插件已激活 | 打开插件窗口 |
+| `plugin:deactivated` | 插件已停用 | 关闭插件窗口 |
+
+**命名模式**: `<domain>:<action>`
+
+#### 调试事件流
+
+使用日志追踪事件流：
+
+```typescript
+// 主进程：广播事件
+private broadcastEvent(channel: string, ...args: any[]): void {
+  logger.debug(`Broadcasting event: ${channel}`, { args });
+  if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+    this.mainWindow.webContents.send(channel, ...args);
+    logger.debug(`Event sent: ${channel}`);
+  } else {
+    logger.error(`Cannot broadcast: mainWindow is ${this.mainWindow ? 'destroyed' : 'null'}`);
+  }
+}
+
+// 渲染进程：监听事件
+const handlePluginLoaded = (event: any, ...args: any[]) => {
+  logger.info(`Received event: plugin:loaded`, { args });
+  loadPluginsInit();
+};
+```
+
+#### 常见事件广播问题
+
+1. **事件未触发**：
+   - 检查 `mainWindow` 是否已设置
+   - 检查窗口是否已销毁 (`isDestroyed()`)
+   - 检查事件名称是否匹配
+
+2. **事件监听器未清理**：
+   - 始终在 `useEffect` cleanup 中移除监听器
+   - 使用 `.off()` 而不是 `.removeAllListeners()`
+
+3. **重复监听**：
+   - 避免在每次渲染时添加监听器
+   - 使用 `useEffect` 空依赖数组
+
+---
+
+### 常见陷阱和解决方案
+
+#### 陷阱 1: 主进程日志不写文件
+
+**问题**: 主进程的 `logger.info()` 只输出到 console，不写入日志文件
+
+**原因**: `detectDesktop()` 方法检查 `window.electron.ipcRenderer`，主进程返回 `false`
+
+**错误代码**:
+```typescript
+// ❌ 错误的实现
+private detectDesktop(): boolean {
+  if (typeof window !== 'undefined' && window) {
+    return !!(window as any).electron?.ipcRenderer;
+  }
+  return false;  // 主进程返回 false
+}
+```
+
+**解决方案**:
+```typescript
+// ✅ 正确的实现
+private detectDesktop(): boolean {
+  if (typeof window !== 'undefined' && window) {
+    return !!(window as any).electron?.ipcRenderer;
+  }
+  return true;  // 主进程也返回 true
+}
+```
+
+**验证方法**:
+```bash
+# 主进程应该写入日志文件
+grep "\[main\]" ~/.config/desktop-tool/logs/app.log
+```
+
+---
+
+#### 陷阱 2: 事件监听器未正确清理
+
+**问题**: 组件卸载后事件监听器仍然存在，导致内存泄漏
+
+**错误代码**:
+```typescript
+// ❌ 没有清理监听器
+useEffect(() => {
+  window.electron.ipcRenderer.on('plugin:loaded', handlePluginLoaded);
+}, []);
+```
+
+**解决方案**:
+```typescript
+// ✅ 添加 cleanup 函数
+useEffect(() => {
+  const handlePluginLoaded = (event: any, pluginId: string) => {
+    logger.info(`Plugin loaded: ${pluginId}`);
+    loadPluginsInit();
+  };
+
+  if (window.electron?.ipcRenderer) {
+    window.electron.ipcRenderer.on('plugin:loaded', handlePluginLoaded);
+  }
+
+  return () => {
+    // 清理监听器
+    if (window.electron?.ipcRenderer) {
+      window.electron.ipcRenderer.off('plugin:loaded', handlePluginLoaded);
+    }
+  };
+}, []);
+```
+
+**验证方法**:
+- 在组件卸载后检查是否还有日志输出
+- 使用 React DevTools 检查组件是否正确卸载
+
+---
+
+#### 陷阱 3: IPC 通道命名不一致
+
+**问题**: 主进程和渲染进程使用不同的 IPC 通道名称
+
+**错误示例**:
+```typescript
+// 主进程
+mainWindow.webContents.send('plugin-loaded', pluginId);
+
+// 渲染进程
+window.electron.ipcRenderer.on('plugin:loaded', handler);  // 不匹配！
+```
+
+**解决方案**:
+```typescript
+// ✅ 使用统一的常量定义
+// src/shared/types/ipc.ts
+export const IPCChannels = {
+  PLUGIN_LOADED: 'plugin:loaded',
+  PLUGIN_UNLOADED: 'plugin:unloaded',
+  // ...
+} as const;
+
+// 主进程
+mainWindow.webContents.send(IPCChannels.PLUGIN_LOADED, pluginId);
+
+// 渲染进程
+window.electron.ipcRenderer.on(IPCChannels.PLUGIN_LOADED, handler);
+```
+
+---
+
+#### 陷阱 4: 平台检测逻辑错误
+
+**问题**: 使用 `window` 对象判断平台，导致主进程检测失败
+
+**错误代码**:
+```typescript
+// ❌ 错误的检测逻辑
+function isDesktop(): boolean {
+  return !!(window as any).electron?.ipcRenderer;  // 主进程返回 false
+}
+
+function isMainProcess(): boolean {
+  return !isDesktop();  // 主进程错误地返回 false
+}
+```
+
+**解决方案**:
+```typescript
+// ✅ 正确的检测逻辑
+function detectPlatform(): 'main' | 'renderer' | 'web' {
+  if (typeof window !== 'undefined' && window) {
+    if ((window as any).electron?.ipcRenderer) {
+      return 'renderer';
+    }
+    return 'web';
+  }
+  return 'main';
+}
+
+const platform = detectPlatform();
+const isMainProcess = platform === 'main';
+const isRenderer = platform === 'renderer';
+const isWeb = platform === 'web';
+```
+
+---
+
 ### 开发流程规范
 
 #### 标准 TDD 开发流程
@@ -552,6 +937,95 @@ const slowOperation = async () => {
     logger.debug('Operation completed', { duration, operation: 'doSomething' });
   }
 };
+```
+
+#### 跨进程调试
+
+Electron 应用的调试需要关注主进程和渲染进程之间的通信：
+
+**1. 调试 IPC 通信**：
+```typescript
+// 主进程：记录 IPC 调用
+setupIPCHandlers(mainProcess) {
+  const handler = async (event: any, channel: string, ...args: any[]) => {
+    logger.debug(`[IPC] Received: ${channel}`, { args });
+    // ... 处理逻辑 ...
+    logger.debug(`[IPC] Response: ${channel}`, { result });
+  };
+}
+```
+
+**2. 调试事件流**：
+```typescript
+// 主进程：追踪事件广播
+private broadcastEvent(channel: string, ...args: any[]): void {
+  logger.debug(`[Broadcast] ${channel}`, { args, windowExists: !!this.mainWindow });
+  if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+    this.mainWindow.webContents.send(channel, ...args);
+    logger.info(`[Broadcast] Sent: ${channel}`);
+  } else {
+    logger.error(`[Broadcast] Failed: ${channel}`, {
+      reason: this.mainWindow ? 'destroyed' : 'null'
+    });
+  }
+}
+
+// 渲染进程：追踪事件接收
+const handlePluginEvent = (event: any, ...args: any[]) => {
+  logger.info(`[Renderer] Received: ${event.type}`, { args });
+  // ... 处理逻辑 ...
+};
+```
+
+**3. 日志文件分析**：
+```bash
+# 实时查看所有日志
+tail -f ~/.config/desktop-tool/logs/app.log
+
+# 过滤特定平台
+grep "\[main\]" ~/.config/desktop-tool/logs/app.log | grep "ERROR"
+grep "\[renderer\]" ~/.config/desktop-tool/logs/app.log | grep "plugin:"
+
+# 查看事件流
+grep "Broadcasting" ~/.config/desktop-tool/logs/app.log
+grep "Received event" ~/.config/desktop-tool/logs/app.log
+
+# 查看最近的错误
+tail -100 ~/.config/desktop-tool/logs/app.log | grep "ERROR"
+```
+
+**4. 跨进程问题诊断**：
+
+| 问题 | 检查步骤 | 解决方法 |
+|------|---------|---------|
+| 事件未触发 | 检查日志中是否有 "Broadcasting" | 确认 `broadcastEvent()` 被调用 |
+| 事件未接收 | 检查日志中是否有 "Received event" | 确认监听器已注册 |
+| 窗口为空 | 检查 "mainWindow is null" | 确认 `setMainWindow()` 已调用 |
+| 窗口已销毁 | 检查 "window is destroyed" | 避免在窗口销毁后发送事件 |
+
+**5. 使用 Chrome DevTools 调试**：
+```typescript
+// 主进程：启动时打开 DevTools
+mainWindow.webContents.openDevTools();
+
+// 渲染进程：在代码中添加断点
+debugger;  // 浏览器会在此处暂停
+
+// 条件断点
+if (pluginId === 'json-tool') {
+  debugger;  // 只在特定条件下暂停
+}
+```
+
+**6. 性能监控**：
+```typescript
+// 监控 IPC 通信延迟
+const sendTime = Date.now();
+await window.electron.ipcRenderer.invoke('plugin:list');
+const duration = Date.now() - sendTime;
+if (duration > 100) {
+  logger.warn('Slow IPC call', { duration, channel: 'plugin:list' });
+}
 ```
 
 ---
@@ -1171,6 +1645,349 @@ npm run dist
     - 在设置中启用调试模式查看详细日志
     - 使用 `npm run test:ui` 可视化调试测试
     - 检查覆盖率报告找出未测试的代码
+
+---
+
+## 最新架构模式（2026-01-18 更新）
+
+### 事件总线（EventBus）
+
+**用途**: 渲染进程组件间通信，无需经过 IPC。
+
+**实现位置**: `src/renderer/utils/eventBus.ts`
+
+**使用示例**:
+
+```typescript
+// 导入事件总线
+import { eventBus, AppEvents } from '../utils/eventBus';
+
+// 发送事件
+eventBus.emit(AppEvents.PLUGINS_CHANGED);
+
+// 监听事件
+const cleanup = eventBus.on(AppEvents.PLUGINS_CHANGED, () => {
+  // 处理事件
+  console.log('Plugins changed!');
+});
+
+// 清理监听（重要！）
+cleanup();
+
+// 在 React 组件中使用
+useEffect(() => {
+  const handlePluginsChanged = () => {
+    loadPlugins();
+  };
+
+  const cleanup = eventBus.on(AppEvents.PLUGINS_CHANGED, handlePluginsChanged);
+
+  return () => {
+    cleanup(); // 组件卸载时清理
+  };
+}, []);
+```
+
+**适用场景**:
+- ✅ 组件间状态同步（如插件列表更新）
+- ✅ 跨层级通信（避免 props drilling）
+- ❌ 不需要持久化的临时通信
+- ❌ 主进程和渲染进程通信（应使用 IPC）
+
+**已定义的事件**:
+```typescript
+export const AppEvents = {
+  PLUGINS_CHANGED: 'app:plugins-changed',
+  // 可以根据需要添加更多事件
+};
+```
+
+---
+
+### 依赖注入模式（Logger 系统）
+
+**问题**: 主进程的 Logger 在打包后路径失效，无法在渲染进程中 `require`
+
+**解决方案**: 依赖注入 + IPC 桥接
+
+**实现位置**: `src/shared/logger/index.ts`
+
+**主进程设置**:
+```typescript
+import { setMainProcessLogService } from './shared/logger';
+
+class MainProcess {
+  constructor() {
+    // 注入 LogService 实例
+    setMainProcessLogService(this.logService);
+  }
+}
+```
+
+**渲染进程使用**:
+```typescript
+import { createLogger } from '../../shared/logger';
+
+const logger = createLogger('ComponentName');
+
+logger.info('This will be sent to main process via IPC');
+logger.error('Error occurred', { error: err });
+```
+
+**IPC 通道**: `LOG_WRITE`
+
+**工作流程**:
+```
+渲染进程调用 logger.info()
+    ↓
+检查是否有 mainProcessLogService
+    ↓
+如果没有 → 通过 IPC 发送到主进程
+    ↓
+主进程 LogService 写入日志文件
+```
+
+---
+
+### UI/UX 最佳实践
+
+#### 1. 内联确认模式
+
+**❌ 错误做法**: 使用原生弹窗
+```typescript
+// 不要这样做！
+if (confirm('确定要删除吗？')) {
+  deleteItem();
+}
+
+// 也不要这样做！
+alert('删除成功！');
+```
+
+**✅ 正确做法**: 内联确认 + Toast 通知
+```typescript
+const [confirmingId, setConfirmingId] = useState<string | null>(null);
+const [showToast, setShowToast] = useState(false);
+const [toastMessage, setToastMessage] = useState('');
+
+// 点击删除按钮
+const handleDeleteClick = (id: string) => {
+  setConfirmingId(id); // 显示确认按钮
+};
+
+// 确认删除
+const confirmDelete = async (id: string) => {
+  try {
+    await deleteItem(id);
+    setToastMessage('删除成功');
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2000);
+  } catch (error) {
+    logger.error('Delete failed', { error });
+  } finally {
+    setConfirmingId(null);
+  }
+};
+
+// 取消删除
+const cancelDelete = () => {
+  setConfirmingId(null);
+};
+
+// JSX
+{confirmingId === item.id ? (
+  <div className="confirm-buttons">
+    <button onClick={() => confirmDelete(item.id)}>✓ 确认</button>
+    <button onClick={cancelDelete}>✕ 取消</button>
+  </div>
+) : (
+  <button onClick={() => handleDeleteClick(item.id)}>🗑️</button>
+)}
+
+{showToast && (
+  <div className="toast success">
+    {toastMessage}
+  </div>
+)}
+```
+
+#### 2. Toast 通知模式
+
+**组件结构**:
+```tsx
+{showToast && (
+  <div className={`toast ${toastType}`}>
+    {toastMessage}
+  </div>
+)}
+```
+
+**CSS 样式** (必须使用 CSS 变量):
+```css
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 8px;
+  background: var(--panel-background);
+  color: var(--text-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.3s ease-out;
+  z-index: 2000;
+}
+
+.toast.success {
+  background: var(--success-color);
+  color: white;
+}
+
+.toast.error {
+  background: var(--error-color);
+  color: white;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+```
+
+---
+
+### CSS 变量规范
+
+**核心原则**: 所有样式必须使用 CSS 变量以支持主题切换。
+
+**✅ 正确**:
+```css
+.plugin-modal {
+  background: var(--panel-background);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.plugin-button {
+  background: var(--button-bg);
+  color: var(--text-secondary);
+}
+
+.plugin-button:hover {
+  background: var(--button-hover-bg);
+  color: var(--text-primary);
+}
+```
+
+**❌ 错误**:
+```css
+.plugin-modal {
+  background: rgba(255, 255, 255, 0.95);  /* 硬编码！ */
+  color: #1a1a2e;                          /* 硬编码！ */
+  border: 1px solid #ccc;                  /* 硬编码！ */
+}
+```
+
+**可用的 CSS 变量**:
+```css
+/* 文字颜色 */
+--text-primary          /* 主文字 */
+--text-secondary        /* 次要文字 */
+--text-tertiary         /* 第三级文字 */
+
+/* 背景色 */
+--panel-background      /* 面板背景 */
+--toolbar-bg           /* 工具栏背景 */
+--overlay-bg           /* 遮罩层背景 */
+
+/* 按钮状态 */
+--button-bg            /* 按钮默认背景 */
+--button-hover-bg      /* 按钮悬停背景 */
+
+/* 主题色 */
+--primary-color        /* 主色调 */
+--primary-text         /* 主色调文字 */
+--primary-color-light  /* 主色调浅色变体 */
+--primary-color-dark   /* 主色调深色变体 */
+
+/* 功能色 */
+--success-color        /* 成功 */
+--warning-color        /* 警告 */
+--error-color          /* 错误 */
+--error-color-light    /* 错误浅色变体 */
+
+/* 边框和分割线 */
+--border-color         /* 边框颜色 */
+
+/* 列表项 */
+--list-item-hover-bg   /* 列表项悬停背景 */
+```
+
+**如何添加新主题**:
+```typescript
+// src/renderer/themes/themes.ts
+{
+  id: 'my-theme',
+  name: '我的主题',
+  mode: 'light',
+  colors: {
+    background: 'rgba(255, 255, 255, 0.8)',
+    foreground: '#0a0a0a',
+    primary: '#0066CC',
+    // ... 其他颜色
+
+    // 可选：自定义文字颜色层级
+    textPrimary: '#000000',
+    textSecondary: '#333333',
+    textTertiary: '#666666',
+    border: '#cccccc',
+    overlay: 'rgba(0, 0, 0, 0.5)'
+  }
+}
+```
+
+---
+
+### 插件管理器最佳实践
+
+**文件**: `src/renderer/components/PluginManager.tsx`
+
+**关键功能**:
+1. **插件列表刷新**: 使用 `eventBus.emit(AppEvents.PLUGINS_CHANGED)` 通知主面板
+2. **卸载流程**: 使用内联确认 + Toast 通知，不使用 confirm/alert
+3. **状态同步**: 同时刷新插件列表和插件状态
+
+**示例**:
+```typescript
+const confirmUninstall = async () => {
+  try {
+    await window.electron?.ipcRenderer?.invoke(
+      IPCChannels.PLUGIN_UNINSTALL,
+      uninstallingPluginId
+    );
+
+    // Toast 通知
+    setToastMessage(`插件 "${uninstallingPluginId}" 已成功卸载`);
+    setShowSuccessToast(true);
+    setTimeout(() => setShowSuccessToast(false), 2000);
+
+    // 刷新列表
+    loadPlugins();
+    loadPluginStates();
+
+    // 通知主面板
+    eventBus.emit(AppEvents.PLUGINS_CHANGED);
+  } catch (error) {
+    logger.error('Failed to uninstall plugin', { error });
+  }
+};
+```
 
 ---
 

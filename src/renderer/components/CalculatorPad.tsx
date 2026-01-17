@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createLogger } from '../../shared/logger';
 import PluginWindow from './PluginWindow/PluginWindow';
+import { pluginRegistry } from '../services/PluginRegistry';
+import { PluginManifest } from '../../shared/types/plugin';
 import './CalculatorPad.css';
 
 const logger = createLogger('CalculatorPad');
@@ -181,6 +183,19 @@ const CalculatorPad: React.FC<CalculatorPadProps> = ({ onClose, onMinimize, onMa
           </div>
         </PluginWindow>
   );
+};
+
+// Plugin manifest
+export const calculatorManifest: PluginManifest = {
+  id: 'com.desktop-tool.calculator-pad',
+  name: '计算稿纸',
+  version: '1.0.0',
+  description: '数学表达式计算，历史记录保存',
+  author: 'Desktop Tool',
+  icon: '🧮',
+  entry: 'index.ts',
+  category: '工具',
+  permissions: ['database']
 };
 
 export default CalculatorPad;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { IPCChannels, PluginEvents } from '@shared/constants/channels';
 import { PluginManifest, PluginState, PluginSource } from '@shared/types/plugin';
 import { createLogger } from '../../shared/logger';
+import { eventBus, AppEvents } from '../utils/eventBus';
 import './PluginManager.css';
 
 const logger = createLogger('PluginManager');
@@ -30,6 +31,9 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [selectedPlugin, setSelectedPlugin] = useState<string | null>(null);
   const [installing, setInstalling] = useState<string | null>(null);
+  const [uninstallingPluginId, setUninstallingPluginId] = useState<string | null>(null);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   // 加载插件列表
   useEffect(() => {
@@ -193,17 +197,39 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
     }
   };
 
-  // 卸载插件
-  const uninstallPlugin = async (pluginId: string) => {
-    if (!confirm(`确定要卸载插件 "${pluginId}" 吗？`)) {
-      return;
-    }
+  // 点击卸载按钮
+  const handleUninstallClick = (pluginId: string) => {
+    setUninstallingPluginId(pluginId);
+  };
+
+  // 确认卸载
+  const confirmUninstall = async () => {
+    if (!uninstallingPluginId) return;
 
     try {
-      await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_UNINSTALL, pluginId);
+      await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_UNINSTALL, uninstallingPluginId);
+      // 显示成功提示
+      setToastMessage(`插件 "${uninstallingPluginId}" 已成功卸载`);
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 2000);
+      // 刷新列表
+      loadPlugins();
+      loadPluginStates();
+      // 通知主面板刷新
+      eventBus.emit(AppEvents.PLUGINS_CHANGED);
     } catch (error) {
       logger.error('Failed to uninstall plugin', { error });
+      setToastMessage(`卸载插件失败: ${error}`);
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 2000);
+    } finally {
+      setUninstallingPluginId(null);
     }
+  };
+
+  // 取消卸载
+  const cancelUninstall = () => {
+    setUninstallingPluginId(null);
   };
 
   // 导入插件
@@ -271,6 +297,8 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
         // 重新加载插件列表
         loadPlugins();
         loadPluginStates();
+        // 通知主面板刷新
+        eventBus.emit(AppEvents.PLUGINS_CHANGED);
       }
     } catch (error) {
       logger.error('Failed to import plugin', { error });
@@ -357,6 +385,16 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
           {/* 操作按钮 */}
           <div className="plugin-manager-actions">
             <button
+              className="plugin-manager-button plugin-manager-button-refresh"
+              onClick={() => {
+                loadPlugins();
+                loadPluginStates();
+              }}
+              title="刷新插件列表"
+            >
+              🔄 刷新
+            </button>
+            <button
               className="plugin-manager-button plugin-manager-button-import"
               onClick={importPlugin}
               title="从 ZIP 文件导入插件"
@@ -437,13 +475,30 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
                       </button>
 
                       {state?.source === PluginSource.LOCAL && (
-                        <button
-                          className="plugin-manager-action plugin-manager-action-uninstall"
-                          onClick={() => uninstallPlugin(plugin.id)}
-                          title="卸载"
-                        >
-                          🗑
-                        </button>
+                        uninstallingPluginId === plugin.id ? (
+                          <div className="plugin-manager-uninstall-confirm">
+                            <button
+                              className="plugin-manager-confirm-yes"
+                              onClick={confirmUninstall}
+                            >
+                              ✓ 确认
+                            </button>
+                            <button
+                              className="plugin-manager-confirm-no"
+                              onClick={cancelUninstall}
+                            >
+                              ✕ 取消
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            className="plugin-manager-action plugin-manager-action-uninstall"
+                            onClick={() => handleUninstallClick(plugin.id)}
+                            title="卸载"
+                          >
+                            🗑
+                          </button>
+                        )
                       )}
 
                       <button
@@ -558,7 +613,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
                       <>
                         <button
                           className="plugin-detail-action-button"
-                          onClick={() => uninstallPlugin(selectedPlugin)}
+                          onClick={() => handleUninstallClick(selectedPlugin)}
                         >
                           卸载插件
                         </button>
@@ -635,6 +690,13 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
                 取消
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Toast 通知 */}
+        {showSuccessToast && (
+          <div className="plugin-manager-toast plugin-manager-toast-success">
+            {toastMessage}
           </div>
         )}
       </div>

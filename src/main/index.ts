@@ -5,6 +5,7 @@ import { PluginManager } from './plugins/manager';
 import { WindowManager } from './windows/manager';
 import { PluginStore } from './services/PluginStore';
 import { logger } from '../shared/logger';
+import logService from './services/LogService';
 
 export default class MainProcess {
   private database: DatabaseService;
@@ -25,11 +26,17 @@ export default class MainProcess {
     await this.database.initialize();
     await this.pluginStore.initialize();
 
+    // 注入 LogService 到 logger（使主进程日志能写入文件）
+    logger.setMainProcessLogService(logService);
+
+    // Create main window first (needed for PluginManager event broadcasting)
+    this.mainWindow = await this.windowManager.createMainWindow();
+
+    // Set main window in plugin manager for event broadcasting
+    this.pluginManager.setMainWindow(this.mainWindow);
+
     // Load plugins
     await this.pluginManager.loadAll();
-
-    // Create main window
-    this.mainWindow = await this.windowManager.createMainWindow();
 
     // Setup IPC handlers
     setupIPCHandlers(this);

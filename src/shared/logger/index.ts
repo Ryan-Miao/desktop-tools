@@ -17,6 +17,7 @@ import {
 class UnifiedLogger {
   private config: LoggerConfig;
   private isDesktop: boolean;
+  private mainProcessLogService?: any;
 
   constructor(config?: Partial<LoggerConfig>) {
     this.config = {
@@ -31,6 +32,14 @@ class UnifiedLogger {
   }
 
   /**
+   * 设置主进程 LogService 实例（依赖注入）
+   * 用于在打包后的代码中，避免动态 require 路径失效
+   */
+  setMainProcessLogService(logService: any): void {
+    this.mainProcessLogService = logService;
+  }
+
+  /**
    * 检测是否为桌面环境
    */
   private detectDesktop(): boolean {
@@ -38,8 +47,21 @@ class UnifiedLogger {
     if (typeof window !== 'undefined' && window) {
       return !!(window as any).electron?.ipcRenderer;
     }
-    // 主进程环境，不是渲染进程
-    return false;
+    // 主进程环境 - 返回 true 以启用文件写入
+    return true;
+  }
+
+  /**
+   * 检测平台类型
+   */
+  private detectPlatform(): 'main' | 'renderer' | 'web' {
+    if (typeof window !== 'undefined' && window) {
+      if ((window as any).electron?.ipcRenderer) {
+        return 'renderer';
+      }
+      return 'web';
+    }
+    return 'main';
   }
 
   /**
@@ -101,7 +123,7 @@ class UnifiedLogger {
       level,
       message,
       data,
-      platform: this.isDesktop ? 'desktop' : 'web',
+      platform: this.detectPlatform(),
       module: this.config.module
     };
 
@@ -112,7 +134,35 @@ class UnifiedLogger {
 
     // 桌面模式：发送到主进程写文件
     if (this.isDesktop && this.config.enableFile) {
-      this.sendToMainProcess(entry);
+      // 检查是否在主进程中
+      if (typeof window === 'undefined' || !window) {
+        // 主进程：直接写入文件
+        this.writeToFileDirectly(entry);
+      } else {
+        // 渲染进程：通过 IPC 发送到主进程
+        this.sendToMainProcess(entry);
+      }
+    }
+  }
+
+  /**
+   * 主进程直接写入文件
+   */
+  private writeToFileDirectly(entry: LogEntry): void {
+    try {
+      // 优先使用注入的 LogService 实例（打包后有效）
+      if (this.mainProcessLogService) {
+        this.mainProcessLogService.write(entry);
+        return;
+      }
+
+      // Fallback: 尝试动态 require（只在开发环境有效）
+      // @ts-ignore - 动态 require
+      const LogService = require('../main/services/LogService').default;
+      LogService.write(entry);
+    } catch (error) {
+      // 如果 LogService 不可用（例如在渲染进程或测试中），忽略错误
+      console.error('[Logger] Failed to write log to file:', entry);
     }
   }
 

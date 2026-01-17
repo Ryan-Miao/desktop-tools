@@ -5,6 +5,7 @@ import { BackupService } from '../services/BackupService';
 import logService from '../services/LogService';
 import { IPCChannels } from '@shared/constants/channels';
 import { WindowConfig } from '@shared/types/plugin';
+import { logger } from '../../shared/logger';
 
 export function setupIPCHandlers(mainProcess: MainProcess) {
   const db = mainProcess.getDatabase();
@@ -70,6 +71,34 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
     return await pluginManager.getAllStates();
   });
 
+  // Get plugin component source code for dynamic loading
+  ipcMain.handle('plugin:get-component-source', async (_, pluginId: string) => {
+    const fs = await import('fs');
+    const path = await import('path');
+    const { app } = await import('electron');
+
+    // Try to find the plugin directory
+    const userDataPluginsDir = path.join(app.getPath('userData'), 'plugins');
+    const pluginDir = path.join(userDataPluginsDir, pluginId);
+
+    // List of possible component files to try
+    const possibleFiles = [
+      'JSONFormatter.tsx',
+      'Component.tsx',
+      'index.tsx',
+      'App.tsx'
+    ];
+
+    for (const filename of possibleFiles) {
+      const componentPath = path.join(pluginDir, filename);
+      if (fs.existsSync(componentPath)) {
+        return fs.readFileSync(componentPath, 'utf-8');
+      }
+    }
+
+    throw new Error(`Plugin component not found for: ${pluginId}`);
+  });
+
   // Plugin management
   ipcMain.handle(IPCChannels.PLUGIN_INSTALL, async (_, pluginPath: string) => {
     await pluginManager.install(pluginPath);
@@ -77,8 +106,15 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
   });
 
   ipcMain.handle(IPCChannels.PLUGIN_UNINSTALL, async (_, pluginId: string) => {
-    await pluginManager.uninstall(pluginId);
-    return { uninstalled: true };
+    try {
+      await pluginManager.uninstall(pluginId);
+      return { uninstalled: true };
+    } catch (error) {
+      // 记录错误
+      logger.error(`Failed to uninstall plugin: ${pluginId}`, { error });
+      // 重新抛出错误，让渲染进程处理
+      throw error;
+    }
   });
 
   ipcMain.handle(IPCChannels.PLUGIN_EXPORT, async (event, pluginId: string) => {
@@ -355,8 +391,8 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
   // 保留旧的LOG_WRITE接口（向后兼容）
   ipcMain.handle(IPCChannels.LOG_WRITE, async (_, formattedLog) => {
     try {
-      // 调试：打印到控制台
-      console.log('[LOG_WRITE] Received log:', formattedLog);
+      // 调试：记录日志
+      logger.debug('[LOG_WRITE] Received log', { log: formattedLog });
 
       // formattedLog 可能是 JSON 字符串或普通字符串
       let entry;
@@ -372,13 +408,12 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
         };
       }
 
-      console.log('[LOG_WRITE] Writing entry:', entry);
+      logger.debug('[LOG_WRITE] Writing entry', { entry });
       await logService.write(entry);
 
-      console.log('[LOG_WRITE] Write successful');
       return { success: true };
     } catch (error) {
-      console.error('[LOG_WRITE] Failed to write log:', error);
+      logger.error('[LOG_WRITE] Failed to write log', { error });
       return { success: false, error: (error as Error).message };
     }
   });
@@ -436,12 +471,9 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
       const windowConfig: WindowConfig = {
         width: 900,
         height: 700,
-        minWidth: 600,
-        minHeight: 400,
         transparent: false,        // 不透明 - 插件可自己设计透明度
         frame: false,              // 无边框 - 去掉原生菜单栏
         skipTaskbar: false,        // 显示任务栏图标
-        backgroundColor: '#ffffff', // 白色背景
         resizable: true,
         maximizable: true,
         minimizable: true,

@@ -156,7 +156,6 @@ export class WindowManager {
       minimizable: windowConfig.minimizable ?? true,
       closable: windowConfig.closable ?? true,
       vibrancy: windowConfig.vibrancy as any,
-      backgroundColor: windowConfig.backgroundColor ?? '#ffffff',
       show: false, // 先不显示，等待内容加载
       webPreferences: {
         preload: path.join(__dirname, '../preload/index.js'),

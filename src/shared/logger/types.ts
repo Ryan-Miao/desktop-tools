@@ -45,7 +45,7 @@ export interface LogEntry {
   /** 附加数据 */
   data?: any;
   /** 平台类型 */
-  platform: 'desktop' | 'web';
+  platform: 'main' | 'renderer' | 'web';
   /** 模块/组件名称 */
   module?: string;
 }

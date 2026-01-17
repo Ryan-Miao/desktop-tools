@@ -17,6 +17,12 @@ export interface Theme {
     success: string;
     warning: string;
     error: string;
+    // Extended colors for better theme support
+    textPrimary?: string;
+    textSecondary?: string;
+    textTertiary?: string;
+    border?: string;
+    overlay?: string;
   };
   glass: {
     blur: number;
@@ -387,8 +393,136 @@ export const themes: Theme[] = [
       opacity: 1,
       saturate: 100
     }
+  },
+
+  // ==================== 高对比度主题 ====================
+  {
+    id: 'high-contrast-dark',
+    name: '深邃黑',
+    icon: '🌑',
+    mode: 'dark',
+    colors: {
+      background: '#000000',
+      foreground: '#ffffff',
+      primary: '#00d9ff',
+      secondary: '#0099cc',
+      accent: '#ff2d55',
+      success: '#00ff88',
+      warning: '#ffcc00',
+      error: '#ff3366',
+      textPrimary: '#ffffff',
+      textSecondary: '#e0e0e0',
+      textTertiary: '#b0b0b0',
+      border: '#404040',
+      overlay: 'rgba(0, 0, 0, 0.8)'
+    },
+    glass: {
+      blur: 0,
+      opacity: 1,
+      saturate: 100
+    }
+  },
+  {
+    id: 'high-contrast-light',
+    name: '纯粹白',
+    icon: '⚪',
+    mode: 'light',
+    colors: {
+      background: '#ffffff',
+      foreground: '#000000',
+      primary: '#0066cc',
+      secondary: '#0052a3',
+      accent: '#ff2d55',
+      success: '#00aa44',
+      warning: '#ff9900',
+      error: '#dd2222',
+      textPrimary: '#000000',
+      textSecondary: '#1a1a1a',
+      textTertiary: '#4a4a4a',
+      border: '#cccccc',
+      overlay: 'rgba(0, 0, 0, 0.5)'
+    },
+    glass: {
+      blur: 0,
+      opacity: 1,
+      saturate: 100
+    }
+  },
+  {
+    id: 'cyber-dark',
+    name: '赛博紫',
+    icon: '🌆',
+    mode: 'dark',
+    colors: {
+      background: '#0d0221',
+      foreground: '#00fff9',
+      primary: '#ff00ff',
+      secondary: '#bd00ff',
+      accent: '#00fff9',
+      success: '#00ff88',
+      warning: '#ffcc00',
+      error: '#ff3366',
+      textPrimary: '#00fff9',
+      textSecondary: '#b000ff',
+      textTertiary: '#7a00aa',
+      border: '#ff00ff',
+      overlay: 'rgba(13, 2, 33, 0.9)'
+    },
+    glass: {
+      blur: 10,
+      opacity: 0.9,
+      saturate: 120
+    }
+  },
+  {
+    id: 'sunset-orange',
+    name: '日落橙',
+    icon: '🌅',
+    mode: 'dark',
+    colors: {
+      background: '#1a0a00',
+      foreground: '#ffd700',
+      primary: '#ff6b00',
+      secondary: '#ff8c00',
+      accent: '#ffd700',
+      success: '#00ff88',
+      warning: '#ffcc00',
+      error: '#ff4444',
+      textPrimary: '#ffd700',
+      textSecondary: '#ffaa00',
+      textTertiary: '#cc8800',
+      border: '#ff6b00',
+      overlay: 'rgba(26, 10, 0, 0.9)'
+    },
+    glass: {
+      blur: 8,
+      opacity: 0.85,
+      saturate: 110
+    }
   }
 ];
+
+/**
+ * 调整颜色透明度
+ * @param color 颜色值（支持 #hex, rgb, rgba）
+ * @param alpha 透明度 0-1
+ */
+function adjustOpacity(color: string, alpha: number): string {
+  if (color.startsWith('#')) {
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  if (color.startsWith('rgb(')) {
+    return color.replace('rgb', 'rgba').replace(')', `, ${alpha})`);
+  }
+  if (color.startsWith('rgba(')) {
+    // Already rgba, just replace alpha
+    return color.replace(/[\d.]+\)$/, `${alpha})`);
+  }
+  return color;
+}
 
 /**
  * 应用主题到 CSS 变量（带平滑过渡动画）
@@ -412,14 +546,42 @@ export function applyTheme(theme: Theme, opacity?: string): void {
   root.style.setProperty('--warning-color', theme.colors.warning);
   root.style.setProperty('--error-color', theme.colors.error);
 
+  // 文字颜色层级（使用主题定义的颜色或自动计算）
+  const textPrimary = theme.colors.textPrimary || theme.colors.foreground;
+  const textSecondary = theme.colors.textSecondary || adjustOpacity(theme.colors.foreground, 0.7);
+  const textTertiary = theme.colors.textTertiary || adjustOpacity(theme.colors.foreground, 0.5);
+
+  root.style.setProperty('--text-primary', textPrimary);
+  root.style.setProperty('--text-secondary', textSecondary);
+  root.style.setProperty('--text-tertiary', textTertiary);
+
+  // 功能颜色（使用主题定义的颜色或自动计算）
+  const borderColor = theme.colors.border || adjustOpacity(theme.colors.foreground, 0.1);
+  const overlayBg = theme.colors.overlay || (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.6)');
+
+  root.style.setProperty('--border-color', borderColor);
+  root.style.setProperty('--overlay-bg', overlayBg);
+
+  // 按钮状态（自动计算）
+  root.style.setProperty('--button-bg', adjustOpacity(theme.colors.foreground, 0.05));
+  root.style.setProperty('--button-hover-bg', adjustOpacity(theme.colors.foreground, 0.1));
+  root.style.setProperty('--list-item-hover-bg', adjustOpacity(theme.colors.primary, 0.08));
+
+  // 主色调变体
+  root.style.setProperty('--primary-text', theme.mode === 'dark' ? '#ffffff' : '#ffffff');
+  root.style.setProperty('--primary-color-light', adjustOpacity(theme.colors.primary, 0.1));
+  root.style.setProperty('--primary-color-dark', adjustOpacity(theme.colors.primary, 0.8));
+
+  // 错误颜色变体
+  root.style.setProperty('--error-color-light', adjustOpacity(theme.colors.error, 0.1));
+
+  // 工具栏背景
+  root.style.setProperty('--toolbar-bg', adjustOpacity(theme.colors.foreground, 0.03));
+
   // 设置毛玻璃效果
   if (theme.mode === 'dark') {
-    root.style.setProperty('--text-secondary', 'rgba(255, 255, 255, 0.6)');
-    root.style.setProperty('--border-color', 'rgba(255, 255, 255, 0.1)');
     root.style.setProperty('--shadow-color', 'rgba(0, 0, 0, 0.3)');
   } else {
-    root.style.setProperty('--text-secondary', 'rgba(0, 0, 0, 0.6)');
-    root.style.setProperty('--border-color', 'rgba(0, 0, 0, 0.1)');
     root.style.setProperty('--shadow-color', 'rgba(0, 0, 0, 0.1)');
   }
 

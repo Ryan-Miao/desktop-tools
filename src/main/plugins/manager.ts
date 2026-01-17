@@ -42,12 +42,36 @@ export class PluginManager implements IPluginManager {
   private builtinPluginsDir: string;
   private userDataPluginsDir: string;
   private initialized = false;
+  private mainWindow: Electron.BrowserWindow | null = null;
 
-  constructor(store: PluginStore) {
+  constructor(store: PluginStore, mainWindow: Electron.BrowserWindow | null = null) {
     this.store = store;
+    this.mainWindow = mainWindow;
     this.builtinPluginsDir = path.join(process.cwd(), 'plugins');
     this.userDataPluginsDir = path.join(app.getPath('userData'), 'plugins');
     this.ensurePluginsDir();
+  }
+
+  /**
+   * Set the main window (for broadcasting events)
+   */
+  setMainWindow(window: Electron.BrowserWindow | null): void {
+    this.mainWindow = window;
+  }
+
+  /**
+   * Broadcast event to renderer process
+   */
+  private broadcastEvent(channel: string, ...args: any[]): void {
+    logger.debug(`Broadcasting event: ${channel}`, { args });
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      this.mainWindow.webContents.send(channel, ...args);
+      logger.debug(`Event sent: ${channel}`);
+    } else {
+      logger.error(`Cannot broadcast event: ${channel}`, {
+        reason: this.mainWindow ? 'destroyed' : 'mainWindow is null'
+      });
+    }
   }
 
   private ensurePluginsDir(): void {
@@ -113,9 +137,11 @@ export class PluginManager implements IPluginManager {
               await this.install(pluginPath);
               logger.info(`Plugin detected and loaded: ${pluginId}`);
               this.emit(PluginEventType.LOADED, pluginId);
+              this.broadcastEvent('plugin:loaded', pluginId);
             } catch (error) {
               logger.error(`Failed to auto-load plugin: ${pluginId}`, { error });
               this.emit(PluginEventType.ERROR, pluginId, error instanceof Error ? error : undefined);
+              this.broadcastEvent('plugin:error', pluginId, error);
             }
             break;
           }
@@ -127,15 +153,30 @@ export class PluginManager implements IPluginManager {
       this.watcher.on('unlinkDir', async (pluginPath: string) => {
         const pluginId = path.basename(pluginPath);
 
-        // 查找对应的 manifest ID
+        logger.info(`Plugin directory deleted: ${pluginId}`);
+
+        // 尝试通过 manifest.id 匹配并清理插件
+        let found = false;
+
         for (const [id, plugin] of this.plugins.entries()) {
           if (plugin.manifest.id === pluginId) {
             await this.unload(id);
-            await this.uninstall(id);
-            logger.info(`Plugin removed and unloaded: ${pluginId}`);
+            // 清理数据库状态（目录已被删除，不需要再删）
+            await this.store.deleteState(id);
+            this.pluginStates.delete(id);
+            logger.info(`Plugin cleaned up after directory deletion: ${pluginId}`);
             this.emit(PluginEventType.UNLOADED, id);
+            this.broadcastEvent('plugin:unloaded', id);
+            found = true;
             break;
           }
+        }
+
+        // 即使未加载，也清理数据库状态
+        if (!found) {
+          await this.store.deleteState(pluginId);
+          this.pluginStates.delete(pluginId);
+          logger.info(`Plugin state cleaned (by dir name): ${pluginId}`);
         }
       });
 
@@ -152,13 +193,42 @@ export class PluginManager implements IPluginManager {
                 await this.reload(id);
                 logger.info(`Plugin reloaded: ${pluginId}`);
                 this.emit(PluginEventType.UPDATED, pluginId);
+                this.broadcastEvent('plugin:updated', pluginId);
               } catch (error) {
                 logger.error(`Failed to reload plugin: ${pluginId}`, { error });
                 this.emit(PluginEventType.ERROR, pluginId, error instanceof Error ? error : undefined);
+                this.broadcastEvent('plugin:error', pluginId, error);
               }
               break;
             }
           }
+        }
+      });
+
+      // 监听文件删除（例如 manifest.json 被删除）
+      this.watcher.on('unlink', async (filePath: string) => {
+        if (filePath.endsWith('manifest.json')) {
+          const pluginDir = path.dirname(filePath);
+          const pluginId = path.basename(pluginDir);
+
+          logger.info(`Plugin manifest deleted: ${pluginId}`);
+
+          // 查找并清理插件
+          for (const [id, plugin] of this.plugins.entries()) {
+            if (plugin.manifest.id === pluginId) {
+              await this.unload(id);
+              await this.store.deleteState(id);
+              this.pluginStates.delete(id);
+              logger.info(`Plugin cleaned up after manifest deletion: ${pluginId}`);
+              this.emit(PluginEventType.UNLOADED, id);
+              this.broadcastEvent('plugin:unloaded', id);
+              break;
+            }
+          }
+
+          // 即使未加载，也清理数据库状态
+          await this.store.deleteState(pluginId);
+          this.pluginStates.delete(pluginId);
         }
       });
 
@@ -172,11 +242,43 @@ export class PluginManager implements IPluginManager {
   // ==================== Plugin Loading ====================
 
   async loadAll(): Promise<void> {
+    // ✅ 验证插件状态一致性（在加载前清理孤立状态）
+    await this.validatePluginStates();
+
     // 加载内置插件
     await this.loadBuiltinPlugins();
 
     // 加载用户插件
     await this.loadUserPlugins();
+  }
+
+  /**
+   * 验证插件状态与文件系统的一致性
+   * 清理文件不存在但数据库状态仍存在的孤立记录
+   */
+  private async validatePluginStates(): Promise<void> {
+    try {
+      const states = await this.store.getAllStates();
+
+      for (const state of states) {
+        const pluginId = state.id;
+
+        // 检查文件是否存在
+        const builtinPath = this.findPluginPath(pluginId, this.builtinPluginsDir);
+        const userPath = this.findPluginPath(pluginId, this.userDataPluginsDir);
+
+        const fileExists = (builtinPath !== null) || (userPath !== null);
+
+        if (!fileExists) {
+          // 文件不存在但状态存在，清理状态
+          logger.warn(`Plugin file missing but state exists: ${pluginId}, cleaning up`);
+          await this.store.deleteState(pluginId);
+          this.pluginStates.delete(pluginId);
+        }
+      }
+    } catch (error) {
+      logger.error('Error validating plugin states', { error });
+    }
   }
 
   private async loadBuiltinPlugins(): Promise<void> {
@@ -524,11 +626,17 @@ export class PluginManager implements IPluginManager {
     // 验证 manifest
     this.validateManifest(manifest);
 
-    // 检查是否已安装
+    // 检查是否已安装（同时检查状态和文件是否存在）
     const existingState = await this.store.getState(manifest.id);
     if (existingState && existingState.installed) {
-      logger.info(`Plugin already installed: ${manifest.id}`);
-      return;
+      // 检查插件文件是否实际存在
+      const existingPath = this.findPluginPath(manifest.id, this.userDataPluginsDir);
+      if (existingPath && fs.existsSync(existingPath)) {
+        logger.info(`Plugin already installed: ${manifest.id}`);
+        return;
+      }
+      // 文件不存在但状态存在，清除旧状态并重新安装
+      logger.info(`Plugin state exists but files missing, reinstalling: ${manifest.id}`);
     }
 
     // 如果是 ZIP 安装，复制到用户插件目录
@@ -541,12 +649,22 @@ export class PluginManager implements IPluginManager {
       installDir = targetDir;
     }
 
+    // 如果插件已加载，先卸载
+    if (this.plugins.has(manifest.id)) {
+      logger.info(`Unloading existing plugin before reinstall: ${manifest.id}`);
+      await this.unload(manifest.id);
+    }
+
     // 加载插件
     await this.loadPlugin(installDir, PluginSource.LOCAL);
 
-    logger.info(`Plugin installed: ${manifest.name}`);
+    logger.info(`Plugin installed: ${manifest.name}`, { pluginId: manifest.id });
 
     this.emit(PluginEventType.LOADED, manifest.id);
+    this.broadcastEvent('plugin:loaded', manifest.id);
+    this.broadcastEvent('plugin:installed', manifest.id);
+
+    logger.debug(`Plugin installation events broadcast complete`, { pluginId: manifest.id });
   }
 
   private async extractPlugin(zipPath: string): Promise<string> {
@@ -580,23 +698,35 @@ export class PluginManager implements IPluginManager {
   }
 
   async uninstall(pluginId: string): Promise<void> {
-    // 卸载插件
-    await this.unload(pluginId);
+    logger.info(`Starting uninstall for plugin: ${pluginId}`);
 
-    // 删除插件目录
-    const pluginPath = this.findPluginPath(pluginId, this.userDataPluginsDir);
-    if (pluginPath && fs.existsSync(pluginPath)) {
-      fs.rmSync(pluginPath, { recursive: true });
-      logger.info(`Plugin directory removed: ${pluginId}`);
+    try {
+      // 卸载插件
+      await this.unload(pluginId);
+
+      // 删除插件目录
+      const pluginPath = this.findPluginPath(pluginId, this.userDataPluginsDir);
+      if (pluginPath && fs.existsSync(pluginPath)) {
+        fs.rmSync(pluginPath, { recursive: true });
+        logger.info(`Plugin directory removed: ${pluginId}`);
+      }
+
+      // 删除状态
+      await this.store.deleteState(pluginId);
+      this.pluginStates.delete(pluginId);
+
+      logger.info(`Plugin uninstalled: ${pluginId}`);
+
+      this.emit(PluginEventType.UNLOADED, pluginId);
+      this.broadcastEvent('plugin:unloaded', pluginId);
+      this.broadcastEvent('plugin:uninstalled', pluginId);
+
+      logger.debug(`Plugin uninstallation events broadcast complete`, { pluginId });
+    } catch (error) {
+      // 捕获并记录异常
+      logger.error(`Error during uninstall of ${pluginId}`, { error });
+      throw error;  // 重新抛出，让上层处理
     }
-
-    // 删除状态
-    await this.store.deleteState(pluginId);
-    this.pluginStates.delete(pluginId);
-
-    logger.info(`Plugin uninstalled: ${pluginId}`);
-
-    this.emit(PluginEventType.UNLOADED, pluginId);
   }
 
   async export(pluginId: string, outputPath: string): Promise<void> {
@@ -610,6 +740,11 @@ export class PluginManager implements IPluginManager {
     // 创建 ZIP 文件
     const zip = new JSZip();
 
+    // 检查是否有编译后的版本
+    const pluginName = path.basename(pluginPath);
+    const distPluginPath = path.join(process.cwd(), 'dist', 'plugins', pluginName);
+    const hasCompiledVersion = fs.existsSync(distPluginPath);
+
     // 添加插件文件
     const addFiles = (dir: string, base: string = '') => {
       const files = fs.readdirSync(dir);
@@ -621,12 +756,30 @@ export class PluginManager implements IPluginManager {
         if (stat.isDirectory()) {
           addFiles(filePath, relativePath);
         } else {
+          // 跳过无用的文件
+          if (file.includes('node_modules') || file.includes('.test.') || file.includes('.spec.')) {
+            return;
+          }
+
+          // 使用原始文件
           const content = fs.readFileSync(filePath);
           zip.file(relativePath, content);
         }
       }
     };
 
+    // 读取 manifest.json（不修改 entry）
+    const manifestPath = path.join(pluginPath, 'manifest.json');
+    let manifest: any = {};
+    if (fs.existsSync(manifestPath)) {
+      manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+      // 保持原始 entry，不修改
+    }
+
+    // 添加 manifest
+    zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+
+    // 添加其他文件
     addFiles(pluginPath);
 
     // 生成 ZIP

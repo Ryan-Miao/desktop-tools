@@ -5,6 +5,17 @@ import StandaloneApp from './StandaloneApp';
 import './styles/global.css';
 import './styles/themes.css';
 
+// Import built-in plugins and their manifests
+import { pluginRegistry } from './services/PluginRegistry';
+import CalculatorPad, { calculatorManifest } from './components/CalculatorPad';
+
+// Register built-in plugins explicitly
+pluginRegistry.register('com.desktop-tool.calculator-pad', {
+  component: CalculatorPad,
+  pluginId: 'com.desktop-tool.calculator-pad',
+  manifest: calculatorManifest
+});
+
 // 检测是否是独立窗口
 const isStandalone = window.location.hash.startsWith('#plugin-standalone/');
 

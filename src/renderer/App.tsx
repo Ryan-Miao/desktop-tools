@@ -8,6 +8,8 @@ import BackupPanel from './components/BackupPanel';
 import { storageService } from './services/StorageService';
 import { themes, applyTheme, getThemeById, getDefaultTheme, updatePanelOpacity } from './themes/themes';
 import { logger } from '../shared/logger';
+import { pluginRegistry } from './services/PluginRegistry';
+import { eventBus, AppEvents } from './utils/eventBus';
 
 interface Plugin {
   id: string;
@@ -32,23 +34,83 @@ function App() {
 
     // 加载插件（内联代码避免循环依赖）
     const loadPluginsInit = () => {
+      logger.info('[App] loadPluginsInit called - reloading plugin list');
       if (window.electron?.ipcRenderer) {
         window.electron.ipcRenderer.invoke(
           window.electron.channels?.PLUGIN_LIST || 'plugin:list'
         ).then((pluginList: Plugin[]) => {
-          const normalizedPlugins = pluginList.map(plugin => ({
-            ...plugin,
-            id: plugin.id.replace('com.desktop-tool.', '')
+          logger.info(`[App] Loaded ${pluginList.length} plugins from main process`);
+          setPlugins(pluginList);
+        }).catch((error) => {
+          logger.error('[App] Failed to load plugins from main process', { error });
+          // Fallback to pluginRegistry
+          const registeredPlugins = pluginRegistry.getAll().map(info => ({
+            id: info.pluginId,
+            name: info.manifest.name,
+            description: info.manifest.description,
+            icon: info.manifest.icon
           }));
-          setPlugins(normalizedPlugins);
-        }).catch(() => {
-          setPlugins(getMockPlugins());
+          logger.info(`[App] Loaded ${registeredPlugins.length} plugins from registry (fallback)`);
+          setPlugins(registeredPlugins);
         });
       } else {
-        setPlugins(getMockPlugins());
+        // Web mode - use pluginRegistry
+        const registeredPlugins = pluginRegistry.getAll().map(info => ({
+          id: info.pluginId,
+          name: info.manifest.name,
+          description: info.manifest.description,
+          icon: info.manifest.icon
+        }));
+        logger.info(`[App] Web mode: Loaded ${registeredPlugins.length} plugins from registry`);
+        setPlugins(registeredPlugins);
       }
     };
+    logger.info('[App] Initial plugin load on mount');
     loadPluginsInit();
+
+    // 监听主进程插件事件
+    const handlePluginLoaded = (event: any, ...args: any[]) => {
+      logger.info(`[App] Received plugin event: ${event}, args: ${JSON.stringify(args)}`);
+      loadPluginsInit();
+    };
+
+    if (window.electron?.ipcRenderer) {
+      logger.info('[App] Setting up plugin event listeners');
+      window.electron.ipcRenderer.on('plugin:loaded', handlePluginLoaded);
+      window.electron.ipcRenderer.on('plugin:unloaded', handlePluginLoaded);
+      window.electron.ipcRenderer.on('plugin:installed', handlePluginLoaded);
+      window.electron.ipcRenderer.on('plugin:uninstalled', handlePluginLoaded);
+      logger.info('[App] Plugin event listeners registered');
+    }
+
+    // 监听 PluginRegistry 事件
+    const handleRegistryChange = (pluginId: string) => {
+      logger.info(`PluginRegistry changed: ${pluginId}, reloading plugins`);
+      loadPluginsInit();
+    };
+
+    pluginRegistry.on('registered', handleRegistryChange);
+    pluginRegistry.on('unregistered', handleRegistryChange);
+
+    // 监听全局事件总线的插件变化事件
+    const handlePluginsChanged = () => {
+      logger.info('[App] Plugins changed (global event), reloading');
+      loadPluginsInit();
+    };
+
+    const cleanupEventBus = eventBus.on(AppEvents.PLUGINS_CHANGED, handlePluginsChanged);
+
+    return () => {
+      if (window.electron?.ipcRenderer) {
+        window.electron.ipcRenderer.removeAllListeners('plugin:loaded');
+        window.electron.ipcRenderer.removeAllListeners('plugin:unloaded');
+        window.electron.ipcRenderer.removeAllListeners('plugin:installed');
+        window.electron.ipcRenderer.removeAllListeners('plugin:uninstalled');
+      }
+      pluginRegistry.off('registered', handleRegistryChange);
+      pluginRegistry.off('unregistered', handleRegistryChange);
+      cleanupEventBus(); // 清理全局事件监听
+    };
   }, []);
 
   // 应用主题和透明度
@@ -101,15 +163,6 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [showSettings, showPluginManager, showBackup]);
-
-  const getMockPlugins = useCallback((): Plugin[] => [
-    {
-      id: 'calculator-pad',
-      name: '计算稿纸',
-      description: '数学表达式计算，历史记录保存',
-      icon: '🧮'
-    }
-  ], []);
 
   const filteredPlugins = useMemo(() => {
     return plugins.filter(plugin => {
@@ -177,16 +230,27 @@ function App() {
         window.electron.ipcRenderer.invoke(
           window.electron.channels?.PLUGIN_LIST || 'plugin:list'
         ).then((pluginList: Plugin[]) => {
-          const normalizedPlugins = pluginList.map(plugin => ({
-            ...plugin,
-            id: plugin.id.replace('com.desktop-tool.', '')
+          setPlugins(pluginList);
+        }).catch((error) => {
+          logger.error('Failed to reload plugins', { error });
+          // Fallback to pluginRegistry
+          const registeredPlugins = pluginRegistry.getAll().map(info => ({
+            id: info.pluginId,
+            name: info.manifest.name,
+            description: info.manifest.description,
+            icon: info.manifest.icon
           }));
-          setPlugins(normalizedPlugins);
-        }).catch(() => {
-          setPlugins(getMockPlugins());
+          setPlugins(registeredPlugins);
         });
       } else {
-        setPlugins(getMockPlugins());
+        // Web mode - use pluginRegistry
+        const registeredPlugins = pluginRegistry.getAll().map(info => ({
+          id: info.pluginId,
+          name: info.manifest.name,
+          description: info.manifest.description,
+          icon: info.manifest.icon
+        }));
+        setPlugins(registeredPlugins);
       }
     };
     loadPluginsInit();
