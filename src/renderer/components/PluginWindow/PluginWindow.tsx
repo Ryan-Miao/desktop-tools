@@ -30,6 +30,10 @@ interface PluginWindowProps {
   className?: string;
   /** 是否显示关闭按钮 */
   showCloseButton?: boolean;
+  /** 插件ID（用于独立窗口功能） */
+  pluginId?: string;
+  /** 是否显示独立窗口按钮 */
+  showStandaloneButton?: boolean;
 }
 
 /**
@@ -57,7 +61,9 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
   minimizable = true,
   showHeader = true,
   className = '',
-  showCloseButton = true
+  showCloseButton = true,
+  pluginId,
+  showStandaloneButton = false
 }) => {
   const [isMaximized, setIsMaximized] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -102,6 +108,18 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
     onClose();
   };
 
+  const handleOpenStandalone = async () => {
+    if (!pluginId || !window.electron?.ipcRenderer) return;
+
+    try {
+      await window.electron.ipcRenderer.invoke('plugin:open-standalone', pluginId, title);
+      // 打开独立窗口后，关闭当前模态框
+      onClose();
+    } catch (error) {
+      console.error('Failed to open standalone window:', error);
+    }
+  };
+
   // 应用透明度和主题
   const style = {
     '--plugin-window-opacity': opacity / 100
@@ -123,6 +141,15 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
             <span className="plugin-window-title-text">{title}</span>
           </div>
           <div className="plugin-window-controls">
+            {showStandaloneButton && pluginId && (
+              <button
+                className="window-control-button standalone"
+                onClick={handleOpenStandalone}
+                title="弹出独立窗口"
+              >
+                <span>⎘</span>
+              </button>
+            )}
             {minimizable && (
               <button
                 className="window-control-button minimize"

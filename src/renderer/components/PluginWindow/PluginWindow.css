@@ -152,6 +152,25 @@
   background: #c90016;
 }
 
+/* 独立窗口按钮样式 */
+.window-control-button.standalone {
+  color: #0078d4;
+}
+
+.window-control-button.standalone:hover {
+  background: rgba(0, 120, 212, 0.15);
+  color: #106ebe;
+}
+
+.dark .window-control-button.standalone {
+  color: #4cc2ff;
+}
+
+.dark .window-control-button.standalone:hover {
+  background: rgba(76, 194, 255, 0.2);
+  color: #71c9ff;
+}
+
 /* ==================== 内容区 ==================== */
 
 .plugin-window-content {

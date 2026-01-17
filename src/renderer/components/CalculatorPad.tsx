@@ -126,6 +126,8 @@ const CalculatorPad: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           icon="🧮"
           onClose={handleClose}
           className="calculator-modal"
+          pluginId="calculator-pad"
+          showStandaloneButton={true}
         >
           {/* 当前计算区 */}
           <div className="current-calculation">

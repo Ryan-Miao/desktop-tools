@@ -1,4 +1,5 @@
 import { ipcMain, BrowserWindow } from 'electron';
+import path from 'path';
 import type MainProcess from '../index';
 import { BackupService } from '../services/BackupService';
 import logService from '../services/LogService';
@@ -377,6 +378,72 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
   // 获取日志文件信息
   ipcMain.handle('log:get-file-info', async () => {
     return logService.getLogFileInfo();
+  });
+
+  // ==================== 独立插件窗口 ====================
+
+  // 存储独立窗口的引用
+  const standaloneWindows = new Map<string, BrowserWindow>();
+
+  // 打开独立插件窗口
+  ipcMain.handle('plugin:open-standalone', async (_, pluginId: string, pluginTitle: string) => {
+    try {
+      // 如果窗口已存在，聚焦它
+      const existingWindow = standaloneWindows.get(pluginId);
+      if (existingWindow && !existingWindow.isDestroyed()) {
+        existingWindow.focus();
+        return { success: true, alreadyOpen: true };
+      }
+
+      // 创建新窗口
+      const standaloneWindow = new BrowserWindow({
+        width: 900,
+        height: 700,
+        minWidth: 600,
+        minHeight: 400,
+        title: pluginTitle,
+        show: false,
+        webPreferences: {
+          nodeIntegration: false,
+          contextIsolation: true,
+          preload: path.join(__dirname, '../preload/index.js')
+        }
+      });
+
+      // 加载插件页面（使用特殊的 URL 参数）
+      standaloneWindow.loadFile(path.join(__dirname, '../../dist/renderer/index.html'), {
+        hash: `#plugin-standalone/${pluginId}`
+      });
+
+      // 窗口准备好后显示
+      standaloneWindow.once('ready-to-show', () => {
+        standaloneWindow.show();
+      });
+
+      // 窗口关闭时清除引用
+      standaloneWindow.on('closed', () => {
+        standaloneWindows.delete(pluginId);
+      });
+
+      // 存储窗口引用
+      standaloneWindows.set(pluginId, standaloneWindow);
+
+      return { success: true };
+    } catch (error) {
+      logger.error(`Failed to open standalone window for plugin: ${pluginId}`, { error });
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // 关闭独立插件窗口
+  ipcMain.handle('plugin:close-standalone', async (_, pluginId: string) => {
+    const window = standaloneWindows.get(pluginId);
+    if (window && !window.isDestroyed()) {
+      window.close();
+      standaloneWindows.delete(pluginId);
+      return { success: true };
+    }
+    return { success: false, error: 'Window not found' };
   });
 
   // ==================== Setup Auto Backup ====================
