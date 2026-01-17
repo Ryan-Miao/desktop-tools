@@ -5,10 +5,12 @@
 ## 目录
 
 - [插件概述](#插件概述)
+- [独立窗口架构](#独立窗口架构)
 - [快速开始](#快速开始)
 - [插件结构](#插件结构)
-- [Manifest 配置](#manifest-配置)
 - [插件组件](#插件组件)
+- [窗口控制](#窗口控制)
+- [样式和主题](#样式和主题)
 - [API 参考](#api-参考)
 - [最佳实践](#最佳实践)
 - [发布插件](#发布插件)
@@ -16,35 +18,78 @@
 
 ## 插件概述
 
-Desktop Tool 采用基于 React 组件的插件系统。每个插件都是一个独立的 React 组件，可以访问应用的主题、存储服务等功能。
+Desktop Tool 采用基于 React 组件的插件系统，每个插件都在独立的 Electron BrowserWindow 中运行，提供完整的窗口控制功能。
 
 ### 插件类型
 
 1. **内置插件** - 随应用一起发布的插件
 2. **外部插件** - 用户安装的第三方插件（计划中）
 
+### 核心特性
+
+- 🖥️ **独立窗口** - 完整的窗口控制（最小化、最大化、关闭）
+- 🎯 **自定义标题栏** - 使用 PluginWindow 组件，无原生菜单栏
+- 🖱️ **拖拽支持** - 标题栏可拖拽移动窗口
+- ⌨️ **快捷键** - ESC 键快速关闭窗口
+- 💾 **状态持久化** - 自动保存和恢复窗口状态
+- 🎨 **主题适配** - 自动适配应用主题（浅色/深色）
+
+## 独立窗口架构
+
+### 窗口生命周期
+
+```
+用户点击插件图标
+    ↓
+App.tsx: handlePluginClick()
+    ↓
+IPC: plugin:open-standalone
+    ↓
+WindowManager: createPluginWindow()
+    ↓
+创建 Electron BrowserWindow (frame: false)
+    ↓
+加载独立窗口路由 (#plugin-standalone/{pluginId})
+    ↓
+StandaloneApp.tsx: 根据 pluginId 渲染对应插件
+    ↓
+插件组件使用 PluginWindow 包装
+    ↓
+显示独立窗口，等待用户操作
+```
+
+### 窗口配置
+
+独立窗口默认配置：
+
+```typescript
+{
+  width: 900,
+  height: 700,
+  minWidth: 600,
+  minHeight: 400,
+  transparent: false,      // 不透明
+  frame: false,            // 无边框
+  skipTaskbar: false,      // 显示任务栏图标
+  backgroundColor: '#ffffff',
+  resizable: true,
+  maximizable: true,
+  minimizable: true,
+  closable: true
+}
+```
+
 ## 快速开始
 
 ### 创建一个简单的插件
 
 ```bash
-# 1. 在 plugins 目录创建插件文件夹
-mkdir plugins/my-plugin
-cd plugins/my-plugin
+# 1. 在 src/renderer/components 创建插件目录
+mkdir -p src/renderer/components/MyPlugin
 
-# 2. 创建 manifest.json
-cat > manifest.json << EOF
-{
-  "id": "com.desktop-tool.my-plugin",
-  "name": "我的插件",
-  "version": "1.0.0",
-  "description": "我的第一个插件",
-  "icon": "🚀",
-  "author": "Your Name",
-  "license": "MIT",
-  "category": "utilities"
-}
-EOF
+# 2. 创建插件组件文件
+cd src/renderer/components/MyPlugin
+touch MyPlugin.tsx
 ```
 
 ## 插件结构
@@ -52,14 +97,29 @@ EOF
 ### 标准结构
 
 ```
-plugins/
-└── my-plugin/
-    ├── manifest.json           # 插件清单（必需）
-    ├── index.tsx              # 插件组件（可选，内置插件）
-    ├── styles.css             # 样式文件（可选）
-    └── assets/                # 资源文件（可选）
-        ├── icon.png
-        └── screenshot.png
+src/renderer/components/
+└── MyPlugin/
+    ├── MyPlugin.tsx           # 插件主组件（必需）
+    ├── MyPlugin.css           # 插件样式（可选）
+    └── index.ts               # 导出文件（推荐）
+```
+
+### 推荐的组织方式
+
+```
+src/renderer/components/
+├── PluginWindow/              # 共享的窗口包装组件
+│   ├── PluginWindow.tsx
+│   ├── PluginWindow.css
+│   └── index.ts
+├── MyPlugin/
+│   ├── MyPlugin.tsx
+│   ├── MyPlugin.css
+│   └── index.ts
+└── AnotherPlugin/
+    ├── AnotherPlugin.tsx
+    ├── AnotherPlugin.css
+    └── index.ts
 ```
 
 ### 内置 vs 外部插件
@@ -68,121 +128,228 @@ plugins/
 |------|---------|---------|
 | 位置 | `src/renderer/components/` | `plugins/` |
 | 组件 | React 组件 | manifest.json + 代码 |
-| 热更新 | 支持 | 计划中 |
+| 热更新 | ✅ 支持 | 计划中 |
 | 权限 | 完整 | 受限（计划） |
-
-## Manifest 配置
-
-### 完整配置示例
-
-```json
-{
-  "id": "com.desktop-tool.example",
-  "name": "示例插件",
-  "version": "1.0.0",
-  "description": "这是一个示例插件",
-  "icon": "🔧",
-  "author": "Your Name",
-  "license": "MIT",
-  "homepage": "https://github.com/yourusername/example-plugin",
-  "repository": "https://github.com/yourusername/example-plugin",
-  "keywords": ["工具", "实用", "示例"],
-  "category": "utilities",
-  "enabled": true,
-  "minAppVersion": "1.0.0",
-  "permissions": [
-    "storage",
-    "clipboard",
-    "network"
-  ]
-}
-```
-
-### 配置字段说明
-
-| 字段 | 类型 | 必需 | 说明 |
-|------|------|------|------|
-| `id` | string | ✅ | 唯一标识符，建议使用反向域名格式 |
-| `name` | string | ✅ | 插件名称 |
-| `version` | string | ✅ | 版本号，遵循 semver 规范 |
-| `description` | string | ✅ | 插件描述 |
-| `icon` | string | ✅ | 插件图标（emoji 或文件名） |
-| `author` | string | ✅ | 作者名称 |
-| `license` | string | ❌ | 许可证 |
-| `homepage` | string | ❌ | 主页 URL |
-| `repository` | string | ❌ | 仓库 URL |
-| `keywords` | string[] | ❌ | 关键词列表 |
-| `category` | string | ❌ | 分类 |
-| `enabled` | boolean | ❌ | 是否启用（默认 true） |
-| `minAppVersion` | string | ❌ | 最低应用版本要求 |
-| `permissions` | string[] | ❌ | 权限列表 |
-
-### 分类列表
-
-- `utilities` - 实用工具
-- `development` - 开发工具
-- `text` - 文本处理
-- `converter` - 转换工具
-- `generator` - 生成工具
-- `media` - 多媒体
-- `system` - 系统工具
+| 窗口控制 | ✅ 完整支持 | ✅ 完整支持 |
 
 ## 插件组件
 
 ### 基础组件
 
+插件组件必须使用 `PluginWindow` 包装，以获得完整的窗口控制功能：
+
 ```tsx
 import React, { useState } from 'react';
+import PluginWindow from '../PluginWindow/PluginWindow';
 import { storageService } from '../../services/StorageService';
 
 interface MyPluginProps {
   onClose: () => void;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
 }
 
-const MyPlugin: React.FC<MyPluginProps> = ({ onClose }) => {
+const MyPlugin: React.FC<MyPluginProps> = ({
+  onClose,
+  onMinimize,
+  onMaximize
+}) => {
   const [value, setValue] = useState('');
 
   const handleSubmit = () => {
     // 处理逻辑
     console.log('提交:', value);
+
+    // 保存到存储
+    storageService.updatePluginState('my-plugin', {
+      customData: { lastValue: value }
+    });
+
+    // 关闭窗口
     onClose();
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>我的插件</h2>
-          <button onClick={onClose} className="close-button">✕</button>
-        </div>
-        <div className="modal-body">
-          <input
-            type="text"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="输入内容..."
-            className="input-field"
-          />
-          <button onClick={handleSubmit} className="submit-button">
-            提交
-          </button>
-        </div>
+    <PluginWindow
+      title="我的插件"
+      icon="🚀"
+      onClose={onClose}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      className="my-plugin-standalone"
+      pluginId="my-plugin"
+      showStandaloneButton={false}
+    >
+      <div className="my-plugin-content">
+        <h2>欢迎使用我的插件</h2>
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="输入内容..."
+          className="input-field"
+        />
+        <button onClick={handleSubmit} className="submit-button">
+          提交
+        </button>
       </div>
-    </div>
+    </PluginWindow>
   );
 };
 
 export default MyPlugin;
 ```
 
-### 样式指南
+### PluginWindow 组件属性
 
-使用全局 CSS 变量以适配主题：
+| 属性 | 类型 | 必需 | 说明 |
+|------|------|------|------|
+| `title` | string | ✅ | 窗口标题 |
+| `icon` | string | ✅ | 窗口图标（emoji） |
+| `onClose` | () => void | ✅ | 关闭回调 |
+| `onMinimize` | () => void | ❌ | 最小化回调 |
+| `onMaximize` | () => void | ❌ | 最大化回调 |
+| `className` | string | ❌ | 自定义样式类 |
+| `pluginId` | string | ❌ | 插件 ID |
+| `showStandaloneButton` | boolean | ❌ | 是否显示独立窗口按钮（独立窗口中应为 false） |
+| `children` | ReactNode | ✅ | 插件内容 |
+
+## 窗口控制
+
+### 注册插件到应用
+
+插件需要在两个地方注册：
+
+#### 1. App.tsx - 添加到插件列表
+
+```tsx
+// src/renderer/App.tsx
+
+import MyPlugin from './components/MyPlugin';
+
+const plugins: Plugin[] = [
+  // ... 其他插件
+  {
+    id: 'my-plugin',
+    name: '我的插件',
+    description: '这是一个示例插件',
+    icon: '🚀'
+  }
+];
+
+// 点击插件时通过 IPC 打开独立窗口
+const handlePluginClick = async (pluginId: string) => {
+  try {
+    if (window.electron?.ipcRenderer) {
+      const plugin = plugins.find(p => p.id === pluginId);
+      const result = await window.electron.ipcRenderer.invoke(
+        'plugin:open-standalone',
+        pluginId,
+        plugin?.name || 'Plugin'
+      );
+
+      if (result.success) {
+        storageService.updatePluginLastUsed(pluginId);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to open plugin window:', error);
+  }
+};
+```
+
+#### 2. StandaloneApp.tsx - 添加渲染逻辑
+
+```tsx
+// src/renderer/StandaloneApp.tsx
+
+import MyPlugin from './components/MyPlugin';
+
+function StandaloneApp() {
+  const [pluginId, setPluginId] = useState<string | null>(null);
+  const [windowId, setWindowId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#plugin-standalone/')) {
+      const id = hash.replace('#plugin-standalone/', '');
+      setPluginId(id);
+      setWindowId(`standalone-${id}`);
+    }
+  }, []);
+
+  const handleClose = async () => {
+    if (window.electron?.ipcRenderer && windowId) {
+      await window.electron.ipcRenderer.invoke('standalone-window:close', windowId);
+    }
+  };
+
+  const handleMinimize = async () => {
+    if (window.electron?.ipcRenderer && windowId) {
+      await window.electron.ipcRenderer.invoke('standalone-window:minimize', windowId);
+    }
+  };
+
+  const handleMaximize = async () => {
+    if (window.electron?.ipcRenderer && windowId) {
+      await window.electron.ipcRenderer.invoke('standalone-window:maximize', windowId);
+    }
+  };
+
+  if (pluginId === 'my-plugin') {
+    return (
+      <div className="standalone-container">
+        <Suspense fallback={<div className="plugin-loading"><p>加载中...</p></div>}>
+          <MyPlugin
+            onClose={handleClose}
+            onMinimize={handleMinimize}
+            onMaximize={handleMaximize}
+          />
+        </Suspense>
+      </div>
+    );
+  }
+
+  return <div>Unknown plugin</div>;
+}
+```
+
+### IPC 通信
+
+插件可以通过 IPC 与主进程通信：
+
+```typescript
+// 窗口控制
+await window.electron.ipcRenderer.invoke('standalone-window:close', windowId);
+await window.electron.ipcRenderer.invoke('standalone-window:minimize', windowId);
+await window.electron.ipcRenderer.invoke('standalone-window:maximize', windowId);
+await window.electron.ipcRenderer.invoke('standalone-window:is-maximized', windowId);
+
+// 系统功能
+await window.electron.ipcRenderer.invoke('SYSTEM_NOTIFICATION', {
+  title: '通知标题',
+  body: '通知内容'
+});
+
+const clipboardText = await window.electron.ipcRenderer.invoke('SYSTEM_CLIPBOARD', {
+  type: 'read'
+});
+```
+
+### ESC 键支持
+
+ESC 键关闭功能由 StandaloneApp 自动处理，插件无需额外实现。
+
+## 样式和主题
+
+### 使用全局 CSS 变量
+
+插件应使用全局 CSS 变量以自动适配主题：
 
 ```css
-/* styles.css */
-.my-plugin-container {
-  background: var(--modal-background);
+/* MyPlugin.css */
+.my-plugin-content {
+  background: var(--panel-background);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
@@ -209,11 +376,47 @@ export default MyPlugin;
 | 变量 | 用途 |
 |------|------|
 | `--primary-color` | 主色调 |
-| `--modal-background` | 模态框背景 |
+| `--panel-background` | 面板背景 |
 | `--text-primary` | 主文本颜色 |
 | `--text-secondary` | 次要文本颜色 |
 | `--border-color` | 边框颜色 |
 | `--background-hover` | 悬停背景 |
+
+### 独立窗口样式
+
+独立窗口容器样式（已内置）：
+
+```css
+/* 全局样式 - src/renderer/styles/global.css */
+.standalone-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.my-plugin-standalone {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.plugin-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+```
+
+### 窗口拖拽
+
+标题栏拖拽功能由 `PluginWindow` 组件自动处理，通过 CSS `-webkit-app-region: drag` 实现。插件内容中的交互元素需要设置 `-webkit-app-region: no-drag`。
 
 ## API 参考
 
@@ -458,18 +661,37 @@ const I18nPlugin: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
 ## 示例插件
 
-### JSON 工具插件
+### JSON 工具插件（独立窗口版本）
 
-完整的 JSON 工具实现：
+完整的 JSON 工具实现，使用独立窗口：
 
 ```tsx
 import React, { useState } from 'react';
+import PluginWindow from '../PluginWindow/PluginWindow';
 import { storageService } from '../../services/StorageService';
 
-const JSONTool: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+interface JSONToolProps {
+  onClose: () => void;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+}
+
+const JSONTool: React.FC<JSONToolProps> = ({
+  onClose,
+  onMinimize,
+  onMaximize
+}) => {
   const [input, setInput] = useState('');
   const [output, setOutput] = useState('');
   const [mode, setMode] = useState<'format' | 'minify' | 'escape'>('format');
+
+  // 从存储恢复上次输入
+  React.useEffect(() => {
+    const state = storageService.getPluginState('json-tool');
+    if (state?.customData?.lastInput) {
+      setInput(state.customData.lastInput);
+    }
+  }, []);
 
   const processJSON = () => {
     try {
@@ -501,55 +723,69 @@ const JSONTool: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }
   };
 
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(output);
+  };
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content json-tool" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>JSON 工具</h2>
-          <button onClick={onClose}>✕</button>
+    <PluginWindow
+      title="JSON 工具"
+      icon="📋"
+      onClose={onClose}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      className="json-tool-standalone"
+      pluginId="json-tool"
+      showStandaloneButton={false}
+    >
+      <div className="json-tool-content">
+        <div className="mode-selector">
+          <button
+            className={mode === 'format' ? 'active' : ''}
+            onClick={() => setMode('format')}
+          >
+            格式化
+          </button>
+          <button
+            className={mode === 'minify' ? 'active' : ''}
+            onClick={() => setMode('minify')}
+          >
+            压缩
+          </button>
+          <button
+            className={mode === 'escape' ? 'active' : ''}
+            onClick={() => setMode('escape')}
+          >
+            转义
+          </button>
         </div>
 
-        <div className="modal-body">
-          <div className="mode-selector">
-            <button
-              className={mode === 'format' ? 'active' : ''}
-              onClick={() => setMode('format')}
-            >
-              格式化
-            </button>
-            <button
-              className={mode === 'minify' ? 'active' : ''}
-              onClick={() => setMode('minify')}
-            >
-              压缩
-            </button>
-            <button
-              className={mode === 'escape' ? 'active' : ''}
-              onClick={() => setMode('escape')}
-            >
-              转义
-            </button>
-          </div>
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="输入 JSON..."
+          className="input-area"
+        />
 
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="输入 JSON..."
-            className="input-area"
-          />
-
+        <div className="action-buttons">
           <button onClick={processJSON} className="process-button">
             处理
           </button>
-
-          <textarea
-            value={output}
-            readOnly
-            className="output-area"
-          />
+          {output && (
+            <button onClick={copyToClipboard} className="copy-button">
+              复制结果
+            </button>
+          )}
         </div>
+
+        <textarea
+          value={output}
+          readOnly
+          className="output-area"
+          placeholder="处理结果将显示在这里..."
+        />
       </div>
-    </div>
+    </PluginWindow>
   );
 };
 
@@ -557,24 +793,27 @@ export default JSONTool;
 ```
 
 ```css
-/* styles.css */
-.json-tool {
-  max-width: 800px;
-  width: 90vw;
+/* JSONTool.css */
+.json-tool-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  height: 100%;
 }
 
 .mode-selector {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
 }
 
 .mode-selector button {
   padding: 8px 16px;
   border: 1px solid var(--border-color);
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--panel-background);
   border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .mode-selector button.active {
@@ -586,25 +825,41 @@ export default JSONTool;
 .input-area,
 .output-area {
   width: 100%;
-  min-height: 200px;
-  margin: 8px 0;
+  flex: 1;
   padding: 12px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   font-family: 'Courier New', monospace;
   font-size: 14px;
-  resize: vertical;
+  resize: none;
+  background: var(--panel-background);
+  color: var(--text-primary);
 }
 
-.process-button {
-  width: 100%;
-  padding: 12px;
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.process-button,
+.copy-button {
+  padding: 12px 24px;
   background: var(--primary-color);
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
+  transition: opacity 0.2s;
+}
+
+.process-button:hover,
+.copy-button:hover {
+  opacity: 0.9;
+}
+
+.copy-button {
+  background: var(--text-secondary);
 }
 ```
 

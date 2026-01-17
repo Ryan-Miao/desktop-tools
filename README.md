@@ -27,11 +27,20 @@
 ### 核心功能
 
 - 🎨 **精美界面** - Mac 风格毛玻璃效果，流畅动画，8 种预设主题
-- 🔌 **插件系统** - 可扩展的插件架构，轻松添加新功能
+- 🔌 **插件系统** - 可扩展的插件架构，独立窗口，完整窗口控制
 - ⏰ **悬浮时钟** - 桌面悬浮时钟，久坐提醒， productivity tracking
 - 📊 **统计报表** - 键盘鼠标使用统计，Chart.js 数据可视化
 - 💾 **数据备份** - 支持全量备份和恢复，ZIP 格式
 - 🌐 **双模式** - 支持 Electron 桌面应用和 Web 应用
+
+### 插件窗口特性
+
+- 🖥️ **独立窗口** - 每个插件在独立的 Electron BrowserWindow 中运行
+- 🎯 **完整控制** - 支持最小化、最大化、关闭，ESC 键快速关闭
+- 🎨 **自定义标题栏** - 无原生菜单栏，完全自定义的窗口控制
+- 🖱️ **自由拖拽** - 窗口可独立拖拽移动，不受主面板限制
+- 💾 **状态持久化** - 自动保存窗口位置、大小、最大化状态
+- 🔄 **多窗口支持** - 同时打开多个插件窗口，独立操作
 
 ### 技术亮点
 
@@ -236,64 +245,67 @@ desktop-tool/
 
 ## 插件开发
 
+### 插件特性
+
+插件在独立的 Electron BrowserWindow 中运行，具备以下特性：
+
+- ✅ **独立窗口** - 完整的窗口控制（最小化、最大化、关闭）
+- ✅ **自定义标题栏** - 无原生菜单栏，使用 PluginWindow 组件
+- ✅ **拖拽支持** - 标题栏可拖拽移动窗口
+- ✅ **ESC 关闭** - 按 ESC 键快速关闭窗口
+- ✅ **状态持久化** - 自动保存和恢复窗口状态
+- ✅ **主题适配** - 自动适配应用主题（浅色/深色）
+
 ### 插件结构
 
 ```
-plugins/
-└── your-plugin/
-    ├── manifest.json    # 插件清单
-    ├── index.tsx        # 插件组件（可选）
-    └── assets/          # 资源文件（可选）
+src/renderer/components/
+└── YourPlugin/
+    ├── YourPlugin.tsx        # 插件主组件
+    ├── YourPlugin.css        # 插件样式（可选）
+    └── index.ts              # 导出文件
 ```
 
-### manifest.json
-
-```json
-{
-  "id": "com.desktop-tool.your-plugin",
-  "name": "你的插件",
-  "version": "1.0.0",
-  "description": "插件描述",
-  "icon": "🔧",
-  "author": "你的名字",
-  "license": "MIT",
-  "keywords": ["工具", "实用"],
-  "category": "utilities",
-  "enabled": true
-}
-```
-
-### 插件组件
+### 插件组件示例
 
 ```tsx
 import React, { useState } from 'react';
-import './styles.css';
+import PluginWindow from '../PluginWindow/PluginWindow';
+import './YourPlugin.css';
 
 interface YourPluginProps {
   onClose: () => void;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
 }
 
-const YourPlugin: React.FC<YourPluginProps> = ({ onClose }) => {
+const YourPlugin: React.FC<YourPluginProps> = ({
+  onClose,
+  onMinimize,
+  onMaximize
+}) => {
   const [value, setValue] = useState('');
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>你的插件</h2>
-          <button onClick={onClose}>✕</button>
-        </div>
-        <div className="modal-body">
-          {/* 插件内容 */}
-          <input
-            type="text"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="输入内容..."
-          />
-        </div>
+    <PluginWindow
+      title="你的插件"
+      icon="🔧"
+      onClose={onClose}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      className="your-plugin-standalone"
+      pluginId="your-plugin"
+      showStandaloneButton={false}
+    >
+      <div className="your-plugin-content">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="输入内容..."
+        />
       </div>
-    </div>
+    </PluginWindow>
   );
 };
 
@@ -302,14 +314,11 @@ export default YourPlugin;
 
 ### 注册插件
 
-在 `src/renderer/App.tsx` 中注册你的插件：
+在 `src/renderer/App.tsx` 和 `src/renderer/StandaloneApp.tsx` 中注册：
 
+**App.tsx (添加到插件列表):**
 ```tsx
-// 1. 导入插件组件
-import YourPlugin from './components/YourPlugin';
-
-// 2. 添加到插件列表
-const getMockPlugins = (): Plugin[] => [
+const plugins: Plugin[] = [
   // ... 其他插件
   {
     id: 'your-plugin',
@@ -318,11 +327,26 @@ const getMockPlugins = (): Plugin[] => [
     icon: '🔧'
   }
 ];
+```
 
-// 3. 添加渲染逻辑
-{activePlugin === 'your-plugin' && (
-  <YourPlugin onClose={handleClosePlugin} />
-)}
+**StandaloneApp.tsx (添加渲染逻辑):**
+```tsx
+import YourPlugin from './components/YourPlugin';
+
+// 在组件中添加
+if (pluginId === 'your-plugin') {
+  return (
+    <div className="standalone-container">
+      <Suspense fallback={<div className="plugin-loading"><p>加载中...</p></div>}>
+        <YourPlugin
+          onClose={handleClose}
+          onMinimize={handleMinimize}
+          onMaximize={handleMaximize}
+        />
+      </Suspense>
+    </div>
+  );
+}
 ```
 
 详细插件开发指南请查看 [PLUGIN_DEVELOPMENT.md](./PLUGIN_DEVELOPMENT.md)
