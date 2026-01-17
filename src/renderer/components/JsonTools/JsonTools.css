@@ -1,0 +1,193 @@
+/* JSON 工具容器 */
+.json-tools-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 500px;
+  min-height: 400px;
+}
+
+/* 模式选择按钮组 */
+.json-tools-modes {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.mode-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--background-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.mode-btn:hover {
+  background: var(--background-hover);
+  border-color: var(--primary-color);
+}
+
+.mode-btn.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* 当前模式标题 */
+.json-tools-current-mode {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 8px 0;
+}
+
+/* 区域容器 */
+.json-tools-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 标签 */
+.json-tools-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* 输入/输出文本框 */
+.json-tools-input,
+.json-tools-output {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--background-secondary);
+  color: var(--text-primary);
+  font-family: 'Courier New', 'Monaco', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.json-tools-input:focus,
+.json-tools-output:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.json-tools-input::placeholder,
+.json-tools-output::placeholder {
+  color: var(--text-tertiary);
+}
+
+.json-tools-output {
+  background: var(--background-tertiary);
+}
+
+/* 操作按钮组 */
+.json-tools-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.action-btn {
+  padding: 8px 24px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--background-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.action-btn:hover:not(:disabled) {
+  background: var(--background-hover);
+  border-color: var(--primary-color);
+}
+
+.action-btn.primary {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.action-btn.primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 错误提示 */
+.json-tools-error {
+  padding: 12px;
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid var(--error-color);
+  border-radius: 6px;
+  color: var(--error-color);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* 滚动条样式 */
+.json-tools-input::-webkit-scrollbar,
+.json-tools-output::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.json-tools-input::-webkit-scrollbar-track,
+.json-tools-output::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+  border-radius: 4px;
+}
+
+.json-tools-input::-webkit-scrollbar-thumb,
+.json-tools-output::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.json-tools-input::-webkit-scrollbar-thumb:hover,
+.json-tools-output::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* 响应式调整 */
+@media (max-width: 600px) {
+  .json-tools-content {
+    min-width: unset;
+    padding: 12px;
+  }
+
+  .json-tools-modes {
+    flex-direction: column;
+  }
+
+  .mode-btn {
+    width: 100%;
+  }
+
+  .json-tools-actions {
+    flex-direction: column;
+  }
+
+  .action-btn {
+    width: 100%;
+  }
+}
