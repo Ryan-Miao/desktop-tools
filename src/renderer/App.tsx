@@ -136,25 +136,10 @@ function App() {
     document.documentElement.style.setProperty('--panel-opacity', `${opacityValue}`);
   }, [themeId]);
 
-  // 调试：监听 activePlugin 变化
-  useEffect(() => {
-    logger.info('activePlugin state changed', {
-      value: activePlugin,
-      stackTrace: new Error().stack?.split('\n').slice(1, 5)
-    });
-  }, [activePlugin]);
-
   // ESC 键监听 - 关闭所有面板
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      logger.debug('Key down event', { key: event.key, code: event.code });
       if (event.key === 'Escape') {
-        logger.info('ESC key pressed, closing panels', {
-          activePlugin,
-          showSettings,
-          showPluginManager,
-          showBackup
-        });
         // 关闭所有打开的面板
         if (activePlugin) {
           setActivePlugin(null);
@@ -203,50 +188,14 @@ function App() {
   }, [plugins, searchQuery]);
 
   const handlePluginClick = (pluginId: string) => {
-    logger.info('handlePluginClick called', {
-      pluginId,
-      stackTrace: new Error().stack?.split('\n').slice(1, 4)
-    });
     setActivePlugin(pluginId);
     // 更新最后使用时间
     storageService.updatePluginLastUsed(pluginId);
   };
 
   const handleClosePlugin = () => {
-    logger.error('!!! handleClosePlugin called !!!', {
-      activePlugin,
-      stackTrace: new Error().stack?.split('\n').slice(1, 8)
-    });
     setActivePlugin(null);
   };
-
-  // 添加全局错误处理
-  useEffect(() => {
-    const handleError = (event: ErrorEvent) => {
-      logger.error('Global error caught', {
-        message: event.message,
-        filename: event.filename,
-        lineno: event.lineno,
-        colno: event.colno,
-        error: event.error?.stack
-      });
-    };
-
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      logger.error('Unhandled promise rejection', {
-        reason: event.reason,
-        promise: event.promise
-      });
-    };
-
-    window.addEventListener('error', handleError);
-    window.addEventListener('unhandledrejection', handleUnhandledRejection);
-
-    return () => {
-      window.removeEventListener('error', handleError);
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-    };
-  }, []);
 
   const handleSearchEnter = useCallback(() => {
     if (filteredPlugins.length > 0) {
