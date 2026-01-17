@@ -43,14 +43,22 @@ class LogService {
   private logFileName: string = 'app.log';
   private maxLogSize: number = 10 * 1024 * 1024; // 10MB
   private maxLogFiles: number = 5;
+  private maxLogAge: number = 30 * 24 * 60 * 60 * 1000; // 30天
   private writeQueue: string[] = [];
   private isWriting: boolean = false;
   private minLevel: LogLevel = LogLevel.DEBUG; // 默认记录所有级别
+  private cleanupTimer?: NodeJS.Timeout;
 
   constructor() {
     // 设置日志目录为用户数据目录
     this.logDirectory = path.join(app.getPath('userData'), 'logs');
     this.ensureLogDirectory();
+
+    // 启动时清理旧日志
+    this.cleanOldLogs();
+
+    // 定期清理旧日志（每天一次）
+    this.startCleanupTask();
   }
 
   /**
@@ -370,6 +378,127 @@ class LogService {
     }
 
     return files.sort();
+  }
+
+  /**
+   * 清理旧的日志文件（基于修改时间）
+   */
+  cleanOldLogs(): void {
+    try {
+      const entries = fs.readdirSync(this.logDirectory);
+      const now = Date.now();
+      let cleanedCount = 0;
+
+      for (const entry of entries) {
+        const filePath = path.join(this.logDirectory, entry);
+
+        try {
+          const stats = fs.statSync(filePath);
+          const fileAge = now - stats.mtimeMs;
+
+          // 删除超过最大年龄的文件
+          if (fileAge > this.maxLogAge) {
+            fs.unlinkSync(filePath);
+            cleanedCount++;
+          }
+        } catch (error) {
+          // 忽略单个文件的错误
+          console.error(`Failed to clean log file ${entry}:`, error);
+        }
+      }
+
+      if (cleanedCount > 0) {
+        console.log(`LogService: Cleaned ${cleanedCount} old log file(s)`);
+      }
+    } catch (error) {
+      console.error('Failed to clean old logs:', error);
+    }
+  }
+
+  /**
+   * 启动定期清理任务
+   */
+  private startCleanupTask(): void {
+    // 每天清理一次（24小时）
+    this.cleanupTimer = setInterval(() => {
+      this.cleanOldLogs();
+    }, 24 * 60 * 60 * 1000);
+
+    // 应用退出时清理定时器
+    app.on('will-quit', () => {
+      if (this.cleanupTimer) {
+        clearInterval(this.cleanupTimer);
+      }
+    });
+  }
+
+  /**
+   * 手动触发日志清理
+   */
+  forceCleanup(): void {
+    this.cleanOldLogs();
+  }
+
+  /**
+   * 获取日志文件大小（字节）
+   */
+  getTotalLogSize(): number {
+    try {
+      const files = this.getLogFiles();
+      let totalSize = 0;
+
+      for (const file of files) {
+        try {
+          const stats = fs.statSync(file);
+          totalSize += stats.size;
+        } catch {
+          // 忽略无法读取的文件
+        }
+      }
+
+      return totalSize;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  /**
+   * 获取日志文件信息
+   */
+  getLogFileInfo(): Array<{
+    name: string;
+    size: number;
+    modified: Date;
+  }> {
+    try {
+      const entries = fs.readdirSync(this.logDirectory);
+      const files: Array<{
+        name: string;
+        size: number;
+        modified: Date;
+      }> = [];
+
+      for (const entry of entries) {
+        if (entry.startsWith(this.logFileName)) {
+          try {
+            const filePath = path.join(this.logDirectory, entry);
+            const stats = fs.statSync(filePath);
+
+            files.push({
+              name: entry,
+              size: stats.size,
+              modified: stats.mtime
+            });
+          } catch {
+            // 忽略无法读取的文件
+          }
+        }
+      }
+
+      return files.sort((a, b) => b.modified.getTime() - a.modified.getTime());
+    } catch (error) {
+      return [];
+    }
   }
 }
 

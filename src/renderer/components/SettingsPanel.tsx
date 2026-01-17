@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { themes, getThemeById, updatePanelOpacity } from '../themes/themes';
 import { storageService } from '../services/StorageService';
 import logger from '../services/LoggerService';
+import BackupPanel from './BackupPanel';
+import { PerformanceMonitor } from './PerformanceMonitor';
 import './SettingsPanel.css';
 
 interface SettingsPanelProps {
@@ -18,6 +20,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ themeId, onClose, onChang
   const [animations, setAnimations] = useState(true);
   const [autoSave, setAutoSave] = useState(true);
   const [panelOpacity, setPanelOpacity] = useState(85);
+  const [showPerformanceMonitor, setShowPerformanceMonitor] = useState(false);
   const [layoutMode, setLayoutMode] = useState<'grid-icons' | 'grid' | 'list'>('grid');
   const [gridColumns, setGridColumns] = useState(6);
   const [logDirectory, setLogDirectory] = useState<string>('');
@@ -354,9 +357,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ themeId, onClose, onChang
 
               <div className="setting-item">
                 <div className="setting-info">
-                  <label>清除缓存</label>
+                  <label>性能监控</label>
                 </div>
-                <button className="setting-button">清除</button>
+                <button className="setting-button" onClick={() => setShowPerformanceMonitor(true)}>查看</button>
               </div>
             </div>
           </section>
@@ -379,6 +382,11 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ themeId, onClose, onChang
           </section>
         </div>
       </div>
+
+      {/* 性能监控面板 */}
+      {showPerformanceMonitor && (
+        <PerformanceMonitor onClose={() => setShowPerformanceMonitor(false)} />
+      )}
     </div>
   );
 };

@@ -359,6 +359,26 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
     return { cleared: true };
   });
 
+  // 日志清理
+  ipcMain.handle('log:clean-old', async () => {
+    logService.forceCleanup();
+    return { cleaned: true };
+  });
+
+  // 获取日志文件大小
+  ipcMain.handle('log:get-size', async () => {
+    return {
+      totalSize: logService.getTotalLogSize(),
+      totalSizeKB: (logService.getTotalLogSize() / 1024).toFixed(2),
+      totalSizeMB: (logService.getTotalLogSize() / 1024 / 1024).toFixed(2)
+    };
+  });
+
+  // 获取日志文件信息
+  ipcMain.handle('log:get-file-info', async () => {
+    return logService.getLogFileInfo();
+  });
+
   // ==================== Setup Auto Backup ====================
 
   backupService.setupAutoBackup(24);
