@@ -1,0 +1,11 @@
+{
+  "id": "com.desktop-tool.json-formatter",
+  "name": "JSON 格式化",
+  "version": "1.0.0",
+  "description": "格式化、压缩、转义和验证 JSON",
+  "author": "Desktop Tool",
+  "icon": "📝",
+  "entry": "index.ts",
+  "permissions": [],
+  "category": "工具"
+}
