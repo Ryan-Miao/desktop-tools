@@ -276,6 +276,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ themeId, onClose, onChang
                   <span className="toggle-slider"></span>
                 </label>
               </div>
+
+              <div className="setting-item">
+                <div className="setting-info">
+                  <label>自动保存</label>
+                </div>
+                <label className="toggle-switch">
+                  <input type="checkbox" checked={autoSave} onChange={handleAutoSaveToggle} />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
             </div>
           </section>
 
@@ -315,33 +325,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ themeId, onClose, onChang
               </div>
             </section>
           )}
-
-          {/* 隐私设置 */}
-          <section className="settings-section">
-            <h3>隐私</h3>
-
-            <div className="settings-grid-2">
-              <div className="setting-item">
-                <div className="setting-info">
-                  <label>统计数据</label>
-                </div>
-                <label className="toggle-switch">
-                  <input type="checkbox" defaultChecked />
-                  <span className="toggle-slider"></span>
-                </label>
-              </div>
-
-              <div className="setting-item">
-                <div className="setting-info">
-                  <label>自动保存</label>
-                </div>
-                <label className="toggle-switch">
-                  <input type="checkbox" checked={autoSave} onChange={handleAutoSaveToggle} />
-                  <span className="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
-          </section>
 
           {/* 数据管理 */}
           <section className="settings-section">

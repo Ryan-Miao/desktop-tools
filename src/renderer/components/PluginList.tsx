@@ -213,9 +213,28 @@ const PluginList: React.FC<PluginListProps> = ({ plugins, searchQuery, onPluginC
           </>
         )}
 
-        {/* 悬浮提示：显示完整信息 */}
+        {/* 悬停提示：显示完整信息 */}
         {hoveredPluginId === plugin.id && layoutMode !== 'list' && (
-          <div className="plugin-tooltip">
+          <div
+            className="plugin-tooltip"
+            onMouseEnter={(e) => {
+              // 智能定位：确保提示框不超出左边界
+              const tooltip = e.currentTarget;
+              const rect = tooltip.getBoundingClientRect();
+              const content = tooltip.querySelector('.tooltip-content') as HTMLElement;
+
+              if (content) {
+                const contentRect = content.getBoundingClientRect();
+                const overflowLeft = contentRect.left < 0;
+
+                if (overflowLeft) {
+                  // 靠近左边时，使用左对齐而不是居中
+                  content.style.left = '0';
+                  content.style.transform = 'none';
+                }
+              }
+            }}
+          >
             <div className="tooltip-content">
               <h4 className="tooltip-name">
                 <span style={{ fontSize: '20px' }}>{plugin.icon}</span>
