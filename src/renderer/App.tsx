@@ -2,15 +2,13 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import SearchBox from './components/SearchBox';
 import PluginList from './components/PluginList';
 import WindowControls from './components/WindowControls';
-import FloatingClock from './components/FloatingClock';
 import SettingsPanel from './components/SettingsPanel';
 import PluginManager from './components/PluginManager';
-import StatsReport from './components/StatsReport';
 import BackupPanel from './components/BackupPanel';
 import CalculatorPad from './components/CalculatorPad';
 import { storageService } from './services/StorageService';
 import { themes, applyTheme, getThemeById, getDefaultTheme, updatePanelOpacity } from './themes/themes';
-import { inputEventTracker } from './services/InputEventTracker';
+import { logger } from '../shared/logger';
 
 interface Plugin {
   id: string;
@@ -26,12 +24,74 @@ function App() {
   const [activePlugin, setActivePlugin] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showPluginManager, setShowPluginManager] = useState(false);
-  const [showStatsReport, setShowStatsReport] = useState(false);
   const [showBackup, setShowBackup] = useState(false);
-  const [isFloatingClockMode, setIsFloatingClockMode] = useState(false);
 
   // 初始化：加载保存的设置
   useEffect(() => {
+    // ============ 测试统一日志框架 ============
+    logger.debug('这是一条DEBUG日志', { test: true, value: 123 });
+    logger.info('应用已启动', { version: '1.0.0', mode: 'desktop' });
+    logger.warn('这是一条WARN日志', { warning: '测试警告' });
+    logger.error('这是一条ERROR日志', { error: 'test error', code: 500 });
+
+    // 暴露测试函数到全局（用于控制台测试）
+    (window as any).testLogLevel = (level: number) => {
+      const { LogLevel } = require('../shared/logger/types');
+      logger.setMinLevel(level);
+      console.log(`%c[测试] 日志级别设置为: ${LogLevel[level]} (${level})`, 'color: #00bcd4; font-weight: bold');
+
+      // 测试所有级别的日志
+      logger.debug(`[测试] DEBUG日志 - 当前级别: ${LogLevel[level]}`);
+      logger.info(`[测试] INFO日志 - 当前级别: ${LogLevel[level]}`);
+      logger.warn(`[测试] WARN日志 - 当前级别: ${LogLevel[level]}`);
+      logger.error(`[测试] ERROR日志 - 当前级别: ${LogLevel[level]}`);
+
+      console.log('%c[测试] 请观察控制台输出，验证级别过滤是否正常', 'color: #ff9800');
+      console.log('%c[测试] 示例: testLogLevel(0) 显示全部, testLogLevel(1) 过滤DEBUG', 'color: #666');
+    };
+
+    console.log('%c[测试] 使用 testLogLevel(level) 测试日志级别过滤', 'color: #00bcd4; font-weight: bold');
+    console.log('%c[测试] level: 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR', 'color: #666');
+    console.log('%c[测试] 示例: testLogLevel(1) 设置为INFO级别，过滤掉DEBUG日志', 'color: #666');
+
+    // 性能测试：验证异步写入不阻塞UI
+    (window as any).testLogPerformance = async (count: number = 1000) => {
+      console.log(`%c[性能测试] 开始测试：连续写入 ${count} 条日志`, 'color: #e91e63; font-weight: bold');
+
+      const startTime = performance.now();
+      const startMemory = (performance as any).memory?.usedJSHeapSize || 0;
+
+      // 快速连续写入大量日志
+      for (let i = 0; i < count; i++) {
+        logger.info(`[性能测试] 日志条目 ${i + 1}/${count}`, {
+          iteration: i,
+          timestamp: Date.now(),
+          data: { test: 'performance', value: Math.random() }
+        });
+      }
+
+      const endTime = performance.now();
+      const endMemory = (performance as any).memory?.usedJSHeapSize || 0;
+      const duration = endTime - startTime;
+      const memoryUsed = ((endMemory - startMemory) / 1024 / 1024).toFixed(2);
+
+      console.log(`%c[性能测试] 完成！总耗时: ${duration.toFixed(2)}ms`, 'color: #4caf50; font-weight: bold');
+      console.log(`%c[性能测试] 平均每条日志: ${(duration / count).toFixed(3)}ms`, 'color: #4caf50');
+      console.log(`%c[性能测试] 内存使用: ${memoryUsed} MB`, 'color: #4caf50');
+      console.log(`%c[性能测试] 如果UI没有卡顿，说明异步写入成功！`, 'color: #ff9800; font-weight: bold');
+
+      return {
+        count,
+        duration,
+        avgTime: duration / count,
+        memoryUsed
+      };
+    };
+
+    console.log('%c[性能测试] 使用 testLogPerformance(count) 测试异步写入性能', 'color: #e91e63; font-weight: bold');
+    console.log('%c[性能测试] 示例: testLogPerformance(1000) 测试写入1000条日志', 'color: #666');
+    // ==========================================
+
     // 加载主题设置
     const settings = storageService.getAppSettings();
     setThemeId(settings.themeId);
@@ -55,44 +115,11 @@ function App() {
       }
     };
     loadPluginsInit();
-
-    // 启动输入事件跟踪（在整个应用运行时）
-    if (window.electron?.ipcRenderer) {
-      inputEventTracker.start();
-
-      return () => {
-        inputEventTracker.stop();
-      };
-    }
-  }, []);
-
-  // 监听 URL hash 变化来支持独立窗口
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (hash === 'floating-clock') {
-        setIsFloatingClockMode(true);
-        setActivePlugin('floating-clock');
-      } else {
-        setIsFloatingClockMode(false);
-      }
-    };
-
-    // 初始检查
-    handleHashChange();
-
-    // 监听 hash 变化
-    window.addEventListener('hashchange', handleHashChange);
-
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
   }, []);
 
   // 应用主题和透明度
   useEffect(() => {
     const theme = getThemeById(themeId) || getDefaultTheme();
-    applyTheme(theme);
 
     // 更新 CSS 类名用于样式选择器
     document.documentElement.className = theme.mode;
@@ -101,14 +128,33 @@ function App() {
     const settings = storageService.getAppSettings();
     const opacity = settings.panelOpacity ?? 85;
     const opacityValue = opacity / 100;
+
+    // 应用主题时传入透明度值
+    applyTheme(theme, `${opacityValue}`);
+
+    // 同时设置 CSS 变量
     document.documentElement.style.setProperty('--panel-opacity', `${opacityValue}`);
-    updatePanelOpacity(`${opacityValue}`);
   }, [themeId]);
+
+  // 调试：监听 activePlugin 变化
+  useEffect(() => {
+    logger.info('activePlugin state changed', {
+      value: activePlugin,
+      stackTrace: new Error().stack?.split('\n').slice(1, 5)
+    });
+  }, [activePlugin]);
 
   // ESC 键监听 - 关闭所有面板
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      logger.debug('Key down event', { key: event.key, code: event.code });
       if (event.key === 'Escape') {
+        logger.info('ESC key pressed, closing panels', {
+          activePlugin,
+          showSettings,
+          showPluginManager,
+          showBackup
+        });
         // 关闭所有打开的面板
         if (activePlugin) {
           setActivePlugin(null);
@@ -118,9 +164,6 @@ function App() {
         }
         if (showPluginManager) {
           setShowPluginManager(false);
-        }
-        if (showStatsReport) {
-          setShowStatsReport(false);
         }
         if (showBackup) {
           setShowBackup(false);
@@ -133,15 +176,9 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [activePlugin, showSettings, showPluginManager, showStatsReport, showBackup]);
+  }, [activePlugin, showSettings, showPluginManager, showBackup]);
 
   const getMockPlugins = useCallback((): Plugin[] => [
-    {
-      id: 'floating-clock',
-      name: '悬浮时钟',
-      description: '桌面悬浮时钟，支持久坐提醒和统计功能',
-      icon: '⏰'
-    },
     {
       id: 'calculator-pad',
       name: '计算稿纸',
@@ -166,14 +203,57 @@ function App() {
   }, [plugins, searchQuery]);
 
   const handlePluginClick = (pluginId: string) => {
+    logger.info('handlePluginClick called', {
+      pluginId,
+      stackTrace: new Error().stack?.split('\n').slice(1, 4)
+    });
     setActivePlugin(pluginId);
     // 更新最后使用时间
     storageService.updatePluginLastUsed(pluginId);
   };
 
   const handleClosePlugin = () => {
+    logger.error('!!! handleClosePlugin called !!!', {
+      activePlugin,
+      stackTrace: new Error().stack?.split('\n').slice(1, 8)
+    });
     setActivePlugin(null);
   };
+
+  // 添加全局错误处理
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      logger.error('Global error caught', {
+        message: event.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        error: event.error?.stack
+      });
+    };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      logger.error('Unhandled promise rejection', {
+        reason: event.reason,
+        promise: event.promise
+      });
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
+  const handleSearchEnter = useCallback(() => {
+    if (filteredPlugins.length > 0) {
+      // Open the first matching plugin
+      handlePluginClick(filteredPlugins[0].id);
+    }
+  }, [filteredPlugins]);
 
   const handleChangeTheme = (newThemeId: string) => {
     setThemeId(newThemeId);
@@ -213,63 +293,52 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* 悬浮时钟独立模式 */}
-      {isFloatingClockMode && activePlugin === 'floating-clock' && (
-        <FloatingClock onClose={handleClosePlugin} />
-      )}
+      <div className="main-window">
+        <WindowControls
+          themeId={themeId}
+          onToggleTheme={handleToggleTheme}
+          onMinimize={async () => {
+            if (window.electron?.ipcRenderer) {
+              await window.electron.ipcRenderer.invoke('window:minimize');
+            }
+          }}
+          onMaximize={async () => {
+            if (window.electron?.ipcRenderer) {
+              await window.electron.ipcRenderer.invoke('window:maximize');
+            }
+          }}
+          onClose={async () => {
+            if (window.electron?.ipcRenderer) {
+              await window.electron.ipcRenderer.invoke('window:close');
+            }
+          }}
+          onOpenSettings={() => setShowSettings(true)}
+          onOpenPluginManager={() => setShowPluginManager(true)}
+        />
 
-      {/* 正常模式 */}
-      {!isFloatingClockMode && (
-        <div className="main-window">
-          <WindowControls
-            themeId={themeId}
-            onToggleTheme={handleToggleTheme}
-            onMinimize={() => {
-              if (window.electron?.ipcRenderer) {
-                window.electron.ipcRenderer.send('window:minimize');
-              }
-            }}
-            onMaximize={() => {
-              if (window.electron?.ipcRenderer) {
-                window.electron.ipcRenderer.send('window:maximize');
-              }
-            }}
-            onClose={() => {
-              if (window.electron?.ipcRenderer) {
-                window.electron.ipcRenderer.send('window:close');
-              }
-            }}
-            onOpenSettings={() => setShowSettings(true)}
-            onOpenPluginManager={() => setShowPluginManager(true)}
+        <div className="content">
+          <div className="header">
+            <h1 className="title">工作台</h1>
+            <p className="subtitle">高效集成工具平台</p>
+          </div>
+
+          <SearchBox
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search plugins..."
+            onEnter={handleSearchEnter}
           />
 
-          <div className="content">
-            <div className="header">
-              <h1 className="title">工作台</h1>
-              <p className="subtitle">高效集成工具平台</p>
-            </div>
-
-            <SearchBox
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search plugins..."
-            />
-
-            <PluginList
-              plugins={filteredPlugins}
-              searchQuery={searchQuery}
-              onPluginClick={handlePluginClick}
-            />
-          </div>
+          <PluginList
+            plugins={filteredPlugins}
+            searchQuery={searchQuery}
+            onPluginClick={handlePluginClick}
+          />
         </div>
-      )}
+      </div>
 
-      {/* Plugin Modals (只在正常模式下显示) */}
-      {!isFloatingClockMode && activePlugin === 'floating-clock' && (
-        <FloatingClock onClose={handleClosePlugin} />
-      )}
-
-      {!isFloatingClockMode && activePlugin === 'calculator-pad' && (
+      {/* Plugin Modals */}
+      {activePlugin === 'calculator-pad' && (
         <CalculatorPad onClose={handleClosePlugin} />
       )}
 
@@ -279,7 +348,6 @@ function App() {
           themeId={themeId}
           onClose={() => setShowSettings(false)}
           onChangeTheme={handleChangeTheme}
-          onOpenStatsReport={() => setShowStatsReport(true)}
           onOpenBackup={() => setShowBackup(true)}
         />
       )}
@@ -290,11 +358,6 @@ function App() {
           visible={showPluginManager}
           onClose={() => setShowPluginManager(false)}
         />
-      )}
-
-      {/* Stats Report */}
-      {showStatsReport && (
-        <StatsReport onClose={() => setShowStatsReport(false)} />
       )}
 
       {/* Backup Panel */}

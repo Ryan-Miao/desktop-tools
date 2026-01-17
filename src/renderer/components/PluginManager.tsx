@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { IPCChannels, PluginEvents } from '@shared/constants/channels';
 import { PluginManifest, PluginState, PluginSource } from '@shared/types/plugin';
+import { createLogger } from '../../shared/logger';
 import './PluginManager.css';
+
+const logger = createLogger('PluginManager');
 
 interface PluginManagerProps {
   visible: boolean;
@@ -41,7 +44,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
       const pluginList = await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_LIST) || [];
       setPlugins(pluginList);
     } catch (error) {
-      console.error('Failed to load plugins:', error);
+      logger.error('Failed to load plugins', { error });
     }
   };
 
@@ -50,7 +53,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
       const states = await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_GET_ALL_STATES) || [];
       setPluginStates(states);
     } catch (error) {
-      console.error('Failed to load plugin states:', error);
+      logger.error('Failed to load plugin states', { error });
     }
   };
 
@@ -152,7 +155,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
       // TODO: 需要添加保存插件状态的 IPC
       setPluginStates(prev => prev.map(s => s.id === pluginId ? newState : s));
     } catch (error) {
-      console.error('Failed to toggle plugin:', error);
+      logger.error('Failed to toggle plugin', { error });
     }
   };
 
@@ -169,7 +172,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
       // TODO: 需要添加保存插件状态的 IPC
       setPluginStates(prev => prev.map(s => s.id === pluginId ? newState : s));
     } catch (error) {
-           console.error('Failed to toggle favorite:', error);
+      logger.error('Failed to toggle favorite', { error });
     }
   };
 
@@ -178,7 +181,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
     try {
       await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_UNLOAD, pluginId);
     } catch (error) {
-      console.error('Failed to unload plugin:', error);
+      logger.error('Failed to unload plugin', { error });
     }
   };
 
@@ -186,7 +189,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
     try {
       await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_RELOAD, pluginId);
     } catch (error) {
-      console.error('Failed to reload plugin:', error);
+      logger.error('Failed to reload plugin', { error });
     }
   };
 
@@ -199,7 +202,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
     try {
       await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_UNINSTALL, pluginId);
     } catch (error) {
-      console.error('Failed to uninstall plugin:', error);
+      logger.error('Failed to uninstall plugin', { error });
     }
   };
 
@@ -231,7 +234,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
         loadPluginStates();
       }, 2000);
     } catch (error) {
-      console.error('Failed to import plugin:', error);
+      logger.error('Failed to import plugin', { error });
       alert(`导入插件失败: ${error}`);
     }
   };
@@ -240,9 +243,9 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
   const exportPlugin = async (pluginId: string) => {
     try {
       // TODO: 添加导出插件的 IPC 处理
-      console.log('Export plugin:', pluginId);
+      logger.info('Export plugin', { pluginId });
     } catch (error) {
-      console.error('Failed to export plugin:', error);
+      logger.error('Failed to export plugin', { error });
     }
   };
 
@@ -251,7 +254,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
     try {
       await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_CHECK_UPDATES);
     } catch (error) {
-      console.error('Failed to check updates:', error);
+      logger.error('Failed to check updates', { error });
     }
   };
 

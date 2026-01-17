@@ -1,5 +1,8 @@
 import './BackupPanel.css';
 import React, { useState, useEffect } from 'react';
+import { createLogger } from '../../shared/logger';
+
+const logger = createLogger('BackupPanel');
 
 interface Plugin {
   plugin_id: string;
@@ -27,6 +30,7 @@ const BackupPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const loadPlugins = async () => {
     try {
+      if (!window.electron?.ipcRenderer) return;
       const result = await window.electron.ipcRenderer.invoke('db:get-plugin-list');
       if (result && Array.isArray(result)) {
         setPlugins(result);
@@ -34,7 +38,7 @@ const BackupPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         setSelectedPlugins(new Set(result.map((p: Plugin) => p.plugin_id)));
       }
     } catch (error) {
-      console.error('Failed to load plugins:', error);
+      logger.error('Failed to load plugins', { error });
     }
   };
 
@@ -70,7 +74,7 @@ const BackupPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         includeDatabase
       };
 
-      const result = await window.electron.ipcRenderer.invoke('backup:create-selective', options);
+      const result = await window.electron!.ipcRenderer.invoke('backup:create-selective', options);
       if (result.success) {
         setMessage(`✅ 备份创建成功！\n\n文件位置: ${result.filePath}\n\n备份内容：\n- 插件：${selectedPlugins.size} 个\n- 应用设置：${includeAppSettings ? '✓' : '✗'}\n- 数据库：${includeDatabase ? '✓' : '✗'}\n\n建议将备份文件保存在安全的位置。`);
       } else {
@@ -94,7 +98,7 @@ const BackupPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         includeDatabase: restoreDatabase
       };
 
-      const result = await window.electron.ipcRenderer.invoke('backup:restore-selective', options);
+      const result = await window.electron!.ipcRenderer.invoke('backup:restore-selective', options);
       if (result.success) {
         setMessage(`✅ 备份恢复成功！\n\n应用将在 2 秒后重新启动以加载新数据...`);
         setTimeout(() => {

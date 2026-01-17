@@ -33,19 +33,19 @@ export const themes: Theme[] = [
     icon: '🌤️',
     mode: 'light',
     colors: {
-      background: 'rgba(255, 255, 255, 0.7)',
-      foreground: '#000000',
-      primary: '#007AFF',
-      secondary: '#5AC8FA',
+      background: 'rgb(250, 253, 255)',
+      foreground: '#1a1a1a',
+      primary: '#0066CC',
+      secondary: '#0088FF',
       accent: '#FF2D55',
-      success: '#34C759',
+      success: '#28A745',
       warning: '#FF9500',
-      error: '#FF3B30'
+      error: '#DC3545'
     },
     glass: {
-      blur: 20,
-      opacity: 0.7,
-      saturate: 180
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
   {
@@ -54,19 +54,19 @@ export const themes: Theme[] = [
     icon: '💜',
     mode: 'light',
     colors: {
-      background: 'rgba(250, 245, 255, 0.75)',
-      foreground: '#1A1025',
-      primary: '#AF52DE',
-      secondary: '#BF5AF2',
+      background: 'rgb(252, 248, 255)',
+      foreground: '#1a1a1a',
+      primary: '#9B4DCA',
+      secondary: '#AF52DE',
       accent: '#FF6482',
-      success: '#30D158',
-      warning: '#FF9F0A',
-      error: '#FF453A'
+      success: '#28A745',
+      warning: '#FF9500',
+      error: '#DC3545'
     },
     glass: {
-      blur: 20,
-      opacity: 0.75,
-      saturate: 180
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
   {
@@ -75,19 +75,19 @@ export const themes: Theme[] = [
     icon: '🌸',
     mode: 'light',
     colors: {
-      background: 'rgba(255, 240, 245, 0.75)',
-      foreground: '#1F050A',
-      primary: '#FF2D55',
-      secondary: '#FF6482',
-      accent: '#007AFF',
-      success: '#34C759',
+      background: 'rgb(255, 248, 252)',
+      foreground: '#1a1a1a',
+      primary: '#E91E63',
+      secondary: '#FF2D55',
+      accent: '#0066CC',
+      success: '#28A745',
       warning: '#FF9500',
-      error: '#FF3B30'
+      error: '#DC3545'
     },
     glass: {
-      blur: 20,
-      opacity: 0.75,
-      saturate: 180
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
   {
@@ -96,19 +96,19 @@ export const themes: Theme[] = [
     icon: '🍃',
     mode: 'light',
     colors: {
-      background: 'rgba(240, 255, 240, 0.75)',
-      foreground: '#051F0A',
-      primary: '#30D158',
-      secondary: '34C759',
+      background: 'rgb(248, 255, 248)',
+      foreground: '#1a1a1a',
+      primary: '#28A745',
+      secondary: '#34C759',
       accent: '#FF2D55',
-      success: '#32D74B',
+      success: '#228B22',
       warning: '#FF9500',
-      error: '#FF453A'
+      error: '#DC3545'
     },
     glass: {
-      blur: 20,
-      opacity: 0.75,
-      saturate: 180
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
   {
@@ -117,19 +117,19 @@ export const themes: Theme[] = [
     icon: '🌅',
     mode: 'light',
     colors: {
-      background: 'rgba(255, 248, 240, 0.75)',
-      foreground: '#1F0F00',
-      primary: '#FF9500',
-      secondary: '#FF5E3A',
-      accent: '#007AFF',
-      success: '#34C759',
-      warning: '#FF9F0A',
-      error: '#FF3B30'
+      background: 'rgb(255, 252, 248)',
+      foreground: '#1a1a1a',
+      primary: '#FF6B00',
+      secondary: '#FF9500',
+      accent: '#0066CC',
+      success: '#28A745',
+      warning: '#CC7A00',
+      error: '#DC3545'
     },
     glass: {
-      blur: 20,
-      opacity: 0.75,
-      saturate: 180
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
   {
@@ -138,19 +138,19 @@ export const themes: Theme[] = [
     icon: '🌊',
     mode: 'light',
     colors: {
-      background: 'rgba(235, 250, 245, 0.75)',
-      foreground: '#001A14',
-      primary: '#64D2FF',
-      secondary: '5AC8FA',
+      background: 'rgb(248, 255, 253)',
+      foreground: '#1a1a1a',
+      primary: '#0097A7',
+      secondary: '#00BCD4',
       accent: '#FF2D55',
-      success: '#30D158',
+      success: '#28A745',
       warning: '#FF9500',
-      error: '#FF3B30'
+      error: '#DC3545'
     },
     glass: {
-      blur: 20,
-      opacity: 0.75,
-      saturate: 180
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
 
@@ -161,19 +161,19 @@ export const themes: Theme[] = [
     icon: '🌊',
     mode: 'dark',
     colors: {
-      background: 'rgba(30, 40, 50, 0.85)',
-      foreground: '#FFFFFF',
-      primary: '#0A84FF',
-      secondary: '#64D2FF',
-      accent: '#FF375F',
-      success: '#30D158',
-      warning: '#FF9F0A',
-      error: '#FF453A'
+      background: 'rgb(18, 28, 38)',
+      foreground: '#F0F0F0',
+      primary: '#4DA3FF',
+      secondary: '#66B3FF',
+      accent: '#FF6B9D',
+      success: '#4ADE80',
+      warning: '#FFB84D',
+      error: '#FF6B6B'
     },
     glass: {
-      blur: 20,
-      opacity: 0.85,
-      saturate: 180
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
   {
@@ -182,19 +182,19 @@ export const themes: Theme[] = [
     icon: '🌌',
     mode: 'dark',
     colors: {
-      background: 'rgba(40, 30, 50, 0.85)',
-      foreground: '#FFFFFF',
-      primary: '#BF5AF2',
-      secondary: '#DA8FFF',
-      accent: '#FF6482',
-      success: '#32D74B',
-      warning: '#FF9F0A',
-      error: '#FF453A'
+      background: 'rgb(25, 18, 35)',
+      foreground: '#F0F0F0',
+      primary: '#C77DFF',
+      secondary: '#D9A0FF',
+      accent: '#FF8FA3',
+      success: '#4ADE80',
+      warning: '#FFB84D',
+      error: '#FF6B6B'
     },
     glass: {
-      blur: 20,
-      opacity: 0.85,
-      saturate: 180
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
   {
@@ -203,19 +203,19 @@ export const themes: Theme[] = [
     icon: '🌲',
     mode: 'dark',
     colors: {
-      background: 'rgba(20, 40, 30, 0.85)',
-      foreground: '#FFFFFF',
-      primary: '#30D158',
-      secondary: '#63E686',
-      accent: '#FF2D55',
-      success: '#32D74B',
-      warning: '#FF9F0A',
-      error: '#FF453A'
+      background: 'rgb(15, 30, 20)',
+      foreground: '#F0F0F0',
+      primary: '#4ADE80',
+      secondary: '#7DD87C',
+      accent: '#FF6B9D',
+      success: '#5CB85C',
+      warning: '#FFB84D',
+      error: '#FF6B6B'
     },
     glass: {
-      blur: 20,
-      opacity: 0.85,
-      saturate: 180
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
   {
@@ -224,19 +224,19 @@ export const themes: Theme[] = [
     icon: '🌅',
     mode: 'dark',
     colors: {
-      background: 'rgba(50, 30, 30, 0.85)',
-      foreground: '#FFFFFF',
-      primary: '#FF453A',
-      secondary: '#FF6482',
-      accent: '#0A84FF',
-      success: '#30D158',
-      warning: '#FF9F0A',
-      error: '#FF6482'
+      background: 'rgb(35, 18, 18)',
+      foreground: '#F0F0F0',
+      primary: '#FF6B6B',
+      secondary: '#FF8FA3',
+      accent: '#4DA3FF',
+      success: '#4ADE80',
+      warning: '#FFB84D',
+      error: '#FF8FA3'
     },
     glass: {
-      blur: 20,
-      opacity: 0.85,
-      saturate: 180
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
   {
@@ -245,19 +245,19 @@ export const themes: Theme[] = [
     icon: '🌑',
     mode: 'dark',
     colors: {
-      background: 'rgba(20, 20, 25, 0.9)',
-      foreground: '#FFFFFF',
-      primary: '#0A84FF',
-      secondary: '#64D2FF',
-      accent: '#FF375F',
-      success: '#30D158',
-      warning: '#FF9F0A',
-      error: '#FF453A'
+      background: 'rgb(12, 12, 16)',
+      foreground: '#F0F0F0',
+      primary: '#5BA3FF',
+      secondary: '#7BB8FF',
+      accent: '#FF6B9D',
+      success: '#4ADE80',
+      warning: '#FFB84D',
+      error: '#FF6B6B'
     },
     glass: {
-      blur: 20,
-      opacity: 0.9,
-      saturate: 180
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
   {
@@ -266,19 +266,19 @@ export const themes: Theme[] = [
     icon: '🗿',
     mode: 'dark',
     colors: {
-      background: 'rgba(35, 35, 40, 0.85)',
-      foreground: '#FFFFFF',
-      primary: '#0A84FF',
-      secondary: '#64D2FF',
-      accent: '#FF375F',
-      success: '#30D158',
-      warning: '#FF9F0A',
-      error: '#FF453A'
+      background: 'rgb(22, 22, 26)',
+      foreground: '#F0F0F0',
+      primary: '#5BA3FF',
+      secondary: '#7BB8FF',
+      accent: '#FF6B9D',
+      success: '#4ADE80',
+      warning: '#FFB84D',
+      error: '#FF6B6B'
     },
     glass: {
-      blur: 20,
-      opacity: 0.85,
-      saturate: 180
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
 
@@ -289,19 +289,19 @@ export const themes: Theme[] = [
     icon: '🤖',
     mode: 'dark',
     colors: {
-      background: 'rgba(10, 10, 20, 0.9)',
-      foreground: '#00FF41',
+      background: 'rgb(8, 8, 12)',
+      foreground: '#00FF88',
       primary: '#FF00FF',
       secondary: '#00FFFF',
       accent: '#FFFF00',
-      success: '#00FF41',
+      success: '#00FF88',
       warning: '#FFFF00',
-      error: '#FF0055'
+      error: '#FF0066'
     },
     glass: {
-      blur: 20,
-      opacity: 0.9,
-      saturate: 200
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
   {
@@ -310,19 +310,19 @@ export const themes: Theme[] = [
     icon: '🌇',
     mode: 'light',
     colors: {
-      background: 'linear-gradient(135deg, rgba(255, 200, 150, 0.75) 0%, rgba(255, 150, 100, 0.75) 100%)',
+      background: 'linear-gradient(135deg, rgb(255, 235, 220) 0%, rgb(255, 220, 200) 100%)',
       foreground: '#2D1A0A',
-      primary: '#FF6B35',
-      secondary: '#F7931E',
-      accent: '#FF375F',
-      success: '#30D158',
-      warning: '#FF9F0A',
-      error: '#FF453A'
+      primary: '#E65100',
+      secondary: '#FF6B00',
+      accent: '#FF6B9D',
+      success: '#28A745',
+      warning: '#E65100',
+      error: '#DC3545'
     },
     glass: {
-      blur: 20,
-      opacity: 0.75,
-      saturate: 180
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
   {
@@ -331,19 +331,19 @@ export const themes: Theme[] = [
     icon: '✨',
     mode: 'dark',
     colors: {
-      background: 'linear-gradient(135deg, rgba(50, 20, 60, 0.85) 0%, rgba(20, 50, 60, 0.85) 100%)',
-      foreground: '#FFFFFF',
-      primary: '#BF5AF2',
-      secondary: '#64D2FF',
-      accent: '#30D158',
-      success: '#32D74B',
-      warning: '#FF9F0A',
-      error: '#FF453A'
+      background: 'linear-gradient(135deg, rgb(35, 12, 45) 0%, rgb(12, 35, 45) 100%)',
+      foreground: '#F0F0F0',
+      primary: '#C77DFF',
+      secondary: '#4DA3FF',
+      accent: '#4ADE80',
+      success: '#5CB85C',
+      warning: '#FFB84D',
+      error: '#FF6B6B'
     },
     glass: {
-      blur: 25,
-      opacity: 0.85,
-      saturate: 200
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
   {
@@ -352,19 +352,19 @@ export const themes: Theme[] = [
     icon: '🌹',
     mode: 'light',
     colors: {
-      background: 'rgba(255, 245, 240, 0.8)',
-      foreground: '#1A0505',
-      primary: '#B76E79',
-      secondary: '#E8B4B8',
-      accent: '#D4A574',
-      success: '#7CBC9C',
-      warning: '#D4A574',
+      background: 'rgb(255, 248, 245)',
+      foreground: '#2D1A1A',
+      primary: '#C77D83',
+      secondary: '#E8A0A8',
+      accent: '#C4A070',
+      success: '#6BA88A',
+      warning: '#C4A070',
       error: '#C75B5B'
     },
     glass: {
-      blur: 20,
-      opacity: 0.8,
-      saturate: 160
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   },
   {
@@ -373,28 +373,34 @@ export const themes: Theme[] = [
     icon: '🌊',
     mode: 'dark',
     colors: {
-      background: 'rgba(10, 25, 45, 0.9)',
+      background: 'rgb(6, 18, 32)',
       foreground: '#E0F7FA',
-      primary: '#00BCD4',
-      secondary: '#26C6DA',
-      accent: '#FF6B6B',
-      success: '#4DB6AC',
-      warning: '#FFA726',
-      error: '#EF5350'
+      primary: '#00D4FF',
+      secondary: '#33E5FF',
+      accent: '#FF8FA3',
+      success: '#4ADE80',
+      warning: '#FFB84D',
+      error: '#FF6B6B'
     },
     glass: {
-      blur: 25,
-      opacity: 0.9,
-      saturate: 180
+      blur: 0,
+      opacity: 1,
+      saturate: 100
     }
   }
 ];
 
 /**
- * 应用主题到 CSS 变量
+ * 应用主题到 CSS 变量（带平滑过渡动画）
  */
-export function applyTheme(theme: Theme): void {
+export function applyTheme(theme: Theme, opacity?: string): void {
+  // 保存当前主题引用，用于透明度更新
+  currentTheme = theme;
+
   const root = document.documentElement;
+
+  // 添加平滑过渡效果
+  root.style.transition = 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease';
 
   // 设置颜色变量
   root.style.setProperty('--background', theme.colors.background);
@@ -417,13 +423,74 @@ export function applyTheme(theme: Theme): void {
     root.style.setProperty('--shadow-color', 'rgba(0, 0, 0, 0.1)');
   }
 
-  // 如果是渐变背景，特殊处理
-  if (theme.colors.background.includes('gradient')) {
-    root.style.setProperty('--background', theme.colors.background);
+  // 设置面板背景色（使用主题自带的透明度，或者使用传入的 opacity 值）
+  let panelBackground = theme.colors.background;
+
+  // 如果背景色是 rgba/rgb 格式，应用透明度
+  const rgbaMatch = theme.colors.background.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+  if (rgbaMatch) {
+    const [, r, g, b, originalOpacity] = rgbaMatch;
+    // 使用传入的 opacity，或者使用主题原有的透明度
+    const finalOpacity = opacity || originalOpacity || '0.85';
+    panelBackground = `rgba(${r}, ${g}, ${b}, ${finalOpacity})`;
+  } else if (opacity) {
+    // 对于渐变等复杂背景，尝试应用透明度
+    root.style.setProperty('--panel-opacity', opacity);
   }
 
-  // 注意：不在这里设置面板透明度，因为 --panel-opacity 变量可能还未设置
-  // 面板透明度将在 App.tsx 中单独设置
+  root.style.setProperty('--panel-background', panelBackground);
+
+  // 同时更新内联样式以确保立即生效（添加过渡）
+  requestAnimationFrame(() => {
+    // 添加过渡样式到所有需要更新的元素
+    const elementsToUpdate = document.querySelectorAll('.main-window, .modal-content, .plugin-window, .app-container');
+    elementsToUpdate.forEach(element => {
+      (element as HTMLElement).style.transition = 'background-color 0.3s ease, box-shadow 0.3s ease';
+    });
+
+    const mainWindow = document.querySelector('.main-window');
+    if (mainWindow) {
+      (mainWindow as HTMLElement).style.background = panelBackground;
+    }
+
+    // 更新所有模态面板（除了 FloatingClock）
+    const modals = document.querySelectorAll('.modal-content:not(.floating-clock-modal)');
+    modals.forEach(modal => {
+      (modal as HTMLElement).style.background = panelBackground;
+    });
+
+    // FloatingClock 特殊处理：保持深色渐变，应用透明度
+    const floatingClockModals = document.querySelectorAll('.floating-clock-modal');
+    const opacityValue = opacity || '0.85';
+    const gradientOpacity = (parseFloat(opacityValue) * 0.95).toFixed(2);
+    const clockBackground = `linear-gradient(135deg, rgba(26, 26, 46, ${gradientOpacity}) 0%, rgba(22, 33, 62, ${gradientOpacity}) 100%)`;
+    floatingClockModals.forEach(modal => {
+      (modal as HTMLElement).style.background = clockBackground;
+    });
+
+    // 300ms 后清除过渡属性（避免影响其他交互）
+    setTimeout(() => {
+      elementsToUpdate.forEach(element => {
+        (element as HTMLElement).style.transition = '';
+      });
+      root.style.transition = '';
+    }, 300);
+  });
+}
+
+// 当前主题引用，用于透明度更新
+let currentTheme: Theme = getDefaultTheme();
+
+/**
+ * 解析 rgb/rgba 颜色字符串，提取 RGB 值
+ */
+function parseRGB(color: string): { r: string; g: string; b: string } | null {
+  const rgbaMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (rgbaMatch) {
+    const [, r, g, b] = rgbaMatch;
+    return { r, g, b };
+  }
+  return null;
 }
 
 /**
@@ -433,35 +500,47 @@ export function applyTheme(theme: Theme): void {
 export function updatePanelOpacity(opacity: string): void {
   const root = document.documentElement;
 
-  // 解析当前主题的背景色
-  const background = getComputedStyle(root).getPropertyValue('--background').trim();
+  // 使用当前主题的背景色
+  const rgb = parseRGB(currentTheme.colors.background);
+  let newBackground = currentTheme.colors.background;
 
-  if (!background) {
-    console.warn('--background CSS variable not found');
-    return;
+  if (rgb) {
+    newBackground = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
   }
 
-  // 如果背景色是 rgba/rgb 格式，提取 rgb 部分并应用新的透明度
-  const rgbaMatch = background.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-  if (rgbaMatch) {
-    const [, r, g, b] = rgbaMatch;
-    const newBackground = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  // 设置 CSS 变量
+  root.style.setProperty('--panel-background', newBackground);
+  root.style.setProperty('--panel-opacity', opacity);
 
-    // 设置 CSS 变量
-    root.style.setProperty('--panel-background', newBackground);
-    console.log(`Panel opacity updated: ${opacity} -> ${newBackground}`);
-
-    // 直接查找并更新主面板元素的背景色（确保立即生效）
+  // 立即更新所有使用面板背景的元素
+  requestAnimationFrame(() => {
+    // 更新主窗口
     const mainWindow = document.querySelector('.main-window');
     if (mainWindow) {
-      (mainWindow as HTMLElement).style.background = newBackground;
-      console.log('Main window background updated directly');
+      (mainWindow as HTMLElement).style.setProperty('background', newBackground, 'important');
     }
-  } else {
-    // 如果不是 rgba 格式，使用原背景色
-    root.style.setProperty('--panel-background', background);
-    console.warn(`Background format not supported: ${background}`);
-  }
+
+    // 更新所有模态面板（除了 FloatingClock，它有自己的渐变背景）
+    const modals = document.querySelectorAll('.modal-content:not(.floating-clock-modal)');
+    modals.forEach(modal => {
+      (modal as HTMLElement).style.background = newBackground;
+    });
+
+    // FloatingClock 特殊处理：保持深色渐变，只调整透明度
+    const floatingClockModals = document.querySelectorAll('.floating-clock-modal');
+    floatingClockModals.forEach(modal => {
+      // 为 FloatingClock 创建半透明的深色渐变
+      const gradientOpacity = (parseFloat(opacity) * 0.95).toFixed(2);
+      const clockBackground = `linear-gradient(135deg, rgba(26, 26, 46, ${gradientOpacity}) 0%, rgba(22, 33, 62, ${gradientOpacity}) 100%)`;
+      (modal as HTMLElement).style.background = clockBackground;
+    });
+
+    // 更新插件窗口
+    const pluginWindows = document.querySelectorAll('.plugin-window, .plugin-modal');
+    pluginWindows.forEach(window => {
+      (window as HTMLElement).style.background = newBackground;
+    });
+  });
 }
 
 /**

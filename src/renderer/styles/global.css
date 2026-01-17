@@ -1,4 +1,8 @@
 /* Global styles */
+
+/* 导入动画样式 */
+@import '../animations/animations.css';
+
 * {
   margin: 0;
   padding: 0;
@@ -33,13 +37,11 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--panel-background);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-radius: 12px;
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.1),
-    0 20px 40px rgba(0, 0, 0, 0.2),
-    0 0 80px rgba(0, 0, 0, 0.1);
+    0 0 0 1px var(--border-color),
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 0 24px rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
 

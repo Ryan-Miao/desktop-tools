@@ -5,14 +5,18 @@ interface SearchBoxProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  onEnter?: () => void;
 }
 
-const SearchBox: React.FC<SearchBoxProps> = ({ value, onChange, placeholder = '搜索插件...' }) => {
+const SearchBox: React.FC<SearchBoxProps> = ({ value, onChange, placeholder = '搜索插件...', onEnter }) => {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape' && value) {
       onChange('');
     }
-  }, [value, onChange]);
+    if (e.key === 'Enter' && onEnter) {
+      onEnter();
+    }
+  }, [value, onChange, onEnter]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);

@@ -3,6 +3,9 @@ import path from 'path';
 import fs from 'fs';
 import { app, dialog } from 'electron';
 import { ClockSettings } from '@shared/types/config';
+import { createLogger } from '../../shared/logger';
+
+const logger = createLogger('Database');
 
 export class DatabaseService {
   private db: Database.Database | null = null;
@@ -27,7 +30,7 @@ export class DatabaseService {
 
     // Only log in development or when debug mode is enabled
     if (process.env.NODE_ENV !== 'production') {
-      console.log('Database initialized at:', dbPath);
+      logger.info('Database initialized', { path: dbPath });
     }
   }
 
@@ -42,7 +45,7 @@ export class DatabaseService {
       }
 
       if (process.env.NODE_ENV !== 'production') {
-        console.log('Seeding test data...');
+        logger.info('Seeding test data...');
       }
 
     // 生成最近7天的测试数据
@@ -66,12 +69,12 @@ export class DatabaseService {
     }
 
     if (process.env.NODE_ENV !== 'production') {
-      console.log('Test data seeded successfully');
+      logger.info('Test data seeded successfully');
     }
     } catch (error) {
       // Table might not exist yet, or other error
       if (process.env.NODE_ENV !== 'production') {
-        console.log('Skipping test data seeding:', error instanceof Error ? error.message : error);
+        logger.info('Skipping test data seeding', { error: error instanceof Error ? error.message : error });
       }
     }
   }
@@ -424,7 +427,7 @@ export class DatabaseService {
 
       return { success: true, filePath: result.filePath };
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed', { error });
       return { success: false, error: error instanceof Error ? error.message : '导出失败' };
     }
   }

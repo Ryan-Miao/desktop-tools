@@ -18,6 +18,9 @@ import {
   PluginStorage
 } from '@shared/types/plugin';
 import { PluginStore } from '../services/PluginStore';
+import { createLogger } from '../../shared/logger';
+
+const logger = createLogger('PluginManager');
 
 /**
  * 增强的插件管理器
@@ -67,7 +70,7 @@ export class PluginManager implements IPluginManager {
     this.startFileWatcher();
 
     this.initialized = true;
-    console.log('PluginManager initialized');
+    logger.info('PluginManager initialized');
   }
 
   async destroy(): Promise<void> {
@@ -108,10 +111,10 @@ export class PluginManager implements IPluginManager {
           if (fs.existsSync(manifestPath)) {
             try {
               await this.install(pluginPath);
-              console.log(`Plugin detected and loaded: ${pluginId}`);
+              logger.info(`Plugin detected and loaded: ${pluginId}`);
               this.emit(PluginEventType.LOADED, pluginId);
             } catch (error) {
-              console.error(`Failed to auto-load plugin: ${pluginId}`, error);
+              logger.error(`Failed to auto-load plugin: ${pluginId}`, { error });
               this.emit(PluginEventType.ERROR, pluginId, error instanceof Error ? error : undefined);
             }
             break;
@@ -129,7 +132,7 @@ export class PluginManager implements IPluginManager {
           if (plugin.manifest.id === pluginId) {
             await this.unload(id);
             await this.uninstall(id);
-            console.log(`Plugin removed and unloaded: ${pluginId}`);
+            logger.info(`Plugin removed and unloaded: ${pluginId}`);
             this.emit(PluginEventType.UNLOADED, id);
             break;
           }
@@ -147,10 +150,10 @@ export class PluginManager implements IPluginManager {
             if (plugin.manifest.id === pluginId) {
               try {
                 await this.reload(id);
-                console.log(`Plugin reloaded: ${pluginId}`);
+                logger.info(`Plugin reloaded: ${pluginId}`);
                 this.emit(PluginEventType.UPDATED, pluginId);
               } catch (error) {
-                console.error(`Failed to reload plugin: ${pluginId}`, error);
+                logger.error(`Failed to reload plugin: ${pluginId}`, { error });
                 this.emit(PluginEventType.ERROR, pluginId, error instanceof Error ? error : undefined);
               }
               break;
@@ -159,10 +162,10 @@ export class PluginManager implements IPluginManager {
         }
       });
 
-      console.log('File watcher started for:', this.userDataPluginsDir);
+      logger.info('File watcher started', { path: this.userDataPluginsDir });
     } catch (error) {
-      console.warn('Failed to start file watcher:', error);
-      console.warn('Hot-reload disabled');
+      logger.warn('Failed to start file watcher', { error });
+      logger.warn('Hot-reload disabled');
     }
   }
 
@@ -189,7 +192,7 @@ export class PluginManager implements IPluginManager {
         try {
           await this.loadPlugin(pluginPath, PluginSource.BUILTIN);
         } catch (error) {
-          console.error(`Failed to load built-in plugin: ${dir}`, error);
+          logger.error(`Failed to load built-in plugin: ${dir}`, { error });
         }
       }
     }
@@ -208,7 +211,7 @@ export class PluginManager implements IPluginManager {
         try {
           await this.loadPlugin(pluginPath, PluginSource.LOCAL);
         } catch (error) {
-          console.error(`Failed to load user plugin: ${dir}`, error);
+          logger.error(`Failed to load user plugin: ${dir}`, { error });
         }
       }
     }
@@ -217,7 +220,7 @@ export class PluginManager implements IPluginManager {
   async load(pluginId: string): Promise<void> {
     // 检查是否已加载
     if (this.plugins.has(pluginId)) {
-      console.log(`Plugin already loaded: ${pluginId}`);
+      logger.debug(`Plugin already loaded: ${pluginId}`);
       return;
     }
 
@@ -272,7 +275,7 @@ export class PluginManager implements IPluginManager {
 
     // 检查是否已加载
     if (this.plugins.has(manifest.id)) {
-      console.log(`Plugin already loaded: ${manifest.id}`);
+      logger.debug(`Plugin already loaded: ${manifest.id}`);
       return;
     }
 
@@ -323,28 +326,39 @@ export class PluginManager implements IPluginManager {
       db: null, // 将在 main/index 中设置
       ipc: null, // 将在 main/index 中设置
       logger: {
-        info: (...args: any[]) => console.log(`[${manifest.name}]`, ...args),
-        error: (...args: any[]) => console.error(`[${manifest.name}]`, ...args),
-        warn: (...args: any[]) => console.warn(`[${manifest.name}]`, ...args)
+        info: (...args: any[]) => logger.info(`[${manifest.name}]`, ...args),
+        error: (...args: any[]) => logger.error(`[${manifest.name}]`, ...args),
+        warn: (...args: any[]) => logger.warn(`[${manifest.name}]`, ...args)
       },
       storage
     };
 
     // 动态加载插件入口
-    const entryPath = path.join(pluginPath, manifest.entry);
+    // Try loading from dist/plugins first (built by Vite), then fallback to source plugins/
+    const pluginName = path.basename(pluginPath);
+    const distEntryPath = path.join(process.cwd(), 'dist', 'plugins', pluginName, 'index.js');
+    const sourceEntryPath = path.join(pluginPath, manifest.entry);
+
+    let entryPath = distEntryPath;
+    if (!fs.existsSync(distEntryPath)) {
+      entryPath = sourceEntryPath;
+    }
+
     let pluginInstance: IPlugin;
 
     try {
-      // 尝试作为模块加载
-      const PluginClass = require(entryPath);
-      const PluginConstructor = PluginClass.default || PluginClass;
+      // Use dynamic import for ES modules
+      const pluginModule = await import(entryPath);
+      const PluginConstructor = pluginModule.default || pluginModule;
 
       // 创建插件实例
       if (typeof PluginConstructor === 'function') {
         pluginInstance = new PluginConstructor();
-      } else {
+      } else if (typeof PluginConstructor === 'object') {
         // 如果是对象，直接使用
         pluginInstance = PluginConstructor;
+      } else {
+        throw new Error('Invalid plugin export');
       }
 
       // 设置 manifest
@@ -357,7 +371,7 @@ export class PluginManager implements IPluginManager {
         await pluginInstance.onLoad(context);
       }
     } catch (error) {
-      console.error(`Failed to load plugin entry: ${manifest.id}`, error);
+      logger.error(`Failed to load plugin entry: ${manifest.id}`, { error });
       // 创建最小插件实例
       pluginInstance = {
         manifest,
@@ -384,7 +398,7 @@ export class PluginManager implements IPluginManager {
     this.pluginStates.set(manifest.id, state);
     await this.store.saveState(manifest.id, state);
 
-    console.log(`Plugin loaded: ${manifest.name} (${manifest.id})`);
+    logger.info(`Plugin loaded: ${manifest.name} (${manifest.id})`);
   }
 
   async unload(pluginId: string): Promise<void> {
@@ -396,14 +410,14 @@ export class PluginManager implements IPluginManager {
       try {
         await plugin.onUnload();
       } catch (error) {
-        console.error(`Error in plugin onUnload: ${pluginId}`, error);
+        logger.error(`Error in plugin onUnload: ${pluginId}`, { error });
       }
     }
 
     // 从 map 删除
     this.plugins.delete(pluginId);
 
-    console.log(`Plugin unloaded: ${pluginId}`);
+    logger.info(`Plugin unloaded: ${pluginId}`);
   }
 
   async unloadAll(): Promise<void> {
@@ -429,7 +443,7 @@ export class PluginManager implements IPluginManager {
 
     const state = this.pluginStates.get(pluginId);
     if (state && !state.enabled) {
-      console.log(`Plugin is disabled: ${pluginId}`);
+      logger.info(`Plugin is disabled: ${pluginId}`);
       return;
     }
 
@@ -438,7 +452,7 @@ export class PluginManager implements IPluginManager {
       try {
         await plugin.onActivate();
       } catch (error) {
-        console.error(`Error in plugin onActivate: ${pluginId}`, error);
+        logger.error(`Error in plugin onActivate: ${pluginId}`, { error });
       }
     }
 
@@ -460,7 +474,7 @@ export class PluginManager implements IPluginManager {
       try {
         await plugin.onDeactivate();
       } catch (error) {
-        console.error(`Error in plugin onDeactivate: ${pluginId}`, error);
+        logger.error(`Error in plugin onDeactivate: ${pluginId}`, { error });
       }
     }
 
@@ -513,7 +527,7 @@ export class PluginManager implements IPluginManager {
     // 检查是否已安装
     const existingState = await this.store.getState(manifest.id);
     if (existingState && existingState.installed) {
-      console.log(`Plugin already installed: ${manifest.id}`);
+      logger.info(`Plugin already installed: ${manifest.id}`);
       return;
     }
 
@@ -530,7 +544,7 @@ export class PluginManager implements IPluginManager {
     // 加载插件
     await this.loadPlugin(installDir, PluginSource.LOCAL);
 
-    console.log(`Plugin installed: ${manifest.name}`);
+    logger.info(`Plugin installed: ${manifest.name}`);
 
     this.emit(PluginEventType.LOADED, manifest.id);
   }
@@ -573,14 +587,14 @@ export class PluginManager implements IPluginManager {
     const pluginPath = this.findPluginPath(pluginId, this.userDataPluginsDir);
     if (pluginPath && fs.existsSync(pluginPath)) {
       fs.rmSync(pluginPath, { recursive: true });
-      console.log(`Plugin directory removed: ${pluginId}`);
+      logger.info(`Plugin directory removed: ${pluginId}`);
     }
 
     // 删除状态
     await this.store.deleteState(pluginId);
     this.pluginStates.delete(pluginId);
 
-    console.log(`Plugin uninstalled: ${pluginId}`);
+    logger.info(`Plugin uninstalled: ${pluginId}`);
 
     this.emit(PluginEventType.UNLOADED, pluginId);
   }
@@ -619,24 +633,24 @@ export class PluginManager implements IPluginManager {
     const content = await zip.generateAsync({ type: 'nodebuffer' });
     fs.writeFileSync(outputPath, content as Buffer);
 
-    console.log(`Plugin exported to: ${outputPath}`);
+    logger.info(`Plugin exported to: ${outputPath}`);
   }
 
   async update(pluginId: string): Promise<void> {
     // TODO: 实现从远程更新插件
-    console.log(`Plugin update requested: ${pluginId}`);
+    logger.info(`Plugin update requested: ${pluginId}`);
   }
 
   // ==================== Remote Plugin ====================
 
   async fetchFromRemote(url: string): Promise<void> {
     // TODO: 实现从远程加载插件
-    console.log(`Remote plugin fetch requested: ${url}`);
+    logger.info(`Remote plugin fetch requested: ${url}`);
   }
 
   async checkUpdates(): Promise<void> {
     // TODO: 实现检查插件更新
-    console.log('Plugin updates check requested');
+    logger.info('Plugin updates check requested');
   }
 
   // ==================== Events ====================
@@ -690,7 +704,7 @@ export class PluginManager implements IPluginManager {
       const depState = await this.store.getState(dep.id);
       if (!depState || !depState.installed) {
         if (dep.optional) {
-          console.warn(`Optional dependency not installed: ${dep.id}`);
+          logger.warn(`Optional dependency not installed: ${dep.id}`);
         } else {
           throw new Error(`Required dependency not installed: ${dep.id}`);
         }
@@ -701,7 +715,7 @@ export class PluginManager implements IPluginManager {
         if (!semver.satisfies(depState.remoteVersion, dep.version)) {
           const message = `Dependency version mismatch: ${dep.id} (required: ${dep.version}, installed: ${depState.remoteVersion})`;
           if (dep.optional) {
-            console.warn(message);
+            logger.warn(message);
           } else {
             throw new Error(message);
           }

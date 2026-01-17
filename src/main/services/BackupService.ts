@@ -2,6 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import { app, dialog, BrowserWindow, ipcMain } from 'electron';
 import { DatabaseService } from '../database';
+import { createLogger } from '../../shared/logger';
+
+const logger = createLogger('BackupService');
 
 interface BackupOptions {
   includePlugins?: boolean;      // 是否包含插件数据
@@ -148,7 +151,7 @@ export class BackupService {
       }
 
     } catch (error) {
-      console.error('Backup failed:', error);
+      logger.error('Backup failed', { error });
       return { success: false, error: error instanceof Error ? error.message : '备份失败' };
     }
   }
@@ -254,7 +257,7 @@ export class BackupService {
     } catch (error) {
       // 清理临时目录
       fs.rmSync(tempDir, { recursive: true, force: true });
-      console.error('Preview backup failed:', error);
+      logger.error('Preview backup failed', { error });
       return { success: false, error: error instanceof Error ? error.message : '预览失败' };
     }
   }
@@ -394,7 +397,7 @@ export class BackupService {
       }
 
     } catch (error) {
-      console.error('Restore failed:', error);
+      logger.error('Restore failed', { error });
       return { success: false, error: error instanceof Error ? error.message : '恢复失败' };
     }
   }
@@ -413,7 +416,7 @@ export class BackupService {
       );
 
       // 简化的备份逻辑（不使用对话框）
-      console.log(`Creating auto backup: ${backupPath}`);
+      logger.info(`Creating auto backup: ${backupPath}`);
       // 这里可以调用 createBackup 的简化版本
     };
 
@@ -438,7 +441,7 @@ export class BackupService {
 
         if (now - stats.mtimeMs > sevenDaysMs) {
           fs.unlinkSync(filePath);
-          console.log(`Deleted old backup: ${file}`);
+          logger.info(`Deleted old backup: ${file}`);
         }
       });
     };

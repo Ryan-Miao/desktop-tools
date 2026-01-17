@@ -19,6 +19,23 @@ export interface LogEntry {
   level: LogLevel;
   message: string;
   data?: any;
+  platform?: 'desktop' | 'web';
+  module?: string;
+}
+
+export interface LogQueryOptions {
+  startDate?: Date;
+  endDate?: Date;
+  minLevel?: LogLevel;
+  module?: string;
+  keyword?: string;
+  limit?: number;
+}
+
+export interface LogStats {
+  total: number;
+  byLevel: Record<LogLevel, number>;
+  byModule: Record<string, number>;
 }
 
 class LogService {
@@ -28,6 +45,7 @@ class LogService {
   private maxLogFiles: number = 5;
   private writeQueue: string[] = [];
   private isWriting: boolean = false;
+  private minLevel: LogLevel = LogLevel.DEBUG; // 默认记录所有级别
 
   constructor() {
     // 设置日志目录为用户数据目录
@@ -80,7 +98,8 @@ class LogService {
    */
   private formatLogEntry(entry: LogEntry): string {
     const timestamp = entry.timestamp;
-    const level = LogLevel[entry.level].padEnd(5);
+    const levelStr = LogLevel[entry.level] || 'DEBUG';
+    const level = levelStr.padEnd(5);
     const dataStr = entry.data ? ` | ${JSON.stringify(entry.data)}` : '';
     return `[${timestamp}] ${level} ${entry.message}${dataStr}\n`;
   }
@@ -151,9 +170,28 @@ class LogService {
   }
 
   /**
+   * 设置最小日志级别
+   */
+  setMinLevel(level: LogLevel): void {
+    this.minLevel = level;
+  }
+
+  /**
+   * 获取最小日志级别
+   */
+  getMinLevel(): LogLevel {
+    return this.minLevel;
+  }
+
+  /**
    * 写入日志
    */
   async write(entry: LogEntry): Promise<void> {
+    // 日志级别过滤
+    if (entry.level < this.minLevel) {
+      return;
+    }
+
     const formatted = this.formatLogEntry(entry);
     this.writeQueue.push(formatted);
 
@@ -190,6 +228,132 @@ class LogService {
     if (fs.existsSync(logFilePath)) {
       fs.unlinkSync(logFilePath);
     }
+  }
+
+  /**
+   * 查询日志
+   */
+  query(options: LogQueryOptions = {}): LogEntry[] {
+    const logFiles = this.getLogFiles();
+    const results: LogEntry[] = [];
+
+    for (const logFile of logFiles) {
+      try {
+        const content = fs.readFileSync(logFile, 'utf-8');
+        const lines = content.split('\n').filter(line => line.trim());
+
+        for (const line of lines) {
+          const entry = this.parseLogLine(line);
+          if (!entry) continue;
+
+          // 过滤条件
+          if (options.minLevel !== undefined && entry.level < options.minLevel) {
+            continue;
+          }
+
+          if (options.module && entry.module !== options.module) {
+            continue;
+          }
+
+          if (options.keyword) {
+            const searchText = `${entry.message} ${JSON.stringify(entry.data || '')}`.toLowerCase();
+            if (!searchText.includes(options.keyword.toLowerCase())) {
+              continue;
+            }
+          }
+
+          if (options.startDate || options.endDate) {
+            const timestamp = new Date(entry.timestamp);
+            if (options.startDate && timestamp < options.startDate) continue;
+            if (options.endDate && timestamp > options.endDate) continue;
+          }
+
+          results.push(entry);
+
+          // 数量限制
+          if (options.limit && results.length >= options.limit) {
+            return results;
+          }
+        }
+      } catch (error) {
+        console.error(`Failed to read log file ${logFile}:`, error);
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * 获取日志统计
+   */
+  getStats(): LogStats {
+    const logs = this.query();
+    const stats: LogStats = {
+      total: logs.length,
+      byLevel: {
+        [LogLevel.DEBUG]: 0,
+        [LogLevel.INFO]: 0,
+        [LogLevel.WARN]: 0,
+        [LogLevel.ERROR]: 0
+      },
+      byModule: {}
+    };
+
+    for (const log of logs) {
+      // 按级别统计
+      stats.byLevel[log.level]++;
+
+      // 按模块统计
+      const module = log.module || 'unknown';
+      stats.byModule[module] = (stats.byModule[module] || 0) + 1;
+    }
+
+    return stats;
+  }
+
+  /**
+   * 解析日志行
+   */
+  private parseLogLine(line: string): LogEntry | null {
+    try {
+      // 日志格式: [timestamp] LEVEL message | data
+      const match = line.match(/^\[([^\]]+)\]\s+(\w+)\s+(.+)$/);
+      if (!match) return null;
+
+      const [, timestamp, levelStr, messageAndData] = match;
+      const level = this.parseLogLevel(levelStr);
+
+      // 分离消息和数据
+      let message = messageAndData;
+      let data: any;
+
+      if (messageAndData.includes(' | ')) {
+        const [msg, dataStr] = messageAndData.split(' | ');
+        message = msg;
+        try {
+          data = JSON.parse(dataStr);
+        } catch {
+          // 数据解析失败，忽略
+        }
+      }
+
+      return {
+        timestamp,
+        level,
+        message,
+        data
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * 解析日志级别字符串
+   */
+  private parseLogLevel(levelStr: string): LogLevel {
+    const level = (LogLevel as any)[levelStr];
+    return level !== undefined ? level : LogLevel.INFO;
   }
 
   /**

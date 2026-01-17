@@ -45,8 +45,8 @@ const WindowControls: React.FC<WindowControlsProps> = ({
       window.electron.ipcRenderer.on('window:unmaximized', handleUnmaximize);
 
       return () => {
-        window.electron.ipcRenderer.removeAllListeners('window:maximized');
-        window.electron.ipcRenderer.removeAllListeners('window:unmaximized');
+        window.electron?.ipcRenderer.removeAllListeners('window:maximized');
+        window.electron?.ipcRenderer.removeAllListeners('window:unmaximized');
       };
     }
   }, []);

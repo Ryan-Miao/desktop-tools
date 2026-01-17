@@ -1,0 +1,274 @@
+/**
+ * Toast 通知组件样式
+ */
+
+/* ==================== Toast 容器 ==================== */
+
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+  pointer-events: none;
+}
+
+.toast-wrapper {
+  pointer-events: auto;
+}
+
+/* ==================== Toast 基础样式 ==================== */
+
+.toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--toast-bg, rgba(255, 255, 255, 0.95));
+  border: 1px solid var(--toast-border, rgba(0, 0, 0, 0.1));
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  min-width: 300px;
+  max-width: 400px;
+
+  /* 进入动画 */
+  animation: toastSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.dark .toast {
+  background: var(--toast-bg, rgba(30, 41, 59, 0.95));
+  border-color: var(--toast-border, rgba(255, 255, 255, 0.1));
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* 退出动画 */
+.toast-closing {
+  animation: toastSlideOut 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%) scale(0.9);
+  }
+}
+
+/* ==================== Toast 图标 ==================== */
+
+.toast-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  border-radius: 50%;
+  font-weight: bold;
+}
+
+.toast-success .toast-icon {
+  background: rgba(40, 167, 69, 0.15);
+  color: #28A745;
+}
+
+.toast-error .toast-icon {
+  background: rgba(220, 53, 69, 0.15);
+  color: #DC3545;
+}
+
+.toast-warning .toast-icon {
+  background: rgba(255, 149, 0, 0.15);
+  color: #FF9500;
+}
+
+.toast-info .toast-icon {
+  background: rgba(0, 122, 255, 0.15);
+  color: #007AFF;
+}
+
+/* ==================== Toast 内容 ==================== */
+
+.toast-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.toast-message {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+/* ==================== Toast 操作按钮 ==================== */
+
+.toast-action {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: var(--primary-color);
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toast-action:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.toast-action:active {
+  transform: translateY(0);
+}
+
+/* ==================== Toast 关闭按钮 ==================== */
+
+.toast-close {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.toast-close:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--text-primary);
+}
+
+.dark .toast-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.toast-close:active {
+  transform: scale(0.95);
+}
+
+/* ==================== 不同类型 Toast 的特殊样式 ==================== */
+
+.toast-success {
+  border-left: 4px solid #28A745;
+}
+
+.toast-error {
+  border-left: 4px solid #DC3545;
+}
+
+.toast-warning {
+  border-left: 4px solid #FF9500;
+}
+
+.toast-info {
+  border-left: 4px solid #007AFF;
+}
+
+/* ==================== 响应式设计 ==================== */
+
+@media (max-width: 768px) {
+  .toast-container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+
+  .toast {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* ==================== 多个 Toast 堆叠动画 ==================== */
+
+.toast-wrapper {
+  animation: toastFadeIn 0.3s ease-out;
+}
+
+@keyframes toastFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==================== 辅助功能 ==================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .toast-wrapper {
+    animation: none;
+  }
+
+  .toast-action,
+  .toast-close {
+    transition: none;
+  }
+}
+
+/* ==================== 高对比度模式 ==================== */
+
+@media (prefers-contrast: high) {
+  .toast {
+    border: 2px solid currentColor;
+  }
+
+  .toast-icon {
+    background: none;
+    border: 1px solid currentColor;
+  }
+}
+
+/* ==================== 打印样式 ==================== */
+
+@media print {
+  .toast-container {
+    display: none;
+  }
+}

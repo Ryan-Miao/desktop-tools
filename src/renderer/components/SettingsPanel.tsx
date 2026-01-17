@@ -8,11 +8,11 @@ interface SettingsPanelProps {
   themeId: string;
   onClose: () => void;
   onChangeTheme: (themeId: string) => void;
-  onOpenStatsReport?: () => void;
   onOpenBackup?: () => void;
+  onOpacityChange?: (opacity: number) => void;
 }
 
-const SettingsPanel: React.FC<SettingsPanelProps> = ({ themeId, onClose, onChangeTheme, onOpenStatsReport, onOpenBackup }) => {
+const SettingsPanel: React.FC<SettingsPanelProps> = ({ themeId, onClose, onChangeTheme, onOpenBackup, onOpacityChange }) => {
   const [debugMode, setDebugMode] = useState(false);
   const [hardwareAcceleration, setHardwareAcceleration] = useState(true);
   const [animations, setAnimations] = useState(true);
@@ -90,13 +90,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ themeId, onClose, onChang
   };
 
   const handlePanelOpacityChange = (value: number) => {
-    logger.debug('Opacity changed', { value });
+    logger.info('Opacity changed', { value, opacityValue: value / 100 });
     setPanelOpacity(value);
     storageService.updateAppSettings({ panelOpacity: value });
 
     // 立即应用透明度
     const opacityValue = value / 100;
     document.documentElement.style.setProperty('--panel-opacity', `${opacityValue}`);
+
     updatePanelOpacity(`${opacityValue}`);
   };
 
@@ -206,7 +207,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ themeId, onClose, onChang
               <div className="opacity-slider-container">
                 <input
                   type="range"
-                  min="50"
+                  min="10"
                   max="100"
                   value={panelOpacity}
                   onChange={(e) => handlePanelOpacityChange(parseInt(e.target.value))}
@@ -344,13 +345,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ themeId, onClose, onChang
             <h3>数据管理</h3>
 
             <div className="settings-grid-2">
-              <div className="setting-item">
-                <div className="setting-info">
-                  <label>统计报表</label>
-                </div>
-                <button className="setting-button" onClick={onOpenStatsReport}>查看</button>
-              </div>
-
               <div className="setting-item">
                 <div className="setting-info">
                   <label>数据备份</label>

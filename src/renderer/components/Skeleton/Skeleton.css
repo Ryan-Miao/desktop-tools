@@ -1,0 +1,196 @@
+/**
+ * 骨架屏组件样式
+ */
+
+/* ==================== 基础骨架 ==================== */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base, rgba(0, 0, 0, 0.08)) 25%,
+    var(--skeleton-highlight, rgba(0, 0, 0, 0.16)) 50%,
+    var(--skeleton-base, rgba(0, 0, 0, 0.08)) 75%
+  );
+  background-size: 200% 100%;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base, rgba(255, 255, 255, 0.08)) 25%,
+    var(--skeleton-highlight, rgba(255, 255, 255, 0.16)) 50%,
+    var(--skeleton-base, rgba(255, 255, 255, 0.08)) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* 动画效果 */
+.skeleton-animate {
+  animation: skeletonShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ==================== 变体样式 ==================== */
+
+.skeleton-text {
+  height: 14px;
+  width: 100%;
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+}
+
+.skeleton-rect {
+  border-radius: 8px;
+}
+
+/* ==================== 卡片骨架 ==================== */
+
+.skeleton-card {
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dark .skeleton-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.skeleton-card-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.skeleton-card-title {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skeleton-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ==================== 列表项骨架 ==================== */
+
+.skeleton-list-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.dark .skeleton-list-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.skeleton-list-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skeleton-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* ==================== 插件卡片骨架 ==================== */
+
+.skeleton-plugin-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  min-height: 100px;
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.dark .skeleton-plugin-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ==================== 脉冲动画变体 ==================== */
+
+.skeleton-pulse {
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeletonPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ==================== 响应式设计 ==================== */
+
+@media (max-width: 768px) {
+  .skeleton-card,
+  .skeleton-list-item,
+  .skeleton-plugin-card {
+    padding: 12px;
+  }
+}
+
+/* ==================== 辅助功能 ==================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-animate {
+    animation: none;
+  }
+
+  .skeleton-pulse {
+    animation: none;
+  }
+}
+
+/* ==================== 高对比度模式 ==================== */
+
+@media (prefers-contrast: high) {
+  .skeleton {
+    background: var(--text-secondary);
+    opacity: 0.3;
+  }
+}
+
+/* ==================== 打印样式 ==================== */
+
+@media print {
+  .skeleton {
+    display: none;
+  }
+}

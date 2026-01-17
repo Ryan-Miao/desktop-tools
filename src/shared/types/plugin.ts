@@ -313,3 +313,39 @@ export interface IPluginStore {
   getWindowState(windowId: string): Promise<WindowState | undefined>;
   deleteWindowState(windowId: string): Promise<void>;
 }
+
+// ==================== Unified Plugin Window ====================
+
+/**
+ * 统一插件窗口配置（用于 PluginWindow 组件）
+ */
+export interface UnifiedPluginWindowConfig {
+  /** 窗口标题 */
+  title: string;
+  /** 窗口图标 (emoji 或图片URL) */
+  icon?: string;
+  /** 主题ID (继承主窗口主题) */
+  themeId?: string;
+  /** 面板透明度 (0-100) */
+  opacity?: number;
+  /** 是否可调整大小 */
+  resizable?: boolean;
+  /** 是否可最大化 */
+  maximizable?: boolean;
+  /** 是否可最小化 */
+  minimizable?: boolean;
+  /** 是否显示标题栏 */
+  showHeader?: boolean;
+  /** 自定义类名 */
+  className?: string;
+  /** 是否显示关闭按钮 */
+  showCloseButton?: boolean;
+  /** 最小宽度 */
+  minWidth?: number;
+  /** 最小高度 */
+  minHeight?: number;
+  /** 初始宽度 */
+  width?: number;
+  /** 初始高度 */
+  height?: number;
+}

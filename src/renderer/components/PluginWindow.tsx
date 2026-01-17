@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createLogger } from '../../shared/logger';
 import './PluginWindow.css';
+
+const logger = createLogger('PluginWindow');
 
 interface PluginWindowProps {
   id: string;
@@ -78,7 +81,7 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
           if (state.height !== undefined) setSize(prev => ({ ...prev, height: state.height }));
         }
       } catch (error) {
-        console.error('Failed to load window state:', error);
+        logger.error('Failed to load window state', { error });
       }
     };
 
@@ -97,7 +100,7 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
           isMaximized
         });
       } catch (error) {
-        console.error('Failed to save window state:', error);
+        logger.error('Failed to save window state', { error });
       }
     };
 

@@ -9,7 +9,6 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
 }
 
 .modal-content {
@@ -17,7 +16,6 @@
   height: 85vh;
   max-width: 1400px;
   background: var(--panel-background);
-  backdrop-filter: blur(20px);
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   overflow: hidden;

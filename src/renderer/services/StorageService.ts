@@ -3,6 +3,10 @@
  * 提供数据持久化功能
  */
 
+import { createLogger } from '../../shared/logger';
+
+const logger = createLogger('StorageService');
+
 export interface PluginState {
   id: string;
   enabled: boolean;
@@ -84,10 +88,10 @@ class StorageService {
           }
         };
         this.cacheTimestamp = now;
-        return this.cache;
+        return this.cache!;
       }
     } catch (error) {
-      console.error('Error reading from localStorage:', error);
+      logger.error('Error reading from localStorage', { error });
     }
 
     this.cache = { ...this.defaultData };
@@ -105,7 +109,7 @@ class StorageService {
       this.cache = data;
       this.cacheTimestamp = Date.now();
     } catch (error) {
-      console.error('Error saving to localStorage:', error);
+      logger.error('Error saving to localStorage', { error });
     }
   }
 
@@ -289,7 +293,7 @@ class StorageService {
       this.saveData(imported);
       return true;
     } catch (error) {
-      console.error('Error importing data:', error);
+      logger.error('Error importing data', { error });
       return false;
     }
   }
@@ -316,7 +320,7 @@ class StorageService {
         return `${kb.toFixed(2)} KB`;
       }
     } catch (error) {
-      console.error('Error calculating storage size:', error);
+      logger.error('Error calculating storage size', { error });
     }
     return '0 KB';
   }

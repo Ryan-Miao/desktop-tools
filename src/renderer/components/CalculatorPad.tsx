@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { createLogger } from '../../shared/logger';
+import PluginWindow from './PluginWindow/PluginWindow';
 import './CalculatorPad.css';
+
+const logger = createLogger('CalculatorPad');
 
 interface Calculation {
   id: string;
@@ -17,10 +21,31 @@ const CalculatorPad: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [currentResult, setCurrentResult] = useState<number | null>(null);
   const [history, setHistory] = useState<Calculation[]>([]);
 
+  // 调试：追踪 onClose 调用
+  const handleClose = () => {
+    console.error('!!! CalculatorPad handleClose called !!!');
+    logger.error('!!! CalculatorPad handleClose called !!!', {
+      stackTrace: new Error().stack?.split('\n').slice(1, 10)
+    });
+    onClose();
+  };
+
   // 加载数据
   useEffect(() => {
+    console.log('CalculatorPad mounted');
+    logger.info('CalculatorPad mounted');
     loadData();
+    return () => {
+      console.log('CalculatorPad unmounted');
+      logger.info('CalculatorPad unmounted');
+    };
   }, []);
+
+  // 调试：追踪每次渲染
+  useEffect(() => {
+    console.log('CalculatorPad rendered');
+    logger.debug('CalculatorPad rendered');
+  });
 
   const loadData = async () => {
     try {
@@ -31,7 +56,7 @@ const CalculatorPad: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         setHistory(data.history || []);
       }
     } catch (error) {
-      console.error('Failed to load calculator data:', error);
+      logger.error('Failed to load calculator data', { error });
     }
   };
 
@@ -46,7 +71,7 @@ const CalculatorPad: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         JSON.stringify(data)
       );
     } catch (error) {
-      console.error('Failed to save calculator data:', error);
+      logger.error('Failed to save calculator data', { error });
     }
   };
 
@@ -110,14 +135,14 @@ const CalculatorPad: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content calculator-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>🧮 计算稿纸</h2>
-          <button className="close-button" onClick={onClose}>✕</button>
-        </div>
-
-        <div className="modal-body">
+    <div className="modal-overlay" onClick={handleClose}>
+      <div onClick={(e) => e.stopPropagation()}>
+        <PluginWindow
+          title="计算稿纸"
+          icon="🧮"
+          onClose={handleClose}
+          className="calculator-modal"
+        >
           {/* 当前计算区 */}
           <div className="current-calculation">
             <input
@@ -127,7 +152,6 @@ const CalculatorPad: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               value={currentInput}
               onChange={(e) => setCurrentInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              autoFocus
             />
             {currentResult !== null && (
               <div className="current-result">
@@ -164,7 +188,7 @@ const CalculatorPad: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               </div>
             )}
           </div>
-        </div>
+        </PluginWindow>
       </div>
     </div>
   );

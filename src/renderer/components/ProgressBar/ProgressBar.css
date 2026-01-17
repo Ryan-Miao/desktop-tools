@@ -1,0 +1,298 @@
+/**
+ * 进度条组件样式
+ */
+
+/* ==================== 线形进度条 ==================== */
+
+.progress-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.progress-track {
+  position: relative;
+  flex: 1;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.dark .progress-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: var(--progress-value, 0%);
+  background: var(--progress-color, var(--primary-color, #007AFF));
+  border-radius: 10px;
+  transition: width var(--progress-duration, 300ms) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-indeterminate .progress-fill {
+  width: 30% !important;
+  animation: progressSlide 1.5s ease-in-out infinite;
+}
+
+@keyframes progressSlide {
+  0% {
+    left: -30%;
+  }
+  50% {
+    left: 50%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.progress-indeterminate-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 30%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: progressShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes progressShimmer {
+  0% {
+    left: -30%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* ==================== 尺寸变体 ==================== */
+
+.progress-small {
+  height: 4px;
+}
+
+.progress-medium {
+  height: 8px;
+}
+
+.progress-large {
+  height: 12px;
+}
+
+/* ==================== 状态变体 ==================== */
+
+.progress-success .progress-fill {
+  background: #28A745;
+}
+
+.progress-warning .progress-fill {
+  background: #FF9500;
+}
+
+.progress-error .progress-fill {
+  background: #DC3545;
+}
+
+/* ==================== 进度标签 ==================== */
+
+.progress-label {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* ==================== 圆形进度条 ==================== */
+
+.circular-progress {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circular-progress-svg {
+  transform: rotate(-90deg);
+}
+
+.circular-progress-track {
+  stroke: rgba(0, 0, 0, 0.1);
+}
+
+.dark .circular-progress-track {
+  stroke: rgba(255, 255, 255, 0.1);
+}
+
+.circular-progress-fill {
+  stroke: var(--progress-color, var(--primary-color, #007AFF));
+  transition: stroke-dashoffset var(--progress-duration, 300ms) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.circular-indeterminate .circular-progress-fill {
+  animation: circularSpin 1.5s ease-in-out infinite;
+}
+
+@keyframes circularSpin {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 100, 200;
+    stroke-dashoffset: -30px;
+  }
+  100% {
+    stroke-dasharray: 100, 200;
+    stroke-dashoffset: -125px;
+  }
+}
+
+.circular-progress-label {
+  position: absolute;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ==================== 分段进度条 ==================== */
+
+.segmented-progress {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.segment {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.segmented-small .segment {
+  height: 3px;
+}
+
+.segmented-medium .segment {
+  height: 4px;
+}
+
+.segmented-large .segment {
+  height: 6px;
+}
+
+.segment:not([style*="background"]) {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.dark .segment:not([style*="background"]) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ==================== 动画增强 ==================== */
+
+/* 进度条加载动画 */
+.progress-bar:not(.progress-indeterminate) .progress-fill {
+  position: relative;
+}
+
+.progress-bar:not(.progress-indeterminate) .progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: progressGlow 2s ease-in-out infinite;
+}
+
+@keyframes progressGlow {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 完成状态动画 */
+.progress-bar .progress-fill[style*="100%"] {
+  animation: progressComplete 0.3s ease-out;
+}
+
+@keyframes progressComplete {
+  0% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(1.02);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+/* ==================== 响应式设计 ==================== */
+
+@media (max-width: 768px) {
+  .progress-label {
+    font-size: 12px;
+    min-width: 35px;
+  }
+}
+
+/* ==================== 辅助功能 ==================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill,
+  .circular-progress-fill,
+  .segment {
+    transition: none;
+  }
+
+  .progress-indeterminate .progress-fill,
+  .circular-indeterminate .circular-progress-fill,
+  .progress-fill::after {
+    animation: none;
+  }
+}
+
+/* ==================== 高对比度模式 ==================== */
+
+@media (prefers-contrast: high) {
+  .progress-track,
+  .circular-progress-track,
+  .segment {
+    border: 1px solid currentColor;
+  }
+}
+
+/* ==================== 打印样式 ==================== */
+
+@media print {
+  .progress-bar,
+  .circular-progress,
+  .segmented-progress {
+    display: none;
+  }
+}

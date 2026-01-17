@@ -1,0 +1,265 @@
+/**
+ * 加载状态组件样式
+ */
+
+/* ==================== 基础容器 ==================== */
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.loading-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* ==================== 尺寸变体 ==================== */
+
+.loading-small {
+  --loading-size: 16px;
+  --loading-stroke: 2px;
+  --loading-gap: 8px;
+}
+
+.loading-medium {
+  --loading-size: 24px;
+  --loading-stroke: 3px;
+  --loading-gap: 12px;
+}
+
+.loading-large {
+  --loading-size: 40px;
+  --loading-stroke: 4px;
+  --loading-gap: 16px;
+}
+
+/* ==================== Spinner 旋转圆环 ==================== */
+
+.loading-spinner {
+  position: relative;
+  width: var(--loading-size);
+  height: var(--loading-size);
+}
+
+.spinner-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: var(--loading-stroke) solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.spinner-ring:nth-child(1) {
+  animation-delay: -0.45s;
+}
+
+.spinner-ring:nth-child(2) {
+  animation-delay: -0.3s;
+}
+
+.spinner-ring:nth-child(3) {
+  animation-delay: -0.15s;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==================== Dots 点状动画 ==================== */
+
+.loading-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.dot {
+  width: calc(var(--loading-size) * 0.4);
+  height: calc(var(--loading-size) * 0.4);
+  border-radius: 50%;
+  background: var(--primary-color, #007AFF);
+  animation: dotPulse 1.4s ease-in-out infinite both;
+}
+
+.dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes dotPulse {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ==================== Pulse 脉冲动画 ==================== */
+
+.loading-pulse {
+  position: relative;
+  width: var(--loading-size);
+  height: var(--loading-size);
+}
+
+.pulse-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: var(--loading-stroke) solid currentColor;
+  border-radius: 50%;
+  animation: pulseRing 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+.pulse-ring:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.pulse-ring:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.pulse-ring:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+@keyframes pulseRing {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  80%, 100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* ==================== Bar 进度条 ==================== */
+
+.loading-bar {
+  width: 200px;
+}
+
+.bar-track {
+  width: 100%;
+  height: calc(var(--loading-stroke) * 2);
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.dark .bar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--primary-color, #007AFF);
+  border-radius: 10px;
+  animation: barSlide 1.5s ease-in-out infinite;
+  transform-origin: left;
+}
+
+@keyframes barSlide {
+  0% {
+    transform: scaleX(0) translateX(0);
+  }
+  50% {
+    transform: scaleX(0.6) translateX(100%);
+  }
+  100% {
+    transform: scaleX(0) translateX(300%);
+  }
+}
+
+/* ==================== 文本提示 ==================== */
+
+.loading-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ==================== 组合动画 ==================== */
+
+/* 加载时内容淡入 */
+.loading > *:not(.loading-overlay) {
+  animation: contentFadeIn 0.4s ease-out;
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==================== 响应式设计 ==================== */
+
+@media (max-width: 768px) {
+  .loading-bar {
+    width: 150px;
+  }
+}
+
+/* ==================== 辅助功能 ==================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner-ring,
+  .dot,
+  .pulse-ring,
+  .bar-fill {
+    animation-duration: 3s;
+  }
+}
+
+/* ==================== 打印样式 ==================== */
+
+@media print {
+  .loading {
+    display: none;
+  }
+}

@@ -8,7 +8,6 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
   const db = mainProcess.getDatabase();
   const pluginManager = mainProcess.getPluginManager();
   const windowManager = mainProcess.getWindowManager();
-  const inputMonitor = mainProcess.getInputMonitor();
   const mainWindow = mainProcess.getMainWindow();
   const backupService = new BackupService(db);
 
@@ -21,7 +20,7 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
   });
 
   ipcMain.handle(IPCChannels.PLUGIN_UNLOAD, async (_, pluginId: string) => {
-    await pluginManager.load(pluginId);
+    await pluginManager.unload(pluginId);
     return { unloaded: true };
   });
 
@@ -108,52 +107,6 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
       return await plugin.handleMessage(channel, data);
     }
     return null;
-  });
-
-  // ==================== Window Handlers ====================
-
-  // Window lifecycle
-  ipcMain.handle(IPCChannels.WINDOW_SHOW, async () => {
-    mainWindow?.show();
-    return { shown: true };
-  });
-
-  ipcMain.handle(IPCChannels.WINDOW_HIDE, async () => {
-    mainWindow?.hide();
-    return { hidden: true };
-  });
-
-  ipcMain.handle(IPCChannels.WINDOW_MINIMIZE, async () => {
-    windowManager.minimize();
-    return { minimized: true };
-  });
-
-  ipcMain.handle(IPCChannels.WINDOW_MAXIMIZE, async () => {
-    windowManager.maximize();
-    return { maximized: windowManager.isMaximized() };
-  });
-
-  ipcMain.handle(IPCChannels.WINDOW_RESTORE, async () => {
-    if (mainWindow) {
-      mainWindow.restore();
-    }
-    return { restored: true };
-  });
-
-  ipcMain.handle(IPCChannels.WINDOW_CLOSE, async () => {
-    windowManager.close();
-    return { closed: true };
-  });
-
-  ipcMain.handle(IPCChannels.WINDOW_IS_MAXIMIZED, async () => {
-    return windowManager.isMaximized();
-  });
-
-  ipcMain.handle(IPCChannels.WINDOW_START_DRAG, async () => {
-    if (mainWindow) {
-      mainWindow.setResizable(true);
-    }
-    return { dragging: true };
   });
 
   // ==================== Database Handlers ====================
@@ -287,34 +240,6 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
     return backupService.restoreBackup(options);
   });
 
-  // ==================== Input Monitor Handlers ====================
-
-  ipcMain.handle(IPCChannels.INPUT_MONITOR_GET_STATS, async () => {
-    return inputMonitor.getStats();
-  });
-
-  ipcMain.handle(IPCChannels.INPUT_MONITOR_RESET, async () => {
-    inputMonitor.reset();
-    return { reset: true };
-  });
-
-  ipcMain.handle(IPCChannels.INPUT_MONITOR_SAVE, async () => {
-    await inputMonitor.saveStats();
-
-    const stats = inputMonitor.getStats();
-    BrowserWindow.getAllWindows().forEach(window => {
-      if (!window.isDestroyed()) {
-        window.webContents.send('input-stats:update', stats);
-      }
-    });
-
-    return { saved: true };
-  });
-
-  ipcMain.on('input-monitor:update', (_event, updates) => {
-    inputMonitor.updateStats(updates);
-  });
-
   // ==================== System Handlers ====================
 
   ipcMain.handle(IPCChannels.SYSTEM_NOTIFICATION, async (_, { title, body }) => {
@@ -342,13 +267,72 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
 
   // ==================== Log Handlers ====================
 
+  // 单向日志写入（用于统一日志框架）
+  ipcMain.on('log:write', async (_, entry) => {
+    try {
+      await logService.write(entry);
+    } catch (error) {
+      console.error('[log:write] Failed to write log:', error);
+    }
+  });
+
+  // 日志查询
+  ipcMain.handle('log:query', async (_, options) => {
+    try {
+      return logService.query(options);
+    } catch (error) {
+      console.error('[log:query] Failed to query logs:', error);
+      return [];
+    }
+  });
+
+  // 日志统计
+  ipcMain.handle('log:stats', async () => {
+    try {
+      return logService.getStats();
+    } catch (error) {
+      console.error('[log:stats] Failed to get stats:', error);
+      return { total: 0, byLevel: {}, byModule: {} };
+    }
+  });
+
+  // 设置日志级别
+  ipcMain.handle('log:setLevel', async (_, level) => {
+    try {
+      logService.setMinLevel(level);
+      return { success: true, level: logService.getMinLevel() };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  // 保留旧的LOG_WRITE接口（向后兼容）
   ipcMain.handle(IPCChannels.LOG_WRITE, async (_, formattedLog) => {
     try {
-      const entry = JSON.parse(formattedLog);
+      // 调试：打印到控制台
+      console.log('[LOG_WRITE] Received log:', formattedLog);
+
+      // formattedLog 可能是 JSON 字符串或普通字符串
+      let entry;
+      try {
+        entry = JSON.parse(formattedLog);
+      } catch {
+        // 如果不是 JSON，当作普通字符串处理
+        entry = {
+          timestamp: new Date().toISOString(),
+          level: 1, // INFO
+          message: formattedLog,
+          data: undefined
+        };
+      }
+
+      console.log('[LOG_WRITE] Writing entry:', entry);
       await logService.write(entry);
+
+      console.log('[LOG_WRITE] Write successful');
       return { success: true };
     } catch (error) {
-      console.error('Failed to write log:', error);
+      console.error('[LOG_WRITE] Failed to write log:', error);
       return { success: false, error: (error as Error).message };
     }
   });

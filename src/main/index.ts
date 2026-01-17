@@ -3,14 +3,13 @@ import { setupIPCHandlers } from './ipc/handlers';
 import { DatabaseService } from './database';
 import { PluginManager } from './plugins/manager';
 import { WindowManager } from './windows/manager';
-import { InputMonitor } from './services/InputMonitor';
 import { PluginStore } from './services/PluginStore';
+import { logger } from '../shared/logger';
 
 export default class MainProcess {
   private database: DatabaseService;
   private pluginManager: PluginManager;
   private windowManager: WindowManager;
-  private inputMonitor: InputMonitor;
   private pluginStore: PluginStore;
   private mainWindow: BrowserWindow | null = null;
 
@@ -19,7 +18,6 @@ export default class MainProcess {
     this.pluginStore = new PluginStore({ dbName: 'plugins.db', tableName: 'states' });
     this.pluginManager = new PluginManager(this.pluginStore);
     this.windowManager = new WindowManager(this.pluginStore);
-    this.inputMonitor = new InputMonitor(this.database);
   }
 
   async initialize() {
@@ -38,19 +36,6 @@ export default class MainProcess {
 
     // Setup app lifecycle handlers
     this.setupAppHandlers();
-
-    // 启动输入监听器
-    this.inputMonitor.start();
-
-    // 设置统计数据更新回调，发送到渲染进程
-    this.inputMonitor.onStatsUpdate((stats) => {
-      // 将统计数据发送到所有窗口
-      BrowserWindow.getAllWindows().forEach(window => {
-        if (!window.isDestroyed()) {
-          window.webContents.send('input-stats:update', stats);
-        }
-      });
-    });
   }
 
   private setupAppHandlers() {
@@ -82,10 +67,6 @@ export default class MainProcess {
   getMainWindow() {
     return this.mainWindow;
   }
-
-  getInputMonitor() {
-    return this.inputMonitor;
-  }
 }
 
 // Initialize app when ready
@@ -94,14 +75,13 @@ app.whenReady().then(async () => {
     const mainProcess = new MainProcess();
     await mainProcess.initialize();
   } catch (error) {
-    console.error('Failed to initialize application:', error);
+    logger.error('Failed to initialize application', { error });
     app.quit();
   }
 });
 
 // Cleanup on quit
 app.on('before-quit', () => {
-  // Ensure InputMonitor is stopped and database is closed before quitting
   const windows = BrowserWindow.getAllWindows();
   windows.forEach(window => {
     if (!window.isDestroyed()) {

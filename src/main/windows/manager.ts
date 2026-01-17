@@ -13,7 +13,6 @@ import { PluginStore } from '../services/PluginStore';
  */
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
-  private floatingClockWindow: BrowserWindow | null = null;
   private pluginWindows: Map<string, BrowserWindow> = new Map();
   private store: PluginStore;
 
@@ -101,78 +100,6 @@ export class WindowManager {
 
   getMainWindow(): BrowserWindow | null {
     return this.mainWindow;
-  }
-
-  // ==================== Floating Clock Window ====================
-
-  createFloatingClockWindow(): BrowserWindow {
-    if (this.floatingClockWindow) {
-      this.floatingClockWindow.focus();
-      return this.floatingClockWindow;
-    }
-
-    // 尝试恢复窗口状态
-    this.loadWindowState('floating-clock').then(savedState => {
-      if (savedState && this.floatingClockWindow) {
-        if (savedState.x !== undefined) this.floatingClockWindow.setPosition(savedState.x, savedState.y || 50);
-      }
-    });
-
-    const { width } = screen.getPrimaryDisplay().workAreaSize;
-
-    this.floatingClockWindow = new BrowserWindow({
-      width: 300,
-      height: 120,
-      x: width - 350,
-      y: 50,
-      transparent: true,
-      frame: false,
-      alwaysOnTop: true,
-      skipTaskbar: true,
-      resizable: false,
-      backgroundColor: '#00000000',
-      webPreferences: {
-        preload: path.join(__dirname, '../preload/index.js'),
-        contextIsolation: true,
-        nodeIntegration: false
-      }
-    });
-
-    // 加载悬浮时钟页面
-    if (process.env.NODE_ENV === 'development') {
-      this.floatingClockWindow.loadURL('http://localhost:5173#floating-clock');
-    } else {
-      this.floatingClockWindow.loadFile(path.join(__dirname, '../renderer/index.html'), {
-        hash: 'floating-clock'
-      });
-    }
-
-    // 窗口关闭时清空引用
-    this.floatingClockWindow.on('closed', () => {
-      this.floatingClockWindow = null;
-      this.pluginWindows.delete('floating-clock');
-    });
-
-    // 保存窗口状态
-    this.floatingClockWindow.on('moved', () => {
-      this.saveWindowState('floating-clock', this.floatingClockWindow);
-    });
-
-    this.pluginWindows.set('floating-clock', this.floatingClockWindow);
-
-    return this.floatingClockWindow;
-  }
-
-  getFloatingClockWindow(): BrowserWindow | null {
-    return this.floatingClockWindow;
-  }
-
-  closeFloatingClockWindow() {
-    if (this.floatingClockWindow) {
-      this.floatingClockWindow.close();
-      this.floatingClockWindow = null;
-      this.pluginWindows.delete('floating-clock');
-    }
   }
 
   // ==================== Plugin Window ====================
@@ -463,9 +390,6 @@ export class WindowManager {
   destroy(): void {
     // 关闭所有插件窗口
     this.closeAllPluginWindows();
-
-    // 关闭悬浮时钟
-    this.closeFloatingClockWindow();
 
     // 移除所有 IPC 处理器
     ipcMain.removeHandler('plugin-window:create');
