@@ -328,8 +328,7 @@
 .plugin-tooltip {
   position: absolute;
   bottom: calc(100% + 12px);
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   z-index: 1000;
   pointer-events: none;
   animation: tooltipFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -339,8 +338,7 @@
   content: '';
   position: absolute;
   top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 24px;
   width: 0;
   height: 0;
   border-left: 8px solid transparent;
@@ -355,11 +353,11 @@
 @keyframes tooltipFadeIn {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(8px) scale(0.96);
+    transform: translateY(8px) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
+    transform: translateY(0) scale(1);
   }
 }
 
