@@ -4,16 +4,497 @@
 
 ---
 
-## 项目概述
+## 项目定位
 
-创建一个类似 **uTools** 的跨平台桌面工具平台，基于 Electron + React + TypeScript 构建，具有以下特点：
+### 核心理念
+Desktop Tool 是一个**可扩展的桌面工具框架**，重点在于：
+- 🏗️ **完整的插件架构** - 支持独立窗口、状态管理
+- 🎨 **强大的主题系统** - 18+ 主题，CSS 变量驱动
+- 🔧 **开发者友好的 API** - 插件开发简单快捷
+- 📝 **完善的基础设施** - EventBus、Logger、IPC
 
-- Mac 风格毛玻璃 UI 效果
-- 可扩展的插件系统
-- 内置 15+ 实用工具
-- 悬浮时钟（久坐提醒、统计功能）
-- 键盘鼠标使用统计
+### 当前状态
+- ✅ **架构完成**：插件系统、主题系统、事件总线、日志系统
+- ⚙️ **示例插件**：1 个计算器插件（演示插件开发流程）
+- 🚧 **功能开发中**：更多插件待开发
+
+### 设计目标
+- 不是"开箱即用"的工具集
+- 而是"快速开发工具"的框架
+- 类似于：Electron 版的 VS Code 插件系统
+
+---
+
+## 已实现的核心架构
+
+### 1. 插件系统
+- ✅ 独立窗口支持（BrowserWindow）
+- ✅ 自定义标题栏（PluginWindow 组件）
+- ✅ 窗口控制（最小化、最大化、关闭）
+- ✅ 拖拽移动（Drag API）
+- ✅ 状态持久化（位置、大小、最大化状态）
+- ✅ ESC 快速关闭
+- ✅ 主题适配（自动切换）
+
+**代码位置**:
+- 插件窗口组件：`src/renderer/components/PluginWindow/`
+- 窗口管理器：`src/main/windows/manager.ts`
+- 插件管理器：`src/main/plugins/manager.ts`
+
+### 2. 主题系统
+- ✅ 18+ 预设主题（6 浅色 + 11 深色 + 1 渐变）
+- ✅ CSS 变量驱动（完全动态切换）
+- ✅ 透明度可调（0-100%）
+- ✅ 高对比度主题（4 个）
+- ✅ 自定义主题支持
+
+**代码位置**:
+- 主题定义：`src/renderer/themes/themes.ts`
+- 全局样式：`src/renderer/styles/global.css`
+
+### 3. 事件总线（EventBus）
+- ✅ 渲染进程组件间通信
+- ✅ 避免 Props Drilling
+- ✅ 自动清理监听器
+- ✅ 类型安全的事件定义
+
+**代码位置**:
+- 事件总线：`src/renderer/utils/eventBus.ts`
+
+**使用示例**:
+```typescript
+import { eventBus, AppEvents } from '../utils/eventBus';
+
+// 发送事件
+eventBus.emit(AppEvents.PLUGINS_CHANGED);
+
+// 监听事件
+const cleanup = eventBus.on(AppEvents.PLUGINS_CHANGED, () => {
+  // 处理事件
+});
+
+// 清理监听（重要！）
+cleanup();
+```
+
+### 4. 日志系统
+- ✅ 跨进程日志（主进程/渲染进程/Web）
+- ✅ 依赖注入模式
+- ✅ 日志级别控制（DEBUG/INFO/WARN/ERROR）
+- ✅ 彩色输出和格式化
+- ✅ 文件持久化
+
+**代码位置**:
+- 日志核心：`src/shared/logger/index.ts`
+- 主进程日志服务：`src/main/services/LogService.ts`
+
+**使用示例**:
+```typescript
+import { createLogger } from '../../shared/logger';
+
+const logger = createLogger('ModuleName');
+
+logger.debug('Processing request', { userId, action });
+logger.info('User logged in', { userId, timestamp });
+logger.warn('Rate limit approaching', { currentRequests });
+logger.error('Operation failed', { error, retryCount });
+```
+
+### 5. 插件管理器
+- ✅ 插件列表展示
+- ✅ 启用/禁用插件
+- ✅ 导入/导出插件
+- ✅ 内联确认 + Toast 通知
+- ✅ 主题适配
+
+**代码位置**:
+- 插件管理器 UI：`src/renderer/components/PluginManager.tsx`
+- 插件状态管理：`src/main/plugins/manager.ts`
+
+### 6. 数据持久化
+- ✅ SQLite 数据库（主进程）
+- ✅ localStorage（渲染进程）
+- ✅ 数据备份和恢复
+- ✅ 存储服务缓存机制
+
+**代码位置**:
+- 数据库服务：`src/main/database/index.ts`
+- 存储服务：`src/renderer/services/StorageService.ts`
+- 备份服务：`src/main/services/BackupService.ts`
+
+---
+
+## 实际功能状态
+
+### ✅ 已实现的功能
+
+**核心功能**:
+- 计算器插件（1 个示例插件，演示插件开发流程）
+- 插件管理界面（启用/禁用、导入/导出）
+- 主题切换（18+ 主题）
 - 数据备份和恢复
+- 性能监控面板
+- 设置管理
+
+**基础设施**:
+- 插件系统架构（独立窗口、状态管理）
+- 主题系统架构（CSS 变量、动态切换）
+- 事件总线（组件间通信）
+- 日志系统（跨进程、依赖注入）
+- 数据持久化（SQLite + localStorage）
+- IPC 通信（主进程 ↔ 渲染进程）
+
+### 🚧 计划中（未实现）
+
+以下功能有数据库表结构或代码框架，但 UI 或完整功能未实现：
+
+**更多内置插件**（计划开发）:
+- JSON 工具（格式化、压缩、转义）
+- Markdown 编辑器
+- 正则表达式测试器
+- Base64 编码/解码
+- 颜色选择器
+- 时间戳转换器
+- UUID 生成器
+- 单位转换器
+- 加密解密工具
+- 二维码生成器
+
+**统计功能**（有数据库表，无 UI）:
+- 键盘鼠标使用统计（数据库表已创建，但 UI 组件已删除）
+- 输入事件监控服务（InputMonitor 已删除）
+
+**高级功能**（计划中）:
+- 在线插件市场
+- 云同步功能
+- 外部插件加载
+- 自动更新功能
+
+### 📊 当前项目状态
+
+- **开发阶段**：早期阶段（框架搭建完成，功能开发中）
+- **核心价值**：提供完整的插件开发框架，而非开箱即用的工具集
+- **测试覆盖率**：< 20%（当前阶段优先功能开发，测试逐步完善）
+- **代码提交**：约 50+ commits
+- **示例插件**：1 个计算器插件
+
+### 🎯 开发优先级
+
+1. **框架优先**：确保插件系统、主题系统等核心架构稳定
+2. **示例优先**：通过计算器插件演示插件开发流程
+3. **渐进开发**：逐步添加更多实用插件
+4. **文档优先**：提供清晰的开发指南和 API 文档
+
+---
+
+## 快速开始指南
+
+### 了解项目架构（5 分钟）
+
+**核心文件位置**：
+```
+src/
+├── main/
+│   ├── index.ts                    # 主进程入口
+│   ├── windows/manager.ts          # 窗口管理器
+│   ├── plugins/manager.ts          # 插件管理器
+│   └── services/LogService.ts      # 日志服务
+├── renderer/
+│   ├── App.tsx                     # 主应用组件
+│   ├── components/
+│   │   ├── PluginWindow/           # 插件窗口组件
+│   │   │   ├── PluginWindow.tsx
+│   │   │   └── PluginWindow.css
+│   │   ├── CalculatorPad.tsx       # 计算器插件示例
+│   │   ├── PluginManager.tsx       # 插件管理器
+│   │   └── SettingsPanel.tsx       # 设置面板
+│   ├── utils/eventBus.ts           # 事件总线
+│   └── themes/themes.ts            # 主题定义
+└── shared/logger/                  # 日志系统
+```
+
+**快速查看**：
+1. 阅读 `src/renderer/components/CalculatorPad.tsx` 了解插件结构
+2. 查看 `src/renderer/components/PluginWindow/PluginWindow.tsx` 了解窗口包装器
+3. 查看 `src/renderer/themes/themes.ts` 了解主题系统
+4. 查看 `src/renderer/utils/eventBus.ts` 了解事件总线
+
+### 开发你的第一个插件（15 分钟）
+
+**步骤 1：创建插件组件**
+
+```typescript
+// src/renderer/components/TodoList/TodoList.tsx
+import React, { useState } from 'react';
+import PluginWindow from '../PluginWindow/PluginWindow';
+import { createLogger } from '../../../shared/logger';
+import './TodoList.css';
+
+const logger = createLogger('TodoList');
+
+interface TodoListProps {
+  onClose: () => void;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+}
+
+const TodoList: React.FC<TodoListProps> = ({
+  onClose,
+  onMinimize,
+  onMaximize
+}) => {
+  const [todos, setTodos] = useState<string[]>([]);
+  const [input, setInput] = useState('');
+
+  const handleAdd = () => {
+    if (input.trim()) {
+      logger.info('Adding todo item', { item: input });
+      setTodos([...todos, input]);
+      setInput('');
+    }
+  };
+
+  return (
+    <PluginWindow
+      title="待办事项"
+      icon="📝"
+      onClose={onClose}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      className="todolist-standalone"
+      pluginId="todolist"
+      showStandaloneButton={false}
+    >
+      <div className="todolist-content">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && handleAdd()}
+          placeholder="添加待办事项..."
+        />
+        <button onClick={handleAdd}>添加</button>
+        <ul>
+          {todos.map((todo, index) => (
+            <li key={index}>{todo}</li>
+          ))}
+        </ul>
+      </div>
+    </PluginWindow>
+  );
+};
+
+export default TodoList;
+```
+
+**步骤 2：添加样式（使用 CSS 变量）**
+
+```css
+/* src/renderer/components/TodoList/TodoList.css */
+.todolist-content {
+  padding: 20px;
+  background: var(--panel-background);
+  color: var(--text-primary);
+}
+
+.todolist-content input {
+  width: 70%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--panel-background);
+  color: var(--text-primary);
+  margin-right: 8px;
+}
+
+.todolist-content button {
+  padding: 8px 16px;
+  background: var(--primary-color);
+  color: var(--primary-text);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.todolist-content button:hover {
+  background: var(--primary-color-dark);
+}
+
+.todolist-content ul {
+  margin-top: 20px;
+  list-style: none;
+}
+
+.todolist-content li {
+  padding: 8px 12px;
+  background: var(--list-item-hover-bg);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+```
+
+**步骤 3：导出组件**
+
+```typescript
+// src/renderer/components/TodoList/index.ts
+export { default } from './TodoList';
+```
+
+**步骤 4：在 App.tsx 中注册插件**
+
+```typescript
+// src/renderer/App.tsx
+import TodoList from './components/TodoList';
+
+const plugins: Plugin[] = [
+  // ... 其他插件
+  {
+    id: 'todolist',
+    name: '待办事项',
+    description: '简单的待办事项管理工具',
+    icon: '📝',
+    component: TodoList
+  }
+];
+```
+
+**步骤 5：测试运行**
+
+```bash
+npm run dev
+```
+
+### 使用 EventBus（5 分钟）
+
+**场景**：插件列表更新后，通知主面板刷新
+
+```typescript
+// 1. 导入事件总线
+import { eventBus, AppEvents } from '../utils/eventBus';
+
+// 2. 在组件中监听事件
+useEffect(() => {
+  const handlePluginsChanged = () => {
+    logger.info('Plugins changed, refreshing...');
+    loadPlugins(); // 刷新插件列表
+  };
+
+  const cleanup = eventBus.on(AppEvents.PLUGINS_CHANGED, handlePluginsChanged);
+
+  return () => {
+    cleanup(); // 组件卸载时清理监听器
+  };
+}, []);
+
+// 3. 发送事件
+const handlePluginInstalled = () => {
+  // 安装插件后通知其他组件
+  eventBus.emit(AppEvents.PLUGINS_CHANGED);
+};
+```
+
+### 添加自定义主题（5 分钟）
+
+**步骤 1：打开 themes.ts**
+
+```typescript
+// src/renderer/themes/themes.ts
+export const themes: Theme[] = [
+  // ... 现有主题
+
+  // 步骤 2：添加新主题
+  {
+    id: 'my-custom-theme',
+    name: '我的主题',
+    icon: '🎨',
+    mode: 'light', // or 'dark'
+    colors: {
+      background: 'rgba(255, 255, 255, 0.8)',
+      foreground: '#0a0a0a',
+      primary: '#YOUR_COLOR',
+      secondary: '#YOUR_COLOR',
+      accent: '#YOUR_COLOR',
+      success: '#28A745',
+      warning: '#FF9500',
+      error: '#DC3545',
+
+      // 可选：自定义文字颜色层级
+      textPrimary: '#000000',
+      textSecondary: '#333333',
+      textTertiary: '#666666',
+      border: '#cccccc',
+      overlay: 'rgba(0, 0, 0, 0.5)'
+    },
+    glass: {
+      blur: 20,
+      opacity: 80,
+      saturate: 180
+    }
+  }
+];
+```
+
+**步骤 3：重启应用，新主题会自动出现在设置中**
+
+### 使用 Logger（3 分钟）
+
+```typescript
+import { createLogger } from '../../shared/logger';
+
+const logger = createLogger('ComponentName');
+
+// DEBUG 级别：开发调试信息
+logger.debug('Function called', { param1, param2 });
+
+// INFO 级别：重要业务流程
+logger.info('User action completed', { userId, action });
+
+// WARN 级别：警告信息
+logger.warn('Performance issue', { duration: 1500 });
+
+// ERROR 级别：错误信息
+logger.error('Operation failed', { error: err.message, stack: err.stack });
+```
+
+### 常见开发任务
+
+**创建新组件**：
+```bash
+# 1. 创建组件目录
+mkdir src/renderer/components/MyComponent
+# 2. 创建文件
+touch src/renderer/components/MyComponent/MyComponent.tsx
+touch src/renderer/components/MyComponent/MyComponent.css
+touch src/renderer/components/MyComponent/index.ts
+```
+
+**查看主题变量**：
+```bash
+# 打开浏览器开发者工具
+# 在 Console 中输入：
+getComputedStyle(document.documentElement)
+# 查找所有以 -- 开头的 CSS 变量
+```
+
+**调试插件窗口**：
+```typescript
+// 在插件组件中添加
+useEffect(() => {
+  logger.info('Plugin mounted', { pluginId: 'my-plugin' });
+}, []);
+```
+
+**查看日志文件**：
+```bash
+# Linux
+tail -f ~/.config/desktop-tool/logs/app.log
+
+# macOS
+tail -f ~/Library/Application Support/desktop-tool/logs/app.log
+
+# Windows
+tail -f %APPDATA%/desktop-tool/logs/app.log
+```
 
 ---
 
@@ -31,10 +512,18 @@
 
 #### 测试要求
 
-- ✅ **必须为每个新组件编写测试**
-- ✅ **测试覆盖率不低于 80%**
-- ✅ **关键业务逻辑覆盖率 100%**
+**当前阶段（早期开发）**：
+- ✅ **关键组件添加基础测试**
+- ✅ **核心功能编写测试用例**
 - ✅ **所有测试必须通过才能提交代码**
+- 🎯 **覆盖率目标：逐步提升（不要求 80%）**
+
+**成熟阶段（功能完整后）**：
+- 🎯 **测试覆盖率逐步提升至 60-80%**
+- 🎯 **关键业务逻辑 100% 覆盖**
+- 🎯 **完整的单元测试和集成测试**
+
+**注意**：当前项目处于早期开发阶段，优先核心功能开发。测试覆盖率会随着项目成熟逐步提升，不要求初期达到 80%。
 
 #### 测试文件组织
 
@@ -150,10 +639,19 @@ npm run test:ui
 
 #### 测试覆盖率目标
 
-- **总体覆盖率**：≥ 80%
+**当前阶段（早期开发）**：
+- **总体覆盖率**：逐步提升（当前 < 20%）
+- **核心业务逻辑**：关键功能优先
+- **组件渲染**：主要组件覆盖
+- **边界情况**：重要场景覆盖
+
+**成熟阶段目标**：
+- **总体覆盖率**：60-80%
 - **核心业务逻辑**：100%
 - **组件渲染**：≥ 90%
 - **边界情况**：≥ 70%
+
+**说明**：覆盖率目标是渐进的，随着项目成熟逐步提升，不要求初期达到高标准。
 
 ---
 
@@ -713,21 +1211,22 @@ interface UserProfileProps {
 要求：
 - 使用 TypeScript
 - 遵循项目代码风格
-- 包含完整的测试（覆盖率 > 80%）
+- 包含基础测试（核心功能）
 - 使用 createLogger 添加日志
-- 使用 CSS Modules"
+- 使用 CSS 变量（支持主题切换）
+- 使用内联确认 + Toast（不用 confirm/alert）"
 ```
 
 #### 分步实现策略
 
 ```typescript
 // 第 1 步：让 AI 编写测试
-"请为 UserProfile 组件编写完整的测试用例，包括：
+"请为 UserProfile 组件编写基础测试用例，包括：
 - 渲染测试（props、loading、error）
 - 交互测试（点击、输入）
 - 边界情况测试（空数据、错误处理）
 - 可访问性测试（ARIA、键盘导航）
-- 测试覆盖率目标：> 80%"
+- 测试覆盖率目标：覆盖核心功能（不要求 80%）"
 
 // 第 2 步：让 AI 实现功能
 "基于上面编写的测试，实现 UserProfile 组件：
@@ -1032,40 +1531,38 @@ if (duration > 100) {
 
 ## 核心功能
 
-### 1. 插件系统
-- 基于 manifest.json 的插件管理
-- 支持插件启用/禁用
-- 插件搜索和过滤
-- 15 个内置插件
+### 1. 插件系统架构
+- ✅ 独立窗口支持（BrowserWindow）
+- ✅ 自定义标题栏（PluginWindow 组件）
+- ✅ 窗口状态持久化（位置、大小、最大化）
+- ✅ 插件管理界面（启用/禁用、导入/导出）
+- ✅ 插件开发框架完整
 
-### 2. 内置工具
-- JSON 工具（格式化、压缩、转义、Excel 互转）
-- Base64 编码/解码
-- 颜色选择器
-- 时间戳转换器
-- UUID 生成器
-- 二维码生成器
-- 单位转换器
-- Markdown 编辑器
-- 正则表达式测试器
-- 加密解密工具
-- IP 地址查询
-- 汇率转换器
-- 图片压缩工具
-- 代码格式化工具
-- 悬浮时钟（独立窗口）
+### 2. 示例插件
+- ✅ **计算器插件**（演示插件开发流程）
+  - 基础四则运算
+  - 键盘输入支持
+  - 独立窗口运行
+  - 完整的源代码参考
 
-### 3. 统计功能
-- 键盘按键次数统计
-- 鼠标点击次数统计
-- 鼠标移动距离统计
-- 数据可视化图表
-- CSV 数据导出
+### 3. 主题系统
+- ✅ **18+ 预设主题**（6 浅色 + 11 深色 + 1 渐变）
+- ✅ 动态主题切换
+- ✅ CSS 变量支持
+- ✅ 高对比度主题（4 个）
+- ✅ 透明度可调
 
-### 4. 主题系统
-- 8 种预设主题（4 浅色 + 4 深色）
-- 动态主题切换
-- CSS 变量支持
+### 4. 数据管理
+- ✅ SQLite 数据库（主进程）
+- ✅ localStorage（渲染进程）
+- ✅ 数据备份和恢复
+- ✅ 存储服务缓存机制
+
+### 5. 开发工具
+- ✅ 性能监控面板
+- ✅ 设置管理
+- ✅ 日志系统（跨进程）
+- ✅ 事件总线（组件通信）
 
 ---
 
@@ -1602,8 +2099,9 @@ npm run dist
 
 4. **测试要求**
    - 每个新组件必须有对应的测试文件
-   - 测试覆盖率不低于 80%
-   - 核心业务逻辑覆盖率必须 100%
+   - **当前阶段**：基础测试覆盖核心功能
+   - **成熟阶段**：覆盖率逐步提升至 60-80%
+   - 核心业务逻辑优先测试
    - 提交代码前必须运行 `npm test` 确保所有测试通过
 
 5. **日志规范**
@@ -1630,7 +2128,7 @@ npm run dist
 
 8. **使用 AI 开发新功能**
    - 遵循 TDD 流程：先编写测试，再实现功能
-   - 在提示词中明确指定测试覆盖率要求（> 80%）
+   - **当前阶段**：要求基础测试覆盖核心功能（不要求 80%）
    - 要求 AI 添加适当的日志（DEBUG/INFO/WARN/ERROR）
    - 让 AI 先提供代码审查建议，再实现功能
 
@@ -2045,8 +2543,9 @@ const confirmUninstall = async () => {
 
 **测试验证**：
 - [ ] 所有测试通过（`npm test`）
-- [ ] 覆盖率达标（≥ 80%）（`npm run test:coverage`）
-- [ ] 核心业务逻辑 100% 覆盖
+- [ ] **当前阶段**：基础测试覆盖核心功能
+- [ ] **成熟阶段**：覆盖率达标（60-80%）（`npm run test:coverage`）
+- [ ] 核心业务逻辑有测试覆盖
 - [ ] 边界情况有对应测试
 
 **代码检查**：
