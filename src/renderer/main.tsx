@@ -8,12 +8,19 @@ import './styles/themes.css';
 // Import built-in plugins and their manifests
 import { pluginRegistry } from './services/PluginRegistry';
 import CalculatorPad, { calculatorManifest } from './components/CalculatorPad';
+import JSONFormatter, { jsonFormatterManifest } from './components/JSONFormatter';
 
 // Register built-in plugins explicitly
 pluginRegistry.register('com.desktop-tool.calculator-pad', {
   component: CalculatorPad,
   pluginId: 'com.desktop-tool.calculator-pad',
   manifest: calculatorManifest
+});
+
+pluginRegistry.register('com.desktop-tool.json-formatter', {
+  component: JSONFormatter,
+  pluginId: 'com.desktop-tool.json-formatter',
+  manifest: jsonFormatterManifest
 });
 
 // 检测是否是独立窗口
