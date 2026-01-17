@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import PluginWindow from '../../src/renderer/components/PluginWindow/PluginWindow';
+import PluginWindow from '../PluginWindow/PluginWindow';
 import './JSONFormatter.css';
 
 interface JSONFormatterProps {
