@@ -360,3 +360,24 @@
     transition: none;
   }
 }
+
+/* ==================== 调试样式（强制显示） ==================== */
+
+#debug-marker {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  position: relative !important;
+  z-index: 9999 !important;
+}
+
+.window-control-button.standalone {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.window-control-button.standalone span {
+  font-size: 20px !important;
+  color: #0078d4 !important;
+}

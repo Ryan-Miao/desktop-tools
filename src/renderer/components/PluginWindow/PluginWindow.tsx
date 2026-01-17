@@ -150,18 +150,22 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
           </div>
           {/* 调试标记 - 放在标题栏右侧，独立于控制按钮 */}
           {(pluginId || showStandaloneButton) && (
-            <div style={{
-              display: 'flex',
+            <div id="debug-marker" style={{
+              display: 'flex !important',
               alignItems: 'center',
               gap: '4px',
               fontSize: '10px',
               fontWeight: 'bold',
               padding: '0 8px',
-              background: 'rgba(255, 0, 0, 0.2)',
-              borderRadius: '4px'
+              background: 'red',
+              color: 'white',
+              borderRadius: '4px',
+              flexShrink: 0,
+              opacity: '1 !important',
+              visibility: 'visible !important'
             }}>
-              {pluginId && <span style={{ color: 'red' }}>ID:{pluginId}</span>}
-              {showStandaloneButton && <span style={{ color: 'red' }}>BTN</span>}
+              {pluginId && <span>ID:{pluginId}</span>}
+              {showStandaloneButton && <span>BTN</span>}
             </div>
           )}
           <div className="plugin-window-controls">
@@ -170,8 +174,13 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
                 className="window-control-button standalone"
                 onClick={handleOpenStandalone}
                 title="弹出独立窗口"
+                style={{ display: 'flex !important' }}
               >
-                <span>⎘</span>
+                <span style={{
+                  fontSize: '20px',
+                  color: '#0078d4',
+                  fontWeight: 'bold'
+                }}>⎘</span>
               </button>
             )}
             {minimizable && (
