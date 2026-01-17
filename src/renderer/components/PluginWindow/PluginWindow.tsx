@@ -109,6 +109,7 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
   };
 
   const handleOpenStandalone = async () => {
+    console.log('[PluginWindow] Opening standalone window for plugin:', pluginId);
     if (!pluginId || !window.electron?.ipcRenderer) return;
 
     try {
@@ -126,6 +127,11 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
   } as React.CSSProperties;
 
   const windowClassName = `plugin-window ${className}`.trim();
+
+  // 调试日志
+  if (showHeader && showStandaloneButton && pluginId) {
+    console.log('[PluginWindow] Standalone button should be visible:', { pluginId, showStandaloneButton });
+  }
 
   return (
     <div
