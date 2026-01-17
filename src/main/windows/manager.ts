@@ -161,7 +161,8 @@ export class WindowManager {
         preload: path.join(__dirname, '../preload/index.js'),
         contextIsolation: true,
         nodeIntegration: windowConfig.nodeIntegration ?? false,
-        webSecurity: windowConfig.webSecurity ?? true
+        webSecurity: windowConfig.webSecurity ?? true,
+        devTools: true // 启用开发者工具
       }
     });
 
