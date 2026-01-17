@@ -4,6 +4,7 @@ import type MainProcess from '../index';
 import { BackupService } from '../services/BackupService';
 import logService from '../services/LogService';
 import { IPCChannels } from '@shared/constants/channels';
+import { WindowConfig } from '@shared/types/plugin';
 
 export function setupIPCHandlers(mainProcess: MainProcess) {
   const db = mainProcess.getDatabase();
@@ -382,68 +383,35 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
 
   // ==================== 独立插件窗口 ====================
 
-  // 存储独立窗口的引用
-  const standaloneWindows = new Map<string, BrowserWindow>();
-
   // 打开独立插件窗口
   ipcMain.handle('plugin:open-standalone', async (_, pluginId: string, pluginTitle: string) => {
     try {
-      // 如果窗口已存在，聚焦它
-      const existingWindow = standaloneWindows.get(pluginId);
-      if (existingWindow && !existingWindow.isDestroyed()) {
-        existingWindow.focus();
-        return { success: true, alreadyOpen: true };
-      }
+      const windowId = `standalone-${pluginId}`;
 
-      // 创建新窗口
-      const standaloneWindow = new BrowserWindow({
+      // 使用 WindowManager 创建窗口（自动处理重复窗口检查）
+      const windowConfig: WindowConfig = {
         width: 900,
         height: 700,
         minWidth: 600,
         minHeight: 400,
-        title: pluginTitle,
-        show: false,
-        webPreferences: {
-          nodeIntegration: false,
-          contextIsolation: true,
-          preload: path.join(__dirname, '../preload/index.js')
-        }
-      });
+        transparent: false,        // 不透明 - 插件可自己设计透明度
+        frame: false,              // 无边框 - 去掉原生菜单栏
+        skipTaskbar: false,        // 显示任务栏图标
+        backgroundColor: '#ffffff', // 白色背景
+        resizable: true,
+        maximizable: true,
+        minimizable: true,
+        closable: true,
+        alwaysOnTop: false
+      };
 
-      // 加载插件页面（使用特殊的 URL 参数）
-      standaloneWindow.loadFile(path.join(__dirname, '../../dist/renderer/index.html'), {
-        hash: `#plugin-standalone/${pluginId}`
-      });
+      await windowManager.createPluginWindow(windowId, pluginId, windowConfig);
 
-      // 窗口准备好后显示
-      standaloneWindow.once('ready-to-show', () => {
-        standaloneWindow.show();
-      });
-
-      // 窗口关闭时清除引用
-      standaloneWindow.on('closed', () => {
-        standaloneWindows.delete(pluginId);
-      });
-
-      // 存储窗口引用
-      standaloneWindows.set(pluginId, standaloneWindow);
-
-      return { success: true };
+      return { success: true, windowId };
     } catch (error) {
       logger.error(`Failed to open standalone window for plugin: ${pluginId}`, { error });
       return { success: false, error: (error as Error).message };
     }
-  });
-
-  // 关闭独立插件窗口
-  ipcMain.handle('plugin:close-standalone', async (_, pluginId: string) => {
-    const window = standaloneWindows.get(pluginId);
-    if (window && !window.isDestroyed()) {
-      window.close();
-      standaloneWindows.delete(pluginId);
-      return { success: true };
-    }
-    return { success: false, error: 'Window not found' };
   });
 
   // ==================== Setup Auto Backup ====================

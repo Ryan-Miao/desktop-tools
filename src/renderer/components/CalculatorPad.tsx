@@ -16,23 +16,25 @@ interface CalculatorPadData {
   history: Calculation[];
 }
 
-const CalculatorPad: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  // 调试日志
-  console.log('[CalculatorPad] Component rendered, version with standalone button support');
+interface CalculatorPadProps {
+  onClose: () => void;
+  onMinimize?: () => void;
+  onMaximize?: () => void;
+}
 
+const CalculatorPad: React.FC<CalculatorPadProps> = ({ onClose, onMinimize, onMaximize }) => {
   const [currentInput, setCurrentInput] = useState('');
   const [currentResult, setCurrentResult] = useState<number | null>(null);
   const [history, setHistory] = useState<Calculation[]>([]);
-
-  // 追踪 onClose 调用
-  const handleClose = () => {
-    onClose();
-  };
 
   // 加载数据
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleClose = () => {
+    onClose();
+  };
 
   const loadData = async () => {
     try {
@@ -122,16 +124,16 @@ const CalculatorPad: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div onClick={(e) => e.stopPropagation()}>
-        <PluginWindow
-          title="计算稿纸"
-          icon="🧮"
-          onClose={handleClose}
-          className="calculator-modal"
-          pluginId="calculator-pad"
-          showStandaloneButton={true}
-        >
+    <PluginWindow
+      title="计算稿纸"
+      icon="🧮"
+      onClose={handleClose}
+      onMinimize={onMinimize}
+      onMaximize={onMaximize}
+      className="calculator-standalone"
+      pluginId="calculator-pad"
+      showStandaloneButton={false}
+    >
           {/* 当前计算区 */}
           <div className="current-calculation">
             <input
@@ -178,8 +180,6 @@ const CalculatorPad: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             )}
           </div>
         </PluginWindow>
-      </div>
-    </div>
   );
 };
 

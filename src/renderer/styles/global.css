@@ -114,3 +114,36 @@ button {
 .main-window {
   animation: fadeIn 0.3s ease-out;
 }
+
+/* ==================== 独立窗口模式 ==================== */
+
+.standalone-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.calculator-standalone {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.plugin-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--text-primary, #333);
+}
+
+.dark .plugin-loading {
+  color: var(--text-primary, #eee);
+}
+
+

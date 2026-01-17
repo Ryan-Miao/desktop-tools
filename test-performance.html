@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>性能基准测试 - 桌面工作台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .test-section h2 {
+            color: #444;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .test-results {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .result-item {
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            background: white;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+        }
+
+        .result-item.pass {
+            border-left-color: #10b981;
+        }
+
+        .result-item.fail {
+            border-left-color: #ef4444;
+        }
+
+        .result-item.warn {
+            border-left-color: #f59e0b;
+        }
+
+        .fps-meter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #0f0;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            z-index: 1000;
+        }
+
+        .animation-test-area {
+            width: 100%;
+            height: 200px;
+            position: relative;
+            background: #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .animated-box {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* 测试动画：缩放淡入 */
+        .scaleIn {
+            animation: scaleIn 0.2s ease-out forwards;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        /* 测试动画：淡入 */
+        .fadeIn {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* 测试动画：滑入 */
+        .slideUp {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -30%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 6px;
+            background: #667eea;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="fps-meter" id="fpsMeter">FPS: --</div>
+
+    <div class="test-container">
+        <h1>🚀 性能基准测试 - Day 4 & Day 5 动画系统</h1>
+        <p class="subtitle">测试统一动画系统、加载组件、骨架屏、Toast和进度条的性能表现</p>
+
+        <!-- 测试 1: 帧率测试 -->
+        <div class="test-section">
+            <h2>📊 测试 1: 动画帧率 (FPS)</h2>
+            <div class="test-results" id="fpsResults">
+                <div class="result-item">等待测试...</div>
+            </div>
+            <div style="margin-top: 15px;">
+                <button onclick="runFpsTest()">开始帧率测试</button>
+                <button onclick="runContinuousFpsTest()">持续监测 (10秒)</button>
+            </div>
+        </div>
+
+        <!-- 测试 2: 动画性能 -->
+        <div class="test-section">
+            <h2>🎬 测试 2: 动画性能测试</h2>
+            <div class="animation-test-area" id="animationArea">
+                <div class="animated-box" id="animatedBox"></div>
+            </div>
+            <div>
+                <button onclick="testAnimation('scaleIn')">测试 scaleIn</button>
+                <button onclick="testAnimation('fadeIn')">测试 fadeIn</button>
+                <button onclick="testAnimation('slideUp')">测试 slideUp</button>
+                <button onclick="runStressTest()">压力测试 (100次)</button>
+            </div>
+            <div class="test-results" id="animationResults" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- 测试 3: 渲染性能 -->
+        <div class="test-section">
+            <h2>⚡ 测试 3: 组件渲染性能</h2>
+            <div class="test-results" id="renderResults">
+                <div class="result-item">等待测试...</div>
+            </div>
+            <div style="margin-top: 15px;">
+                <button onclick="testComponentRendering()">测试组件渲染</button>
+                <button onclick="testDOMOperations()">测试 DOM 操作</button>
+            </div>
+        </div>
+
+        <!-- 测试 4: 内存使用 -->
+        <div class="test-section">
+            <h2>💾 测试 4: 内存使用情况</h2>
+            <div class="test-results" id="memoryResults">
+                <div class="result-item">等待测试...</div>
+            </div>
+            <button onclick="testMemoryUsage()">测试内存使用</button>
+        </div>
+
+        <!-- 测试 5: 综合评分 -->
+        <div class="test-section">
+            <h2>🏆 测试 5: 综合性能评分</h2>
+            <div class="test-results" id="overallResults"></div>
+            <button onclick="runAllTests()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">运行所有测试</button>
+        </div>
+    </div>
+
+    <script>
+        // FPS 监测
+        let fps = 0;
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let fpsUpdateInterval = null;
+
+        function updateFps() {
+            frameCount++;
+            const currentTime = performance.now();
+            const elapsed = currentTime - lastTime;
+
+            if (elapsed >= 1000) {
+                fps = Math.round((frameCount * 1000) / elapsed);
+                document.getElementById('fpsMeter').textContent = `FPS: ${fps}`;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+
+            requestAnimationFrame(updateFps);
+        }
+
+        updateFps();
+
+        // 辅助函数：格式化结果
+        function formatResult(name, value, target, unit = '') {
+            const pass = value <= target;
+            const status = pass ? 'pass' : 'fail';
+            const icon = pass ? '✅' : '❌';
+            return `<div class="result-item ${status}">
+                ${icon} <strong>${name}</strong>: ${value}${unit} (目标: ≤${target}${unit})
+            </div>`;
+        }
+
+        // 测试 1: 帧率测试
+        function runFpsTest() {
+            const results = [];
+            const fpsReadings = [];
+            const duration = 3000; // 3秒
+            const startTime = performance.now();
+
+            const measureFps = () => {
+                const elapsed = performance.now() - startTime;
+                if (elapsed < duration) {
+                    fpsReadings.push(fps);
+                    requestAnimationFrame(measureFps);
+                } else {
+                    const avgFps = Math.round(fpsReadings.reduce((a, b) => a + b, 0) / fpsReadings.length);
+                    const minFps = Math.min(...fpsReadings);
+                    const maxFps = Math.max(...fpsReadings);
+
+                    document.getElementById('fpsResults').innerHTML = `
+                        ${formatResult('平均帧率', avgFps, 60, ' FPS')}
+                        ${formatResult('最低帧率', minFps, 55, ' FPS')}
+                        ${formatResult('最高帧率', maxFps, 60, ' FPS')}
+                        <div class="result-item ${avgFps >= 60 ? 'pass' : 'warn'}">
+                            ${avgFps >= 60 ? '🎉' : '⚠️'} 性能评级: ${avgFps >= 60 ? '优秀 (60 FPS)' : avgFps >= 55 ? '良好 (55-60 FPS)' : '需优化 (<55 FPS)'}
+                        </div>
+                    `;
+                }
+            };
+
+            measureFps();
+        }
+
+        function runContinuousFpsTest() {
+            const results = [];
+            const fpsReadings = [];
+            const duration = 10000; // 10秒
+            const startTime = performance.now();
+
+            const measureFps = () => {
+                const elapsed = performance.now() - startTime;
+                if (elapsed < duration) {
+                    fpsReadings.push(fps);
+                    const progress = (elapsed / duration) * 100;
+                    requestAnimationFrame(measureFps);
+                } else {
+                    const avgFps = Math.round(fpsReadings.reduce((a, b) => a + b, 0) / fpsReadings.length);
+                    const minFps = Math.min(...fpsReadings);
+                    const maxFps = Math.max(...fpsReadings);
+
+                    document.getElementById('fpsResults').innerHTML = `
+                        ${formatResult('平均帧率 (10秒)', avgFps, 60, ' FPS')}
+                        ${formatResult('最低帧率', minFps, 55, ' FPS')}
+                        ${formatResult('最高帧率', maxFps, 60, ' FPS')}
+                        <div class="result-item">
+                            📊 帧率稳定性: ${((1 - (maxFps - minFps) / avgFps) * 100).toFixed(1)}%
+                        </div>
+                    `;
+                }
+            };
+
+            measureFps();
+        }
+
+        // 测试 2: 动画性能
+        function testAnimation(animationName) {
+            const box = document.getElementById('animatedBox');
+            const startTime = performance.now();
+
+            // 移除所有动画类
+            box.className = 'animated-box';
+
+            // 强制重排
+            void box.offsetWidth;
+
+            // 添加动画类
+            box.className = `animated-box ${animationName}`;
+
+            // 测量动画完成时间
+            box.addEventListener('animationend', () => {
+                const endTime = performance.now();
+                const duration = endTime - startTime;
+
+                document.getElementById('animationResults').innerHTML = `
+                    <div class="result-item pass">
+                        ✅ <strong>${animationName}</strong>: ${duration.toFixed(2)}ms
+                    </div>
+                `;
+            }, { once: true });
+        }
+
+        function runStressTest() {
+            const box = document.getElementById('animatedBox');
+            const animations = ['scaleIn', 'fadeIn', 'slideUp'];
+            const results = [];
+            let count = 0;
+
+            const runAnimation = () => {
+                if (count >= 100) {
+                    const avgTime = results.reduce((a, b) => a + b, 0) / results.length;
+                    const maxTime = Math.max(...results);
+
+                    document.getElementById('animationResults').innerHTML = `
+                        <div class="result-item pass">
+                            ✅ <strong>100次动画测试</strong>
+                        </div>
+                        <div class="result-item">
+                            平均耗时: ${avgTime.toFixed(2)}ms
+                        </div>
+                        <div class="result-item">
+                            最大耗时: ${maxTime.toFixed(2)}ms
+                        </div>
+                        <div class="result-item ${avgTime < 300 ? 'pass' : 'warn'}">
+                            ${avgTime < 300 ? '🎉' : '⚠️'} 性能: ${avgTime < 300 ? '优秀' : avgTime < 500 ? '良好' : '需优化'}
+                        </div>
+                    `;
+                    return;
+                }
+
+                const animationName = animations[count % 3];
+                const startTime = performance.now();
+
+                box.className = 'animated-box';
+                void box.offsetWidth;
+                box.className = `animated-box ${animationName}`;
+
+                box.addEventListener('animationend', () => {
+                    const endTime = performance.now();
+                    results.push(endTime - startTime);
+                    count++;
+                    runAnimation();
+                }, { once: true });
+            };
+
+            runAnimation();
+        }
+
+        // 测试 3: 组件渲染性能
+        function testComponentRendering() {
+            const results = [];
+            const testArea = document.getElementById('animationArea');
+
+            // 测试大量元素创建
+            const startCreate = performance.now();
+            const fragment = document.createDocumentFragment();
+
+            for (let i = 0; i < 100; i++) {
+                const div = document.createElement('div');
+                div.style.cssText = `
+                    width: 40px; height: 40px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 4px;
+                    position: absolute;
+                    left: ${Math.random() * 90}%;
+                    top: ${Math.random() * 90}%;
+                    opacity: 0.8;
+                `;
+                fragment.appendChild(div);
+            }
+
+            testArea.appendChild(fragment);
+            const endCreate = performance.now();
+
+            // 清理
+            setTimeout(() => {
+                testArea.innerHTML = '<div class="animated-box" id="animatedBox"></div>';
+
+                document.getElementById('renderResults').innerHTML = `
+                    ${formatResult('创建100个元素', (endCreate - startCreate).toFixed(2), 100, 'ms')}
+                    <div class="result-item pass">
+                        ✅ 渲染性能: ${endCreate - startCreate < 100 ? '优秀' : endCreate - startCreate < 200 ? '良好' : '需优化'}
+                    </div>
+                `;
+            }, 1000);
+        }
+
+        function testDOMOperations() {
+            const results = [];
+            const testArea = document.getElementById('animationArea');
+            const iterations = 1000;
+
+            const startTime = performance.now();
+
+            for (let i = 0; i < iterations; i++) {
+                const div = document.createElement('div');
+                testArea.appendChild(div);
+                testArea.removeChild(div);
+            }
+
+            const endTime = performance.now();
+            const duration = endTime - startTime;
+
+            document.getElementById('renderResults').innerHTML = `
+                <div class="result-item pass">
+                    ✅ <strong>${iterations} 次 DOM 操作</strong>: ${duration.toFixed(2)}ms
+                </div>
+                <div class="result-item">
+                    平均每次: ${(duration / iterations).toFixed(3)}ms
+                </div>
+            `;
+        }
+
+        // 测试 4: 内存使用
+        function testMemoryUsage() {
+            if (!performance.memory) {
+                document.getElementById('memoryResults').innerHTML = `
+                    <div class="result-item warn">
+                        ⚠️ 浏览器不支持内存 API (请使用 Chrome)
+                    </div>
+                `;
+                return;
+            }
+
+            const memBefore = performance.memory.usedJSHeapSize;
+            const memBeforeMB = (memBefore / 1024 / 1024).toFixed(2);
+
+            // 创建大量对象
+            const objects = [];
+            for (let i = 0; i < 10000; i++) {
+                objects.push({
+                    data: new Array(100).fill('test'),
+                    timestamp: Date.now()
+                });
+            }
+
+            const memDuring = performance.memory.usedJSHeapSize;
+            const memDuringMB = (memDuring / 1024 / 1024).toFixed(2);
+
+            // 清理
+            objects.length = 0;
+
+            setTimeout(() => {
+                const memAfter = performance.memory.usedJSHeapSize;
+                const memAfterMB = (memAfter / 1024 / 1024).toFixed(2);
+                const memDelta = ((memDuring - memBefore) / 1024 / 1024).toFixed(2);
+
+                document.getElementById('memoryResults').innerHTML = `
+                    <div class="result-item">
+                        💾 初始内存: ${memBeforeMB} MB
+                    </div>
+                    <div class="result-item">
+                        💾 峰值内存: ${memDuringMB} MB
+                    </div>
+                    <div class="result-item">
+                        💾 当前内存: ${memAfterMB} MB
+                    </div>
+                    <div class="result-item">
+                        📊 内存增量: ${memDelta} MB
+                    </div>
+                    <div class="result-item pass">
+                        ✅ 内存管理: ${memDelta < 10 ? '优秀' : memDelta < 20 ? '良好' : '需优化'}
+                    </div>
+                `;
+            }, 100);
+        }
+
+        // 运行所有测试
+        async function runAllTests() {
+            document.getElementById('overallResults').innerHTML = '<div class="result-item">⏳ 正在运行所有测试...</div>';
+
+            // 运行帧率测试
+            document.getElementById('overallResults').innerHTML += '<div class="result-item">⏳ 测试 1/5: 帧率测试...</div>';
+            await new Promise(resolve => {
+                runFpsTest();
+                setTimeout(resolve, 3500);
+            });
+
+            // 运行动画测试
+            document.getElementById('overallResults').innerHTML += '<div class="result-item">⏳ 测试 2/5: 动画性能...</div>';
+            await new Promise(resolve => {
+                runStressTest();
+                setTimeout(resolve, 30000);
+            });
+
+            // 运行渲染测试
+            document.getElementById('overallResults').innerHTML += '<div class="result-item">⏳ 测试 3/5: 渲染性能...</div>';
+            testComponentRendering();
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // 运行内存测试
+            document.getElementById('overallResults').innerHTML += '<div class="result-item">⏳ 测试 4/5: 内存使用...</div>';
+            testMemoryUsage();
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // 生成报告
+            document.getElementById('overallResults').innerHTML = `
+                <div class="result-item pass">
+                    ✅ <strong>所有测试完成！</strong>
+                </div>
+                <div class="result-item">
+                    📊 测试时间: ${new Date().toLocaleString('zh-CN')}
+                </div>
+                <div class="result-item">
+                    📋 详细结果请查看各个测试部分
+                </div>
+                <div class="result-item pass">
+                    🎉 Day 4 & Day 5 动画系统性能测试完成
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

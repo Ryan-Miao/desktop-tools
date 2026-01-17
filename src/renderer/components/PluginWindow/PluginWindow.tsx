@@ -109,7 +109,6 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
   };
 
   const handleOpenStandalone = async () => {
-    console.log('[PluginWindow] Opening standalone window for plugin:', pluginId);
     if (!pluginId || !window.electron?.ipcRenderer) return;
 
     try {
@@ -128,11 +127,6 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
 
   const windowClassName = `plugin-window ${className}`.trim();
 
-  // 调试日志
-  if (showHeader && showStandaloneButton && pluginId) {
-    console.log('[PluginWindow] Standalone button should be visible:', { pluginId, showStandaloneButton });
-  }
-
   return (
     <div
       className={windowClassName}
@@ -148,39 +142,14 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
             {icon && <span className="plugin-window-icon">{icon}</span>}
             <span className="plugin-window-title-text">{title}</span>
           </div>
-          {/* 调试标记 - 放在标题栏右侧，独立于控制按钮 */}
-          {(pluginId || showStandaloneButton) && (
-            <div id="debug-marker" style={{
-              display: 'flex !important',
-              alignItems: 'center',
-              gap: '4px',
-              fontSize: '10px',
-              fontWeight: 'bold',
-              padding: '0 8px',
-              background: 'red',
-              color: 'white',
-              borderRadius: '4px',
-              flexShrink: 0,
-              opacity: '1 !important',
-              visibility: 'visible !important'
-            }}>
-              {pluginId && <span>ID:{pluginId}</span>}
-              {showStandaloneButton && <span>BTN</span>}
-            </div>
-          )}
           <div className="plugin-window-controls">
             {showStandaloneButton && pluginId && (
               <button
                 className="window-control-button standalone"
                 onClick={handleOpenStandalone}
                 title="弹出独立窗口"
-                style={{ display: 'flex !important' }}
               >
-                <span style={{
-                  fontSize: '20px',
-                  color: '#0078d4',
-                  fontWeight: 'bold'
-                }}>⎘</span>
+                <span>⎘</span>
               </button>
             )}
             {minimizable && (

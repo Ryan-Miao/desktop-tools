@@ -59,10 +59,8 @@ export class WindowManager {
       }
     });
 
-    // 开发模式下自动打开开发者工具
-    if (process.env.NODE_ENV === 'development') {
-      this.mainWindow.webContents.openDevTools();
-    }
+    // 开发者工具初始状态（由调试模式控制）
+    // 不自动打开，通过设置面板的调试模式控制
 
     // Load app
     if (process.env.NODE_ENV === 'development') {
@@ -112,8 +110,9 @@ export class WindowManager {
 
   async createPluginWindow(
     windowId: string,
-    _pluginId: string,
-    config: WindowConfig
+    pluginId: string,
+    config: WindowConfig,
+    urlHash?: string
   ): Promise<BrowserWindow> {
     // 检查是否已存在
     if (this.pluginWindows.has(windowId)) {
@@ -148,16 +147,17 @@ export class WindowManager {
       height: windowConfig.height,
       x: windowConfig.x,
       y: windowConfig.y,
-      transparent: windowConfig.transparent,
-      frame: windowConfig.frame,
-      alwaysOnTop: windowConfig.alwaysOnTop,
-      skipTaskbar: windowConfig.skipTaskbar,
-      resizable: windowConfig.resizable,
-      maximizable: windowConfig.maximizable,
-      minimizable: windowConfig.minimizable,
-      closable: windowConfig.closable,
+      transparent: windowConfig.transparent ?? false,
+      frame: windowConfig.frame ?? false,
+      alwaysOnTop: windowConfig.alwaysOnTop ?? false,
+      skipTaskbar: windowConfig.skipTaskbar ?? false,
+      resizable: windowConfig.resizable ?? true,
+      maximizable: windowConfig.maximizable ?? true,
+      minimizable: windowConfig.minimizable ?? true,
+      closable: windowConfig.closable ?? true,
       vibrancy: windowConfig.vibrancy as any,
-      backgroundColor: '#00000000',
+      backgroundColor: windowConfig.backgroundColor ?? '#ffffff',
+      show: false, // 先不显示，等待内容加载
       webPreferences: {
         preload: path.join(__dirname, '../preload/index.js'),
         contextIsolation: true,
@@ -167,13 +167,19 @@ export class WindowManager {
     });
 
     // 加载插件内容
+    const hash = urlHash || `#plugin-standalone/${pluginId}`;
     if (process.env.NODE_ENV === 'development') {
-      pluginWindow.loadURL(`http://localhost:5173#${windowId}`);
+      pluginWindow.loadURL(`http://localhost:5173${hash}`);
     } else {
       pluginWindow.loadFile(path.join(__dirname, '../renderer/index.html'), {
-        hash: windowId
+        hash: hash.replace('#', '')
       });
     }
+
+    // 等待内容加载完成后显示窗口
+    pluginWindow.once('ready-to-show', () => {
+      pluginWindow?.show();
+    });
 
     // 窗口关闭时清理
     pluginWindow.on('closed', async () => {
@@ -379,6 +385,38 @@ export class WindowManager {
       return { closed: true };
     });
 
+    // Standalone plugin window operations
+    ipcMain.handle('standalone-window:minimize', async (_event, windowId: string) => {
+      this.minimizePluginWindow(windowId);
+      return { minimized: true };
+    });
+
+    ipcMain.handle('standalone-window:maximize', async (_event, windowId: string) => {
+      this.maximizePluginWindow(windowId);
+      return { maximized: this.isPluginWindowMaximized(windowId) };
+    });
+
+    ipcMain.handle('standalone-window:close', async (_event, windowId: string) => {
+      this.closePluginWindow(windowId);
+      return { closed: true };
+    });
+
+    ipcMain.handle('standalone-window:is-maximized', async (_event, windowId: string) => {
+      return this.isPluginWindowMaximized(windowId);
+    });
+
+    ipcMain.handle('window:toggle-devtools', () => {
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+        if (this.mainWindow.webContents.isDevToolsOpened()) {
+          this.mainWindow.webContents.closeDevTools();
+        } else {
+          this.mainWindow.webContents.openDevTools();
+        }
+        return { devToolsOpened: this.mainWindow.webContents.isDevToolsOpened() };
+      }
+      return { devToolsOpened: false };
+    });
+
     ipcMain.handle('window:is-maximized', () => {
       return this.isMaximized();
     });
@@ -408,5 +446,9 @@ export class WindowManager {
     ipcMain.removeHandler('window:close');
     ipcMain.removeHandler('window:is-maximized');
     ipcMain.removeHandler('window:start-drag');
+    ipcMain.removeHandler('standalone-window:minimize');
+    ipcMain.removeHandler('standalone-window:maximize');
+    ipcMain.removeHandler('standalone-window:close');
+    ipcMain.removeHandler('standalone-window:is-maximized');
   }
 }

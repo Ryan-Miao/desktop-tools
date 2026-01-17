@@ -38,6 +38,8 @@
 /* ==================== 标题栏 ==================== */
 
 .plugin-window-header {
+  /* 拖拽支持 - 允许拖拽整个标题栏 */
+  -webkit-app-region: drag;
   /* 布局 */
   display: flex;
   align-items: center;
@@ -97,6 +99,8 @@
 /* ==================== 窗口控制按钮 ==================== */
 
 .plugin-window-controls {
+  /* 窗口控制按钮不可拖拽 */
+  -webkit-app-region: no-drag;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -104,6 +108,8 @@
 }
 
 .window-control-button {
+  /* 窗口控制按钮不可拖拽 */
+  -webkit-app-region: no-drag;
   /* 布局 */
   display: flex;
   align-items: center;
@@ -155,6 +161,8 @@
 /* 独立窗口按钮样式 */
 .window-control-button.standalone {
   color: #0078d4;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .window-control-button.standalone:hover {
@@ -281,7 +289,7 @@
 
 /* 标题栏淡入动画 */
 .plugin-window-header {
-  animation: slideDown 0.3s ease-out forwards;
+  animation: slideUp 0.3s ease-out forwards;
 }
 
 /* ==================== 悬停效果增强 ==================== */
@@ -375,9 +383,12 @@
   display: flex !important;
   opacity: 1 !important;
   visibility: visible !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
 }
 
 .window-control-button.standalone span {
-  font-size: 20px !important;
+  font-size: 18px !important;
   color: #0078d4 !important;
+  font-weight: bold !important;
 }
