@@ -1293,6 +1293,128 @@ npm test -- UserProfile
 
 ---
 
+## 使用 UI/UX 设计 Skill
+
+项目已配置 `ui-ux-pro-max` skill 来辅助 UI/UX 设计。
+
+### Skill 能力
+
+`ui-ux-pro-max` skill 提供以下功能：
+- **50+ UI 样式**：glassmorphism, claymorphism, minimalism, brutalism, neumorphism, bento grid 等
+- **21 种配色方案**：浅色、深色、渐变、高对比度等
+- **50 种字体配对**：标题和正文的最佳组合
+- **20 种图表类型**：柱状图、折线图、饼图、雷达图等
+- **9 种技术栈**：React, Next.js, Vue, Svelte, SwiftUI, React Native, Flutter, Tailwind, shadcn/ui
+
+### 使用场景
+
+#### 1. 设计新插件界面
+
+**提示词示例**：
+```
+使用 ui-ux-pro-max skill 设计一个待办事项插件的界面，要求：
+- 风格：glassmorphism（毛玻璃效果）
+- 技术栈：React + Tailwind CSS
+- 包含组件：输入框、添加按钮、列表项
+- 动画：平滑过渡动画
+- 配色：浅色主题，高对比度
+```
+
+#### 2. 优化现有组件
+
+**提示词示例**：
+```
+使用 ui-ux-pro-max skill 优化插件管理器界面，要求：
+- 改进布局：使用 bento grid 布局
+- 优化交互：添加 hover 动画和过渡效果
+- 配色方案：使用 sunset gradient 渐变配色
+- 响应式：支持不同屏幕尺寸
+```
+
+#### 3. 创建主题
+
+**提示词示例**：
+```
+使用 ui-ux-pro-max skill 创建一个新的主题，要求：
+- 风格：minimalism（极简主义）
+- 配色：深色主题，主色调为紫色
+- 对比度：高对比度（WCAG AA 标准）
+- 适用场景：长时间使用
+```
+
+### Skill 操作类型
+
+`ui-ux-pro-max` skill 支持以下操作：
+
+| 操作 | 说明 | 示例 |
+|------|------|------|
+| **plan** | 规划 UI/UX 设计方案 | "为插件界面设计规划布局结构" |
+| **build** | 构建 UI 组件和页面 | "构建一个带动画的按钮组件" |
+| **create** | 创建新组件或样式 | "创建一个毛玻璃效果的卡片" |
+| **design** | 设计整体视觉方案 | "设计一个待办事项应用的视觉风格" |
+| **implement** | 实现具体的设计细节 | "实现按钮的 hover 效果" |
+| **review** | 审查现有 UI 设计 | "审查插件管理器的 UI 设计" |
+| **fix** | 修复 UI 问题 | "修复深色主题下的对比度问题" |
+| **improve** | 改进用户体验 | "改进插件列表的交互体验" |
+| **optimize** | 优化性能和动画 | "优化页面加载动画的性能" |
+| **enhance** | 增强视觉效果 | "增强卡片的阴影和边框效果" |
+
+### 与项目规范结合
+
+使用 `ui-ux-pro-max` skill 时，请遵循项目规范：
+
+1. **CSS 变量规范**：
+   - 所有样式必须使用 CSS 变量
+   - 参考 `src/renderer/styles/global.css` 中的变量列表
+
+2. **主题系统**：
+   - 新主题需添加到 `src/renderer/themes/themes.ts`
+   - 遵循主题定义结构（id, name, mode, colors, glass）
+
+3. **组件结构**：
+   - 插件组件必须使用 `PluginWindow` 包装
+   - 遵循现有的组件命名和文件组织规范
+
+4. **交互模式**：
+   - 使用内联确认，不使用 confirm/alert
+   - 使用 Toast 通知提供反馈
+   - 参考 `PluginManager.tsx` 的实现
+
+### 示例工作流
+
+**场景：创建新的 Markdown 编辑器插件**
+
+```
+步骤 1：设计视觉风格
+"使用 ui-ux-pro-max skill 设计一个 Markdown 编辑器插件的界面风格，要求：
+- 风格：minimalism
+- 配色：深色主题，主色调为蓝色
+- 布局：左侧编辑区，右侧预览区"
+
+步骤 2：构建组件结构
+"基于上面的设计，构建 Markdown 编辑器组件，使用：
+- React + TypeScript
+- PluginWindow 包装
+- CSS 变量（支持主题切换）"
+
+步骤 3：实现交互细节
+"使用 ui-ux-pro-max skill 实现以下交互：
+- 工具栏按钮的 hover 效果
+- 编辑器自动聚焦动画
+- 预览区切换动画"
+```
+
+### 注意事项
+
+- ✅ skill 提供的设计方案需要结合项目实际
+- ✅ 生成的代码需要遵循项目的 TypeScript 规范
+- ✅ 所有样式必须使用 CSS 变量
+- ✅ 组件需要适配主题系统
+- ❌ 不要直接使用硬编码的颜色值
+- ❌ 不要跳过 PluginWindow 包装
+
+---
+
 ### 调试技巧
 
 #### 调试模式配置

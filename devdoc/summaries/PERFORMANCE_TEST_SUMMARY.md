@@ -241,12 +241,12 @@ ERROR ██████████████████ 32.9%
 
 本次测试使用的自动化脚本：
 
-1. **test-performance.js** - 基础性能测试
-2. **test-performance-automated.js** - 自动化综合测试
+1. **tests/test-performance.js** - 基础性能测试
+2. **tests/test-performance-automated.js** - 自动化综合测试
 
 使用方法：
 ```bash
-node test-performance-automated.js
+node tests/test-performance-automated.js
 ```
 
 ### 测试文档
