@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import SearchBox from './components/SearchBox';
 import PluginList from './components/PluginList';
 import WindowControls from './components/WindowControls';
 import { logger } from '../shared/logger';
+import { pluginRegistry } from './services/PluginRegistry';
 
 interface Plugin {
   id: string;
@@ -12,23 +13,31 @@ interface Plugin {
 }
 
 function App() {
-  const [plugins, setPlugins] = useState<Plugin[]>([
-    {
-      id: 'json-tool',
-      name: 'JSON 工具',
-      description: 'JSON 序列化、压缩、转义、与 Excel 互转',
-      icon: '🔧'
-    }
-  ]);
+  const [plugins, setPlugins] = useState<Plugin[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
-  // 测试Web模式日志
+  // 加载插件列表
   useEffect(() => {
+    // 从 pluginRegistry 加载注册的插件
+    const registeredPlugins = pluginRegistry.getAll().map(info => ({
+      id: info.pluginId,
+      name: info.manifest.name,
+      description: info.manifest.description,
+      icon: info.manifest.icon
+    }));
+
+    logger.info('Web模式 - 加载插件列表', {
+      count: registeredPlugins.length,
+      plugins: registeredPlugins.map(p => p.id)
+    });
+
+    setPlugins(registeredPlugins);
+
+    // 测试Web模式日志
     logger.debug('Web模式 - DEBUG日志', { platform: 'web' });
     logger.info('Web应用已启动', { version: '1.0.0', mode: 'web' });
     logger.warn('Web模式 - WARN日志', { warning: '浏览器测试' });
-    logger.error('Web模式 - ERROR日志', { error: '测试错误' });
   }, []);
 
   const filteredPlugins = plugins.filter(plugin =>
