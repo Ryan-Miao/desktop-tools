@@ -1,6 +1,5 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import CalculatorPad from './components/CalculatorPad';
-import JSONFormatter from './components/json-formatter';
 import { themes, applyTheme } from './themes/themes';
 import { storageService } from './services/StorageService';
 
@@ -73,20 +72,6 @@ function StandaloneApp() {
       <div className="standalone-container">
         <Suspense fallback={<div className="plugin-loading"><p>加载中...</p></div>}>
           <CalculatorPad
-            onClose={handleClose}
-            onMinimize={handleMinimize}
-            onMaximize={handleMaximize}
-          />
-        </Suspense>
-      </div>
-    );
-  }
-
-  if (pluginId === 'json-formatter') {
-    return (
-      <div className="standalone-container">
-        <Suspense fallback={<div className="plugin-loading"><p>加载中...</p></div>}>
-          <JSONFormatter
             onClose={handleClose}
             onMinimize={handleMinimize}
             onMaximize={handleMaximize}
