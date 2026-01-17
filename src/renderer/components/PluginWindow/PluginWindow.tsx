@@ -145,6 +145,17 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
           <div className="plugin-window-title">
             {icon && <span className="plugin-window-icon">{icon}</span>}
             <span className="plugin-window-title-text">{title}</span>
+            {/* 调试：显示插件 ID 和按钮状态 */}
+            {pluginId && (
+              <span style={{ fontSize: '10px', opacity: 0.5, marginLeft: '8px' }}>
+                [{pluginId}]
+              </span>
+            )}
+            {showStandaloneButton && (
+              <span style={{ fontSize: '10px', color: '#0078d4', marginLeft: '4px' }}>
+                [BTN]
+              </span>
+            )}
           </div>
           <div className="plugin-window-controls">
             {showStandaloneButton && pluginId && (
