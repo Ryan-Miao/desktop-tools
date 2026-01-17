@@ -17,6 +17,9 @@ interface CalculatorPadData {
 }
 
 const CalculatorPad: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  // 调试日志
+  console.log('[CalculatorPad] Component rendered, version with standalone button support');
+
   const [currentInput, setCurrentInput] = useState('');
   const [currentResult, setCurrentResult] = useState<number | null>(null);
   const [history, setHistory] = useState<Calculation[]>([]);
