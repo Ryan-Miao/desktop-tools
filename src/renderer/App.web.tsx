@@ -36,6 +36,15 @@ function App() {
     plugin.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handlePluginClick = async (pluginId: string) => {
+    // Web 模式：在新标签页中打开插件
+    const pluginUrl = `${window.location.origin}/#/plugin-standalone/${pluginId}`;
+    window.open(pluginUrl, '_blank');
+
+    // 记录日志
+    logger.info('Opening plugin in new tab', { pluginId, pluginUrl });
+  };
+
   return (
     <div className={`app-container ${theme}`}>
       <div className="main-window">
@@ -61,7 +70,11 @@ function App() {
             placeholder="Search plugins..."
           />
 
-          <PluginList plugins={filteredPlugins} searchQuery={searchQuery} />
+          <PluginList
+            plugins={filteredPlugins}
+            searchQuery={searchQuery}
+            onPluginClick={handlePluginClick}
+          />
         </div>
       </div>
     </div>
