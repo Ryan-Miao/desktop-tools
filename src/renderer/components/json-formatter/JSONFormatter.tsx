@@ -57,7 +57,8 @@ const JSONFormatter: React.FC<JSONFormatterProps> = ({
             .replace(/"/g, '\\"');
           break;
         case 'unescape':
-          const unescaped = input.replace(/\\\\/g, '\').replace(/\\"/g, '"');
+          // 移除转义字符
+          const unescaped = input.replace(/\\\\/g, '\\').replace(/\\"/g, '"');
           result = JSON.stringify(JSON.parse(unescaped), null, indentSize);
           break;
         case 'validate':
