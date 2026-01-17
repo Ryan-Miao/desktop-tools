@@ -108,6 +108,12 @@ function App() {
       name: '计算稿纸',
       description: '数学表达式计算，历史记录保存',
       icon: '🧮'
+    },
+    {
+      id: 'json-formatter',
+      name: 'JSON 格式化',
+      description: '格式化、压缩、转义和验证 JSON',
+      icon: '📝'
     }
   ], []);
 
