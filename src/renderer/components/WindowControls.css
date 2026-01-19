@@ -51,6 +51,7 @@
 }
 
 .plugin-toggle,
+.plugin-market-toggle,
 .settings-toggle,
 .theme-toggle {
   padding: 6px 12px;
@@ -63,18 +64,21 @@
 }
 
 .plugin-toggle:hover,
+.plugin-market-toggle:hover,
 .settings-toggle:hover,
 .theme-toggle:hover {
   background: rgba(255, 255, 255, 0.5);
 }
 
 .dark .plugin-toggle,
+.dark .plugin-market-toggle,
 .dark .settings-toggle,
 .dark .theme-toggle {
   background: rgba(0, 0, 0, 0.3);
 }
 
 .dark .plugin-toggle:hover,
+.dark .plugin-market-toggle:hover,
 .dark .settings-toggle:hover,
 .dark .theme-toggle:hover {
   background: rgba(0, 0, 0, 0.5);
