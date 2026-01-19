@@ -1,0 +1,148 @@
+.base64-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  color: #333;
+}
+
+.base64-section {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.base64-label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.base64-textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: 'Courier New', 'Monaco', monospace;
+  font-size: 14px;
+  background: #f9f9f9;
+  color: #333;
+  resize: vertical;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.base64-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+}
+
+.base64-textarea::placeholder {
+  color: #aaa;
+}
+
+.base64-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.base64-btn {
+  flex: 1;
+  padding: 12px 20px;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.base64-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.base64-btn-encode {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.base64-btn-encode:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.base64-btn-decode {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+}
+
+.base64-btn-decode:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(245, 87, 108, 0.4);
+}
+
+.base64-output-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.base64-btn-copy {
+  padding: 8px 16px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.base64-btn-copy:hover {
+  background: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.base64-output {
+  background: #f9f9f9;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 14px 16px;
+  min-height: 80px;
+  max-height: 200px;
+  overflow: auto;
+  word-break: break-all;
+  font-family: 'Courier New', 'Monaco', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.base64-output pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.base64-hint {
+  background: #f0f4ff;
+  padding: 16px;
+  border-radius: 12px;
+  color: #666;
+  text-align: center;
+  font-size: 14px;
+  border-left: 4px solid #667eea;
+}

@@ -1,0 +1,9 @@
+{
+  "id": "com.desktop-tool.plugin.todo-list",
+  "name": "待办清单",
+  "version": "1.0.0",
+  "description": "任务管理工具，支持优先级和自动保存",
+  "author": "Desktop Tool",
+  "icon": "✅",
+  "permissions": []
+}
