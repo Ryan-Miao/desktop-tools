@@ -1,0 +1,49 @@
+{
+  "name": "desktop-tool-pl-qrcode",
+  "version": "1.0.6",
+  "description": "强大的二维码生成工具",
+  "keywords": [
+    "desktop-tool-plugin",
+    "qrcode",
+    "二维码"
+  ],
+  "author": "Desktop Tool",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "desktop-tool": {
+    "id": "com.desktop-tool.plugin.qrcode",
+    "entry": "./dist/index.js"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.3"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^4.3.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:types": "tsc",
+    "build:lib": "vite build",
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build"
+  }
+}

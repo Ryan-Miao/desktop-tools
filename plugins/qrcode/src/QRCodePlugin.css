@@ -1,0 +1,241 @@
+.qrcode-plugin {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.qrcode-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.qrcode-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.qrcode-window-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.qrcode-window-controls button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f5f5f5;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.qrcode-window-controls button:hover {
+  background: #e0e0e0;
+}
+
+.qrcode-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.qrcode-tab {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.2s;
+  margin-bottom: -2px;
+}
+
+.qrcode-tab:hover {
+  color: #0066CC;
+}
+
+.qrcode-tab.active {
+  color: #0066CC;
+  border-bottom-color: #0066CC;
+}
+
+.qrcode-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.qrcode-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qrcode-input-section label {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.qrcode-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.qrcode-textarea:focus {
+  outline: none;
+  border-color: #0066CC;
+}
+
+.qrcode-error {
+  padding: 12px 16px;
+  background: #ffe6e6;
+  color: #dc3545;
+  border-radius: 8px;
+  border: 1px solid #ffc9c9;
+  font-size: 14px;
+}
+
+.qrcode-preview-section {
+  display: flex;
+  justify-content: center;
+}
+
+.qrcode-preview-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+.qrcode-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  background: white;
+  padding: 16px;
+}
+
+.qrcode-download-btn {
+  padding: 12px 24px;
+  background: white;
+  color: #667eea;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.qrcode-download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.qrcode-settings {
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 12px;
+}
+
+.qrcode-settings h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.qrcode-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.qrcode-setting-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qrcode-setting-item label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+}
+
+.qrcode-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #ddd;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.qrcode-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0066CC;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.qrcode-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.qrcode-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0066CC;
+  cursor: pointer;
+  border: none;
+}
+
+.qrcode-color-picker {
+  width: 60px;
+  height: 40px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.qrcode-select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.qrcode-select:focus {
+  outline: none;
+  border-color: #0066CC;
+}

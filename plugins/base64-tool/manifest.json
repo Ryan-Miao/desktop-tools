@@ -1,0 +1,9 @@
+{
+  "id": "com.desktop-tool.plugin.base64-tool",
+  "name": "Base64 编解码工具",
+  "version": "1.0.0",
+  "description": "Base64 编码和解码工具，支持中文和UTF-8字符",
+  "author": "Desktop Tool",
+  "icon": "📝",
+  "permissions": []
+}

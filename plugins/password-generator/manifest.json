@@ -1,0 +1,9 @@
+{
+  "id": "com.desktop-tool.plugin.password-generator",
+  "name": "随机密码生成器",
+  "version": "1.0.0",
+  "description": "生成安全的随机密码，支持自定义长度和字符类型",
+  "author": "Desktop Tool",
+  "icon": "🔐",
+  "permissions": []
+}

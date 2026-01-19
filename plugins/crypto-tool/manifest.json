@@ -1,0 +1,9 @@
+{
+  "id": "com.desktop-tool.plugin.crypto-tool",
+  "name": "加密工具",
+  "version": "1.0.0",
+  "description": "支持 MD5/SHA-1/SHA-256/SHA-512 哈希和 AES 加密解密",
+  "author": "Desktop Tool",
+  "icon": "🔐",
+  "permissions": []
+}

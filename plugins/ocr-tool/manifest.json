@@ -1,0 +1,9 @@
+{
+  "id": "com.desktop-tool.plugin.ocr-tool",
+  "name": "OCR 图片文字识别",
+  "version": "1.0.0",
+  "description": "从图片中识别文字，支持多语言",
+  "author": "Desktop Tool",
+  "icon": "🔍",
+  "permissions": []
+}

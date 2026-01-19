@@ -1,0 +1,9 @@
+{
+  "id": "com.desktop-tool.plugin.url-codec",
+  "name": "URL 编解码工具",
+  "version": "1.0.0",
+  "description": "URL 编码和解码工具，支持中文和特殊字符",
+  "author": "Desktop Tool",
+  "icon": "🔗",
+  "permissions": []
+}
