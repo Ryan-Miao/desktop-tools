@@ -1,0 +1,9 @@
+{
+  "id": "com.desktop-tool.plugin.notepad",
+  "name": "记事本",
+  "version": "1.0.0",
+  "description": "简单的文本笔记工具，支持自动保存和导出",
+  "author": "Desktop Tool",
+  "icon": "📝",
+  "permissions": []
+}
