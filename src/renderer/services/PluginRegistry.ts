@@ -8,11 +8,16 @@ import * as BabelModule from '@babel/standalone';
 
 const logger = createLogger('PluginRegistry');
 
+export type PluginSource = 'built-in' | 'local' | 'remote';
+
 export interface PluginComponentInfo {
   component: React.ComponentType<any>;
   pluginId: string;
   manifest: PluginManifest;
   loadedAt: number;
+  source?: PluginSource;
+  packageName?: string; // For remote plugins: npm package name
+  version?: string; // For remote plugins: installed version
 }
 
 type PluginEventCallback = (pluginId: string) => void;
@@ -34,22 +39,57 @@ class PluginRegistry {
   }
 
   register(pluginId: string, info: Omit<PluginComponentInfo, 'loadedAt'>): void {
-    if (this.plugins.has(pluginId)) {
-      logger.warn(`Plugin already registered: ${pluginId}`);
-      return;
+    const existing = this.plugins.get(pluginId);
+
+    if (existing) {
+      // 更新已存在的插件
+      logger.info(`[PluginRegistry] Plugin already registered, updating: ${pluginId}`, {
+        oldVersion: existing.version,
+        newVersion: info.version,
+        oldSource: existing.source,
+        newSource: info.source,
+        hadComponent: !!existing.component,
+        hasComponent: !!info.component
+      });
+
+      this.plugins.set(pluginId, {
+        ...info,
+        loadedAt: Date.now()
+      });
+
+      logger.info(`[PluginRegistry] Plugin updated: ${pluginId}`);
+      this.emit('updated', pluginId);  // 新事件：插件已更新
+    } else {
+      // 新注册
+      logger.info(`[PluginRegistry] Registering new plugin: ${pluginId}`, {
+        hasComponent: !!info.component,
+        componentType: typeof info.component,
+        source: info.source,
+        version: info.version
+      });
+
+      this.plugins.set(pluginId, {
+        ...info,
+        loadedAt: Date.now()
+      });
+
+      logger.info(`[PluginRegistry] Plugin registered: ${pluginId}`);
+      this.emit('registered', pluginId);
     }
-
-    this.plugins.set(pluginId, {
-      ...info,
-      loadedAt: Date.now()
-    });
-
-    logger.info(`Plugin registered: ${pluginId}`);
-    this.emit('registered', pluginId);
   }
 
   getComponent(pluginId: string): React.ComponentType<any> | null {
     const info = this.plugins.get(pluginId);
+
+    logger.debug(`[PluginRegistry] getComponent: ${pluginId}`, {
+      found: !!info,
+      hasComponent: !!info?.component,
+      componentType: info?.component ? typeof info.component : 'N/A',
+      componentName: info?.component?.name || info?.component?.displayName || 'anonymous',
+      version: info?.version,
+      source: info?.source
+    });
+
     return info?.component || null;
   }
 
@@ -97,6 +137,38 @@ class PluginRegistry {
     return this.plugins.size;
   }
 
+  /**
+   * 获取所有远程插件
+   */
+  getRemotePlugins(): PluginComponentInfo[] {
+    return Array.from(this.plugins.values())
+      .filter(p => p.source === 'remote');
+  }
+
+  /**
+   * 获取所有内置插件
+   */
+  getBuiltInPlugins(): PluginComponentInfo[] {
+    return Array.from(this.plugins.values())
+      .filter(p => p.source === 'built-in' || !p.source);
+  }
+
+  /**
+   * 获取所有本地插件
+   */
+  getLocalPlugins(): PluginComponentInfo[] {
+    return Array.from(this.plugins.values())
+      .filter(p => p.source === 'local');
+  }
+
+  /**
+   * 根据 npm 包名获取插件
+   */
+  getPluginByPackageName(packageName: string): PluginComponentInfo | undefined {
+    return Array.from(this.plugins.values())
+      .find(p => p.packageName === packageName);
+  }
+
   clear(): void {
     logger.warn(`Clearing all plugins (${this.plugins.size} registered)`);
     this.plugins.clear();
@@ -108,20 +180,36 @@ class PluginRegistry {
    * 支持内置插件（已注册）和用户导入插件（动态加载）
    */
   async loadPluginComponent(pluginId: string): Promise<React.ComponentType<any>> {
-    // 1. 检查是否已注册
+    // 1. 优先检查已注册插件（Web + Desktop通用）
     if (this.has(pluginId)) {
-      logger.debug(`Plugin already registered: ${pluginId}`);
+      const pluginInfo = this.plugins.get(pluginId);
+      logger.debug(`Plugin already registered: ${pluginId}, source: ${pluginInfo?.source || 'unknown'}`);
       const component = this.getComponent(pluginId);
-      if (component) return component;
+
+      if (component) {
+        logger.info(`Plugin loaded from registry: ${pluginId}`);
+        return component;
+      }
+
+      // 如果注册了但组件为null，这是异常情况
+      logger.error(`Plugin registered but component is null: ${pluginId}`, {
+        pluginId,
+        source: pluginInfo?.source,
+        hasComponent: !!component
+      });
+      throw new Error(`Plugin registered but component is null: ${pluginId}`);
     }
 
-    // 2. 动态加载用户插件
+    // 2. 动态加载用户插件（仅Desktop - 需要Electron IPC）
     logger.info(`Loading plugin component dynamically: ${pluginId}`);
 
     try {
-      // 获取组件源码
+      // 仅在Electron环境尝试动态加载
       if (!window.electron?.ipcRenderer) {
-        throw new Error('IPC renderer not available');
+        throw new Error(
+          'Plugin not registered and dynamic loading requires Electron IPC. ' +
+          'Ensure plugins are loaded before attempting to display them.'
+        );
       }
 
       const sourceCode = await window.electron.ipcRenderer.invoke(

@@ -324,6 +324,41 @@ class StorageService {
     }
     return '0 KB';
   }
+
+  /**
+   * 获取已安装的远程插件列表
+   * 从 RemotePluginLoader 专用的 localStorage 读取
+   */
+  getInstalledRemotePlugins(): Array<{
+    id: string;
+    packageName: string;
+    version: string;
+    installedAt: string;
+    manifest?: any;
+  }> {
+    try {
+      const data = localStorage.getItem('installed-remote-plugins');
+      return data ? JSON.parse(data) : [];
+    } catch (error) {
+      logger.error('Error reading installed remote plugins', { error });
+      return [];
+    }
+  }
+
+  /**
+   * 检查远程插件是否已安装
+   */
+  isRemotePluginInstalled(packageName: string): boolean {
+    const installed = this.getInstalledRemotePlugins();
+    return installed.some(p => p.packageName === packageName);
+  }
+
+  /**
+   * 获取已安装的远程插件包名列表
+   */
+  getInstalledRemotePluginPackageNames(): string[] {
+    return this.getInstalledRemotePlugins().map(p => p.packageName);
+  }
 }
 
 // 导出单例
