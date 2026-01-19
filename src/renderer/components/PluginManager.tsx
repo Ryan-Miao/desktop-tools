@@ -3,6 +3,8 @@ import { IPCChannels, PluginEvents } from '@shared/constants/channels';
 import { PluginManifest, PluginState, PluginSource } from '@shared/types/plugin';
 import { createLogger } from '../../shared/logger';
 import { eventBus, AppEvents } from '../utils/eventBus';
+import { pluginRegistry } from '../services/PluginRegistry';
+import { remotePluginLoader } from '../services/RemotePluginLoader';
 import './PluginManager.css';
 
 const logger = createLogger('PluginManager');
@@ -45,8 +47,28 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
 
   const loadPlugins = async () => {
     try {
-      const pluginList = await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_LIST) || [];
-      setPlugins(pluginList);
+      // 从主进程获取插件列表（内置和本地ZIP）
+      const mainProcessPlugins = await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_LIST) || [];
+
+      // 从PluginRegistry获取已注册的插件（包含npm插件）
+      const registryPlugins = pluginRegistry.getAll().map(info => info.manifest);
+
+      // 合并并去重（使用Map以pluginId为key）
+      const pluginMap = new Map<string, PluginManifest>();
+
+      // 先添加主进程插件
+      mainProcessPlugins.forEach((p: PluginManifest) => {
+        pluginMap.set(p.id, p);
+      });
+
+      // 添加/覆盖PluginRegistry中的插件（npm插件）
+      registryPlugins.forEach(p => {
+        pluginMap.set(p.id, p);
+      });
+
+      // 转换为数组
+      const allPlugins = Array.from(pluginMap.values());
+      setPlugins(allPlugins);
     } catch (error) {
       logger.error('Failed to load plugins', { error });
     }
@@ -207,16 +229,30 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
     if (!uninstallingPluginId) return;
 
     try {
-      await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_UNINSTALL, uninstallingPluginId);
+      // 检查插件是否在PluginRegistry中且标记为local或remote（npm插件）
+      const registryPlugin = pluginRegistry.getPluginInfo(uninstallingPluginId);
+      const isNpmPlugin = registryPlugin?.source === 'local' || registryPlugin?.source === 'remote';
+
+      if (isNpmPlugin) {
+        // npm插件：使用RemotePluginLoader卸载
+        remotePluginLoader.uninstallPlugin(uninstallingPluginId);
+      } else {
+        // 本地ZIP插件：使用IPC卸载
+        await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_UNINSTALL, uninstallingPluginId);
+      }
+
       // 显示成功提示
       setToastMessage(`插件 "${uninstallingPluginId}" 已成功卸载`);
       setShowSuccessToast(true);
       setTimeout(() => setShowSuccessToast(false), 2000);
-      // 刷新列表
+      // 刷新列表（PluginRegistry事件已经会触发App的loadPluginsInit，所以这里只需要刷新PluginManager自己的列表）
       loadPlugins();
       loadPluginStates();
-      // 通知主面板刷新
-      eventBus.emit(AppEvents.PLUGINS_CHANGED);
+
+      // 只对非npm插件发出全局事件（npm插件通过PluginRegistry事件已经处理）
+      if (!isNpmPlugin) {
+        eventBus.emit(AppEvents.PLUGINS_CHANGED);
+      }
     } catch (error) {
       logger.error('Failed to uninstall plugin', { error });
       setToastMessage(`卸载插件失败: ${error}`);
@@ -474,7 +510,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
                         🔄
                       </button>
 
-                      {state?.source === PluginSource.LOCAL && (
+                      {(state?.source === PluginSource.LOCAL || pluginRegistry.getPluginInfo(plugin.id)?.source === 'local' || pluginRegistry.getPluginInfo(plugin.id)?.source === 'remote') && (
                         uninstallingPluginId === plugin.id ? (
                           <div className="plugin-manager-uninstall-confirm">
                             <button
@@ -609,7 +645,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
                       重载插件
                     </button>
 
-                    {state?.source === PluginSource.LOCAL && (
+                    {(state?.source === PluginSource.LOCAL || pluginRegistry.getPluginInfo(selectedPlugin)?.source === 'local') && (
                       <>
                         <button
                           className="plugin-detail-action-button"

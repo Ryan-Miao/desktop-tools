@@ -439,28 +439,39 @@ export class PluginManager implements IPluginManager {
     // Try loading from dist/plugins first (built by Vite), then fallback to source plugins/
     const pluginName = path.basename(pluginPath);
     const distEntryPath = path.join(process.cwd(), 'dist', 'plugins', pluginName, 'index.js');
-    const sourceEntryPath = path.join(pluginPath, manifest.entry);
 
     let entryPath = distEntryPath;
-    if (!fs.existsSync(distEntryPath)) {
-      entryPath = sourceEntryPath;
-    }
-
     let pluginInstance: IPlugin;
 
-    try {
-      // Use dynamic import for ES modules
-      const pluginModule = await import(entryPath);
-      const PluginConstructor = pluginModule.default || pluginModule;
+    // Only load entry if manifest.entry is specified (for npm plugins)
+    if (manifest.entry) {
+      const sourceEntryPath = path.join(pluginPath, manifest.entry);
+      if (!fs.existsSync(distEntryPath)) {
+        entryPath = sourceEntryPath;
+      }
+    }
 
-      // 创建插件实例
-      if (typeof PluginConstructor === 'function') {
-        pluginInstance = new PluginConstructor();
-      } else if (typeof PluginConstructor === 'object') {
-        // 如果是对象，直接使用
-        pluginInstance = PluginConstructor;
+    try {
+      // Use dynamic import for ES modules (only if entry path exists)
+      if (manifest.entry && fs.existsSync(entryPath)) {
+        const pluginModule = await import(entryPath);
+        const PluginConstructor = pluginModule.default || pluginModule;
+
+        // 创建插件实例
+        if (typeof PluginConstructor === 'function') {
+          pluginInstance = new PluginConstructor();
+        } else if (typeof PluginConstructor === 'object') {
+          // 如果是对象，直接使用
+          pluginInstance = PluginConstructor;
+        } else {
+          throw new Error('Invalid plugin export');
+        }
       } else {
-        throw new Error('Invalid plugin export');
+        // Built-in plugin without entry - create empty instance
+        pluginInstance = {
+          onActivate: async () => {},
+          onDeactivate: async () => {}
+        } as IPlugin;
       }
 
       // 设置 manifest
@@ -829,7 +840,7 @@ export class PluginManager implements IPluginManager {
   // ==================== Validation ====================
 
   private validateManifest(manifest: PluginManifest): void {
-    const required = ['id', 'name', 'version', 'description', 'author', 'icon', 'entry'];
+    const required = ['id', 'name', 'version', 'description', 'author', 'icon'];
     for (const field of required) {
       if (!(field in manifest)) {
         throw new Error(`Missing required field in manifest: ${field}`);

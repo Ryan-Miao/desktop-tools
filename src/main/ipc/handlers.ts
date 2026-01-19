@@ -2,6 +2,7 @@ import { ipcMain, BrowserWindow, dialog } from 'electron';
 import path from 'path';
 import type MainProcess from '../index';
 import { BackupService } from '../services/BackupService';
+import { FileStorageService } from '../services/FileStorageService';
 import logService from '../services/LogService';
 import { IPCChannels } from '@shared/constants/channels';
 import { WindowConfig } from '@shared/types/plugin';
@@ -13,6 +14,7 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
   const windowManager = mainProcess.getWindowManager();
   const mainWindow = mainProcess.getMainWindow();
   const backupService = new BackupService(db);
+  const fileStorage = new FileStorageService();
 
   // ==================== Plugin Handlers ====================
 
@@ -77,23 +79,74 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
     const path = await import('path');
     const { app } = await import('electron');
 
-    // Try to find the plugin directory
-    const userDataPluginsDir = path.join(app.getPath('userData'), 'plugins');
-    const pluginDir = path.join(userDataPluginsDir, pluginId);
+    // Helper function to search for component file in a directory
+    const searchComponentFile = (pluginDir: string, manifest?: any): string | null => {
+      // Build list of possible source files to try
+      const possibleFiles = [];
 
-    // List of possible component files to try
-    const possibleFiles = [
-      'JSONFormatter.tsx',
-      'Component.tsx',
-      'index.tsx',
-      'App.tsx'
-    ];
-
-    for (const filename of possibleFiles) {
-      const componentPath = path.join(pluginDir, filename);
-      if (fs.existsSync(componentPath)) {
-        return fs.readFileSync(componentPath, 'utf-8');
+      if (manifest?.entry) {
+        // Try to infer source file from entry point
+        // dist/index.js → src/index.ts
+        possibleFiles.push(
+          manifest.entry.replace(/^dist\//, 'src/').replace(/\.js$/, '.ts'),
+          manifest.entry.replace(/^dist\//, 'src/').replace(/\.js$/, '.tsx')
+        );
       }
+
+      // Try plugin ID-based naming (e.g., QRCodePlugin.tsx from qrcode)
+      const pluginName = pluginId.split('.').pop();
+      if (pluginName) {
+        const capitalized = pluginName.charAt(0).toUpperCase() + pluginName.slice(1);
+        possibleFiles.push(`src/${capitalized}Plugin.tsx`);
+      }
+
+      // Generic fallbacks
+      possibleFiles.push(
+        'src/index.tsx',
+        'src/Component.tsx',
+        'src/App.tsx',
+        'JSONFormatter.tsx',
+        'Component.tsx',
+        'index.tsx',
+        'App.tsx'
+      );
+
+      for (const filename of possibleFiles) {
+        const componentPath = path.join(pluginDir, filename);
+        if (fs.existsSync(componentPath)) {
+          return fs.readFileSync(componentPath, 'utf-8');
+        }
+      }
+
+      return null;
+    };
+
+    // 1. Try userData/plugins directory first (user-installed plugins)
+    const userDataPluginsDir = path.join(app.getPath('userData'), 'plugins');
+    const userDataPluginDir = path.join(userDataPluginsDir, pluginId);
+
+    if (fs.existsSync(userDataPluginDir)) {
+      const manifestPath = path.join(userDataPluginDir, 'manifest.json');
+      const manifest = fs.existsSync(manifestPath)
+        ? JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
+        : undefined;
+
+      const source = searchComponentFile(userDataPluginDir, manifest);
+      if (source) return source;
+    }
+
+    // 2. Fallback to built-in plugins directory
+    const builtinPluginsDir = path.join(process.cwd(), 'plugins');
+    const builtinPluginDir = path.join(builtinPluginsDir, pluginId);
+
+    if (fs.existsSync(builtinPluginDir)) {
+      const manifestPath = path.join(builtinPluginDir, 'manifest.json');
+      const manifest = fs.existsSync(manifestPath)
+        ? JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
+        : undefined;
+
+      const source = searchComponentFile(builtinPluginDir, manifest);
+      if (source) return source;
     }
 
     throw new Error(`Plugin component not found for: ${pluginId}`);
@@ -300,6 +353,16 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
     return { deleted: true };
   });
 
+  // Get plugin list for backup
+  ipcMain.handle('db:get-plugin-list', async () => {
+    const plugins = pluginManager.getAll();
+    return plugins.map(p => ({
+      plugin_id: p.manifest.id,
+      plugin_name: p.manifest.name,
+      plugin_version: p.manifest.version
+    }));
+  });
+
   // ==================== Backup Handlers ====================
 
   ipcMain.handle(IPCChannels.BACKUP_CREATE, async () => {
@@ -488,6 +551,53 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
       logger.error(`Failed to open standalone window for plugin: ${pluginId}`, { error });
       return { success: false, error: (error as Error).message };
     }
+  });
+
+  // ==================== File Storage Handlers ====================
+
+  // Save plugin data to file
+  ipcMain.handle('file-storage:save', async (_, pluginId: string, data: any) => {
+    return fileStorage.savePluginData(pluginId, data);
+  });
+
+  // Load plugin data from file
+  ipcMain.handle('file-storage:load', async (_, pluginId: string) => {
+    return fileStorage.loadPluginData(pluginId);
+  });
+
+  // Delete plugin data file
+  ipcMain.handle('file-storage:delete', async (_, pluginId: string) => {
+    return fileStorage.deletePluginData(pluginId);
+  });
+
+  // Check if plugin data exists
+  ipcMain.handle('file-storage:exists', async (_, pluginId: string) => {
+    return fileStorage.hasPluginData(pluginId);
+  });
+
+  // Get all plugin data files
+  ipcMain.handle('file-storage:list', async () => {
+    return fileStorage.getAllPluginDataFiles();
+  });
+
+  // Export plugin data
+  ipcMain.handle('file-storage:export', async (_, pluginId: string, exportPath: string) => {
+    return fileStorage.exportPluginData(pluginId, exportPath);
+  });
+
+  // Import plugin data
+  ipcMain.handle('file-storage:import', async (_, pluginId: string, importPath: string) => {
+    return fileStorage.importPluginData(pluginId, importPath);
+  });
+
+  // Get data directory path
+  ipcMain.handle('file-storage:get-directory', async () => {
+    return fileStorage.getDataDirectory();
+  });
+
+  // Open data directory in file manager
+  ipcMain.handle('file-storage:open-directory', async () => {
+    return fileStorage.openDataDirectory();
   });
 
   // ==================== Setup Auto Backup ====================

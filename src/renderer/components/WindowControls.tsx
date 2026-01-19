@@ -10,6 +10,7 @@ interface WindowControlsProps {
   onClose: () => void;
   onOpenSettings: () => void;
   onOpenPluginManager: () => void;
+  onOpenPluginMarket?: () => void;
 }
 
 const WindowControls: React.FC<WindowControlsProps> = ({
@@ -19,7 +20,8 @@ const WindowControls: React.FC<WindowControlsProps> = ({
   onMaximize,
   onClose,
   onOpenSettings,
-  onOpenPluginManager
+  onOpenPluginManager,
+  onOpenPluginMarket
 }) => {
   const theme = getThemeById(themeId);
   const mode = theme?.mode || 'light';
@@ -132,6 +134,16 @@ const WindowControls: React.FC<WindowControlsProps> = ({
         >
           🧩
         </button>
+        {onOpenPluginMarket && (
+          <button
+            className="plugin-market-toggle"
+            onClick={onOpenPluginMarket}
+            aria-label="Plugin Market"
+            title="插件市场"
+          >
+            🛒
+          </button>
+        )}
         <button
           className="settings-toggle"
           onClick={onOpenSettings}

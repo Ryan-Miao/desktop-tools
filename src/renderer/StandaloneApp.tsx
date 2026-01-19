@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { pluginRegistry } from './services/PluginRegistry';
 import { themes, applyTheme } from './themes/themes';
 import { storageService } from './services/StorageService';
+import { remotePluginLoader } from './services/RemotePluginLoader';
 import { createLogger } from '../shared/logger';
 import Loading from './components/Loading/Loading';
 
@@ -29,21 +30,42 @@ function StandaloneApp() {
   const [PluginComponent, setPluginComponent] = useState<React.ComponentType<any> | null>(null);
 
   useEffect(() => {
-    // 从 URL hash 获取插件 ID 和窗口 ID
-    const hash = window.location.hash;
-    if (hash.startsWith('#plugin-standalone/')) {
-      const id = hash.replace('#plugin-standalone/', '');
-      setPluginId(id);
-      setWindowId(`standalone-${id}`);
-      logger.info(`Loading plugin: ${id}`);
-    }
+    const initializeApp = async () => {
+      // 从 URL hash 获取插件 ID 和窗口 ID
+      const hash = window.location.hash;
+      if (hash.startsWith('#plugin-standalone/')) {
+        const id = hash.replace('#plugin-standalone/', '');
+        setPluginId(id);
+        setWindowId(`standalone-${id}`);
+        logger.info(`Loading plugin: ${id}`);
+      }
 
-    // 加载主题设置
-    const settings = storageService.getAppSettings();
-    setThemeId(settings.themeId);
+      // 加载主题设置
+      const settings = storageService.getAppSettings();
+      setThemeId(settings.themeId);
 
-    // 标记为就绪
-    setIsReady(true);
+      // 加载已安装的远程插件（桌面模式和Web模式都需要）
+      try {
+        const installedPlugins = storageService.getInstalledRemotePlugins();
+        logger.info('Loading npm plugins in standalone mode', { count: installedPlugins.length });
+
+        for (const plugin of installedPlugins) {
+          try {
+            await remotePluginLoader.installPlugin(plugin.packageName, plugin.version);
+            logger.info(`npm plugin loaded in standalone: ${plugin.id}`);
+          } catch (error) {
+            logger.error(`Failed to load npm plugin in standalone: ${plugin.id}`, { error });
+          }
+        }
+      } catch (error) {
+        logger.error('Failed to load npm plugins in standalone mode', { error });
+      }
+
+      // 标记为就绪
+      setIsReady(true);
+    };
+
+    initializeApp();
   }, []);
 
   // 应用主题
@@ -72,12 +94,16 @@ function StandaloneApp() {
     setLoadError(null);
 
     try {
-      logger.info(`Loading plugin component: ${pluginId}`);
+      logger.info(`[StandaloneApp] Loading plugin component: ${pluginId}`);
 
       // ✅ 统一接口：内置和用户插件都通过这个方法加载
       const component = await pluginRegistry.loadPluginComponent(pluginId);
 
-      logger.info(`Plugin component loaded successfully: ${pluginId}`);
+      logger.info(`[StandaloneApp] Plugin component loaded successfully: ${pluginId}`, {
+        componentType: typeof component,
+        componentName: component?.name || component?.displayName || 'anonymous',
+        hasRender: typeof component?.prototype?.render === 'function'
+      });
       setPluginComponent(() => component);
       setLoadError(null);
     } catch (error) {

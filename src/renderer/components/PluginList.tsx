@@ -169,7 +169,18 @@ const PluginList: React.FC<PluginListProps> = ({ plugins, searchQuery, onPluginC
       <div
         key={plugin.id}
         className={`plugin-card layout-${layoutMode}`}
-        onClick={() => onPluginClick?.(plugin.id)}
+        onClick={(e) => {
+          console.log('Plugin card clicked:', plugin.id, plugin.name);
+          console.log('onPluginClick function:', onPluginClick);
+          console.log('onPluginClick type:', typeof onPluginClick);
+
+          if (onPluginClick) {
+            console.log('Calling onPluginClick with:', plugin.id);
+            onPluginClick(plugin.id);
+          } else {
+            console.error('onPluginClick is not defined!');
+          }
+        }}
         draggable={canDrag}
         onDragStart={canDrag ? (e) => handleDragStart(e, plugin.id) : undefined}
         onDragEnd={canDrag ? handleDragEnd : undefined}
@@ -208,7 +219,15 @@ const PluginList: React.FC<PluginListProps> = ({ plugins, searchQuery, onPluginC
               >
                 {isFav ? '⭐' : '☆'}
               </button>
-              <button className="plugin-button">打开</button>
+              <button
+                className="plugin-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPluginClick?.(plugin.id);
+                }}
+              >
+                打开
+              </button>
             </div>
           </>
         )}
