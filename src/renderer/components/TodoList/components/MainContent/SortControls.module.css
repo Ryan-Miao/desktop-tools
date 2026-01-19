@@ -1,0 +1,102 @@
+/* Container */
+.sortControls {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+/* Sort Select */
+.sortSelect {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-family: var(--font-body);
+}
+
+.sortSelect:hover {
+  border-color: var(--primary);
+}
+
+.sortSelect:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Sort Order Button */
+.sortOrderButton {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.sortOrderButton:hover {
+  border-color: var(--primary);
+  background: var(--primary-color-light);
+  color: var(--primary);
+}
+
+.sortOrderButton:active {
+  transform: scale(0.9);
+}
+
+/* Checkbox Label */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--transition-base);
+  white-space: nowrap; /* Keep single line for labels */
+}
+
+.checkboxLabel span {
+  word-break: keep-all; /* Don't break Chinese characters mid-word */
+  overflow-wrap: break-word; /* Break long words if needed */
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.checkboxLabel input[type="checkbox"]:checked + span {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.checkboxLabel:hover span {
+  color: var(--primary);
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .sortControls {
+    flex-wrap: wrap;
+  }
+
+  .checkboxLabel {
+    white-space: normal; /* Allow wrapping on mobile */
+    flex: 1 1 auto;
+  }
+}

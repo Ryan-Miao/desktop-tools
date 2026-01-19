@@ -1,0 +1,254 @@
+/* TodoCard Styles */
+
+.todoCard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  position: relative;
+  flex-wrap: wrap;
+}
+
+.todoCard:hover {
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.todoCard.completed {
+  opacity: 0.6;
+  background: var(--background);
+  animation: completeTask 0.4s ease-out;
+}
+
+@keyframes completeTask {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+}
+
+.todoCard.completed .title {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.todoCard.overdue {
+  border-color: var(--danger);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.todoCard.overdue:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.todoCard.selected {
+  border-color: var(--primary);
+  background: rgba(59, 130, 246, 0.08);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Checkbox */
+.checkbox {
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+/* Content */
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+  overflow-wrap: anywhere; /* Optimize for long URLs */
+  hyphens: auto;
+}
+
+.description {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* Subtasks Info */
+.subtasksInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: var(--space-xs);
+}
+
+.subtasksInfo svg {
+  flex-shrink: 0;
+}
+
+/* Recent Activity */
+.recentActivity {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: var(--space-xs);
+}
+
+.activityDot {
+  color: var(--primary);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.activityText {
+  line-height: 1.2;
+}
+
+/* Expand Button */
+.expandBtn {
+  padding: 2px 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+  align-self: flex-start;
+  margin-top: var(--space-xs);
+}
+
+.expandBtn:hover {
+  color: var(--primary);
+}
+
+/* Right Side */
+.rightSide {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+/* Priority Badge */
+.priorityBadge {
+  font-size: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Due Date Badge */
+.dueDateBadge {
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--background);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.dueDateBadge.overdue {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* Delete Button */
+.deleteBtn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+}
+
+.todoCard:hover .deleteBtn {
+  opacity: 1;
+}
+
+.deleteBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+/* Subtasks List (when expanded) */
+.subtasksList {
+  width: 100%;
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.subtaskItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--background);
+  border-radius: var(--radius-sm);
+}
+
+.subtaskItem input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--primary);
+  flex-shrink: 0;
+}
+
+.subtaskTitle {
+  font-size: 13px;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.subtaskCompleted {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}

@@ -1,0 +1,183 @@
+/* QuickAdd Styles */
+
+.quickAdd {
+  padding: var(--space-md) var(--space-lg);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* Input Row - Input and Add Button */
+.inputRow {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.input {
+  flex: 1;
+  padding: var(--space-sm) var(--space-md);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  background: var(--background);
+  color: var(--text-primary);
+  transition: all var(--transition-base);
+  font-family: var(--font-body);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface);
+}
+
+/* Add Button - Always visible */
+.addBtn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.addBtn:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: scale(1.05);
+}
+
+.addBtn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.addBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Preview Tags */
+.preview {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  padding: var(--space-sm) 0;
+}
+
+.previewTag {
+  padding: 4px 8px;
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Advanced Toggle */
+.advancedToggle {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.toggleBtn {
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+  font-family: var(--font-body);
+}
+
+.toggleBtn:hover {
+  color: var(--text-primary);
+}
+
+/* Advanced Options */
+.advancedOptions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+  align-items: center;
+}
+
+.select,
+.dateInput {
+  padding: var(--space-sm) var(--space-md);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  background: var(--surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-family: var(--font-body);
+}
+
+.select:focus,
+.dateInput:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Date Input Wrapper - Makes the entire area clickable */
+.dateInputWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  min-width: 130px;
+}
+
+.dateInputWrapper:hover .dateInput {
+  border-color: var(--primary);
+}
+
+/* Date Input Placeholder */
+.dateInputPlaceholder {
+  position: absolute;
+  left: var(--space-sm);
+  font-size: 12px;
+  color: var(--text-secondary);
+  pointer-events: auto;
+  user-select: none;
+  cursor: pointer;
+  z-index: 2;
+  padding: var(--space-sm) var(--space-md);
+  margin: calc(var(--space-sm) * -1);
+}
+
+/* Date input filled state */
+.dateInputFilled {
+  color: var(--text-primary);
+}
+
+/* Make date input transparent when empty to show placeholder */
+.dateInput:not(.dateInputFilled) {
+  color: transparent;
+}
+
+/* Expand calendar picker icon to cover entire input */
+.dateInput::-webkit-calendar-picker-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dateInput::-webkit-calendar-picker-indicator:hover {
+  opacity: 0;
+}

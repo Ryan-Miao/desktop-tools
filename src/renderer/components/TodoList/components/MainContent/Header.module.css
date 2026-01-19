@@ -1,0 +1,85 @@
+/* Header Styles */
+
+.header {
+  min-height: 60px;
+  height: auto; /* Allow height to grow when content wraps */
+  padding: var(--space-sm) var(--space-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap; /* Allow wrapping on small screens */
+  gap: var(--space-sm);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.headerIcon {
+  font-size: 24px;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.searchBox {
+  position: relative;
+  width: 280px;
+  max-width: 100%; /* Prevent overflow */
+  flex-shrink: 1;
+  min-width: 200px; /* Minimum usable width */
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding-left: 40px !important;
+  padding-right: 32px !important;
+}
+
+.clearSearch {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.clearSearch:hover {
+  background: var(--background);
+  color: var(--text-primary);
+}
