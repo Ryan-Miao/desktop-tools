@@ -1,0 +1,177 @@
+/* PluginModal Styles */
+
+/* 全屏overlay */
+.plugin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+/* Modal内容容器 */
+.plugin-modal-content {
+  width: 90%;
+  max-width: 1200px;
+  height: 85vh;
+  background: var(--card-background, #ffffff);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+/* Modal头部 */
+.plugin-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+  background: var(--header-background, rgba(0, 0, 0, 0.02));
+}
+
+.plugin-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color, #333);
+}
+
+.plugin-modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: var(--text-color, #333);
+}
+
+.plugin-modal-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+/* Modal主体 */
+.plugin-modal-body {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+}
+
+/* iframe容器 */
+.plugin-modal-body.iframe-container {
+  padding: 0;
+  overflow: hidden;
+}
+
+.plugin-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* 加载和错误状态 */
+.plugin-modal-loading,
+.plugin-modal-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 40px;
+  text-align: center;
+}
+
+.plugin-modal-loading p,
+.plugin-modal-error p {
+  margin-top: 16px;
+  color: var(--text-color, #333);
+}
+
+.plugin-modal-error h2 {
+  margin: 0 0 16px 0;
+  color: var(--error-color, #dc3545);
+}
+
+.plugin-modal-error-hint {
+  margin: 8px 0;
+  font-size: 12px;
+  opacity: 0.7;
+  color: var(--text-color, #333);
+}
+
+.plugin-modal-error button {
+  margin-top: 24px;
+  padding: 10px 20px;
+  background: var(--primary-color, #0066CC);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.plugin-modal-error button:hover {
+  background: var(--primary-color-hover, #0052a3);
+}
+
+/* 动画 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark mode adjustments */
+.dark .plugin-modal-content {
+  background: var(--card-background, #2d2d2d);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+}
+
+.dark .plugin-modal-header {
+  background: var(--header-background, rgba(255, 255, 255, 0.05));
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+}
+
+.dark .plugin-modal-header h3,
+.dark .plugin-modal-loading p,
+.dark .plugin-modal-error p,
+.dark .plugin-modal-error-hint {
+  color: var(--text-color, #e0e0e0);
+}
+
+.dark .plugin-modal-close {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-color, #e0e0e0);
+}
+
+.dark .plugin-modal-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
