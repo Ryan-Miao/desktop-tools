@@ -1,0 +1,230 @@
+/**
+ * Pomodoro Timer Plugin Styles
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Mode Switch */
+.modeSwitch {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.modeButton {
+  padding: 0.75rem 2rem;
+  background: var(--surface);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modeButton:hover {
+  background: var(--surface-hover);
+  border-color: var(--primary-color);
+}
+
+.modeButton.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+/* Task Section */
+.taskSection {
+  display: flex;
+  justify-content: center;
+}
+
+.taskInput {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.875rem 1.25rem;
+  font-size: 1rem;
+  text-align: center;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.taskInput:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.taskInput::placeholder {
+  color: var(--text-secondary);
+}
+
+/* Timer Section */
+.timerSection {
+  display: flex;
+  justify-content: center;
+}
+
+.timerCircle {
+  position: relative;
+  width: 280px;
+  height: 280px;
+}
+
+.progressRing {
+  transform: rotate(-90deg);
+}
+
+.progressRingBg {
+  stroke: var(--surface-hover);
+}
+
+.progressRingFill {
+  stroke: var(--primary-color);
+  transition: stroke-dashoffset 1s linear;
+}
+
+.timerContent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.time {
+  font-size: 3.5rem;
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-primary);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.modeLabel {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.controlButton {
+  padding: 1rem 2rem;
+  background: var(--surface);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.controlButton:hover {
+  background: var(--surface-hover);
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+.controlButton:active {
+  transform: translateY(0);
+}
+
+.controlButton.active {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: white;
+}
+
+/* Stats */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.statItem {
+  text-align: center;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.25rem;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Tips */
+.tips {
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.tips p {
+  margin: 0;
+  font-size: 1rem;
+  color: white;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .timerCircle {
+    width: 240px;
+    height: 240px;
+  }
+
+  .time {
+    font-size: 3rem;
+  }
+
+  .modeSwitch {
+    flex-direction: column;
+  }
+
+  .controls {
+    flex-direction: column;
+  }
+
+  .controlButton {
+    width: 100%;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}

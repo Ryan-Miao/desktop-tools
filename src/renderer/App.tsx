@@ -199,25 +199,18 @@ function App() {
 
   // ESC 键监听 - 关闭所有面板
   useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         // 关闭所有打开的面板
-        if (showSettings) {
-          setShowSettings(false);
-        }
-        if (showPluginManager) {
-          setShowPluginManager(false);
-        }
-        if (showPluginMarket) {
-          setShowPluginMarket(false);
-        }
-        if (showBackup) {
-          setShowBackup(false);
-        }
+        setShowSettings(false);
+        setShowPluginManager(false);
+        setShowPluginMarket(false);
+        setShowBackup(false);
         // 关闭插件modal
-        if (activePluginId) {
-          setActivePluginId(null);
-        }
+        setActivePluginId(null);
       }
 
       // F12 - 切换开发者工具（仅在 Electron 环境）
@@ -229,12 +222,12 @@ function App() {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown, { signal });
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      controller.abort();
     };
-  }, [showSettings, showPluginManager, showPluginMarket, showBackup, activePluginId]);
+  }, []); // Remove dependencies to prevent re-registration, always close all modals
 
   const filteredPlugins = useMemo(() => {
     return plugins.filter(plugin => {

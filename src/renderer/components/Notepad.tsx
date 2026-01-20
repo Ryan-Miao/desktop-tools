@@ -112,26 +112,36 @@ function Notepad({ onClose, onMinimize, onMaximize }: NotepadProps) {
         // Try to load from file storage first
         let data = await fileStorageService.loadPluginData<Note[]>(PLUGIN_ID);
 
-        if (data) {
+        if (data && Array.isArray(data)) {
           setNotes(data);
           logger.info('[Notepad] Loaded notes from file storage:', data.length);
         } else {
           // File storage not found, try localStorage migration
           const localStorageData = localStorage.getItem(STORAGE_KEY);
           if (localStorageData) {
-            const parsed = JSON.parse(localStorageData);
-            setNotes(parsed);
-            // Save to file storage
-            await fileStorageService.savePluginData(PLUGIN_ID, parsed);
-            // Create backup
-            localStorage.setItem(`${STORAGE_KEY}-migrated-backup`, localStorageData);
-            logger.info('[Notepad] Migrated notes from localStorage:', parsed.length);
+            try {
+              const parsed = JSON.parse(localStorageData);
+              if (Array.isArray(parsed)) {
+                setNotes(parsed);
+                // Save to file storage
+                await fileStorageService.savePluginData(PLUGIN_ID, parsed);
+                // Create backup
+                localStorage.setItem(`${STORAGE_KEY}-migrated-backup`, localStorageData);
+                logger.info('[Notepad] Migrated notes from localStorage:', parsed.length);
+              }
+            } catch (parseErr) {
+              logger.error('[Notepad] Failed to parse localStorage data:', parseErr);
+              setNotes([]);
+            }
           } else {
             logger.info('[Notepad] No existing notes found, starting fresh');
+            setNotes([]);
           }
         }
       } catch (err) {
         logger.error('[Notepad] Failed to load notes:', err);
+        // Fallback to empty notes array
+        setNotes([]);
       }
     };
 
@@ -508,16 +518,15 @@ function Notepad({ onClose, onMinimize, onMaximize }: NotepadProps) {
 }
 
 // Plugin manifest
-export const notepadManifest: PluginManifest = {
+export const notepadManifest = {
   id: 'com.desktop-tool.plugin.notepad',
-  name: '记事本',
-  version: '1.0.0',
+  name: 'Notepad',
   description: '支持Markdown语法的笔记工具，具有实时预览和修改历史记录功能',
-  author: 'Desktop Tool',
   icon: '📝',
-  entry: 'index.ts',
-  category: '工具',
-  permissions: []
+  version: '1.0.0',
+  author: 'Desktop Tool',
+  category: 'utility',
+  entry: './Notepad',
 };
 
 export default Notepad;

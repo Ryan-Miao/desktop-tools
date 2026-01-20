@@ -1,0 +1,242 @@
+/**
+ * Scientific Calculator Plugin Styles
+ */
+
+.calculator {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Display */
+.display {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: var(--radius-lg);
+  text-align: right;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.previousValue {
+  min-height: 1.5rem;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: var(--font-mono, monospace);
+  margin-bottom: 0.25rem;
+}
+
+.currentValue {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  font-family: var(--font-mono, monospace);
+  word-break: break-all;
+}
+
+/* Mode Toggle */
+.modeToggle {
+  display: flex;
+  justify-content: center;
+}
+
+.modeButton {
+  padding: 0.5rem 1.5rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modeButton:hover {
+  background: var(--primary-hover);
+}
+
+/* Scientific Functions */
+.scientific {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+
+.sciButton {
+  padding: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sciButton:hover {
+  background: var(--surface-hover);
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.sciButton:active {
+  transform: translateY(0);
+}
+
+/* Keypad */
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+}
+
+.memoryButton,
+.digitButton,
+.operatorButton,
+.functionButton,
+.clearButton,
+.equalsButton {
+  padding: 1rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.memoryButton {
+  background: #7c3aed;
+  color: white;
+}
+
+.memoryButton:hover {
+  background: #6d28d9;
+  transform: translateY(-1px);
+}
+
+.clearButton,
+.functionButton {
+  background: #ef4444;
+  color: white;
+}
+
+.clearButton:hover,
+.functionButton:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.digitButton {
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 1.25rem;
+}
+
+.digitButton:hover {
+  background: var(--surface-hover);
+  transform: translateY(-1px);
+}
+
+.operatorButton {
+  background: #f59e0b;
+  color: white;
+}
+
+.operatorButton:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+}
+
+.equalsButton {
+  background: #10b981;
+  color: white;
+  grid-column: span 2;
+}
+
+.equalsButton:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.memoryButton:active,
+.digitButton:active,
+.operatorButton:active,
+.functionButton:active,
+.clearButton:active,
+.equalsButton:active {
+  transform: translateY(0);
+}
+
+/* History */
+.history {
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.history h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.historyItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface-hover);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+.historyExpression {
+  color: var(--text-secondary);
+  font-family: var(--font-mono, monospace);
+}
+
+.historyResult {
+  color: var(--primary-color);
+  font-weight: 600;
+  font-family: var(--font-mono, monospace);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .calculator {
+    padding: 1rem;
+  }
+
+  .currentValue {
+    font-size: 2rem;
+  }
+
+  .keypad {
+    gap: 0.375rem;
+  }
+
+  .memoryButton,
+  .digitButton,
+  .operatorButton,
+  .functionButton,
+  .clearButton,
+  .equalsButton {
+    padding: 0.875rem;
+    font-size: 1rem;
+  }
+}

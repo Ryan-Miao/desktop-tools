@@ -212,4 +212,22 @@ function TodoCard({ todo, onClick, isSelected }: TodoCardProps) {
   );
 }
 
-export default TodoCard;
+// Memoize component to prevent unnecessary re-renders
+// Only re-render when critical todo properties change
+const TodoCardMemo = React.memo(TodoCard, (prevProps, nextProps) => {
+  // Return true if props are equal (should not re-render)
+  return (
+    prevProps.todo.id === nextProps.todo.id &&
+    prevProps.todo.title === nextProps.todo.title &&
+    prevProps.todo.completed === nextProps.todo.completed &&
+    prevProps.todo.priority === nextProps.todo.priority &&
+    prevProps.todo.dueDate === nextProps.todo.dueDate &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.todo.activityHistory?.length === nextProps.todo.activityHistory?.length &&
+    prevProps.todo.subtasks.length === nextProps.todo.subtasks.length
+  );
+});
+
+TodoCardMemo.displayName = 'TodoCard';
+
+export default TodoCardMemo;

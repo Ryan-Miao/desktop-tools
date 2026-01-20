@@ -6,6 +6,7 @@ import { WindowManager } from './windows/manager';
 import { PluginStore } from './services/PluginStore';
 import { logger } from '../shared/logger';
 import logService from './services/LogService';
+import { GlobalErrorHandler } from './errorHandler';
 
 export default class MainProcess {
   private database: DatabaseService;
@@ -78,6 +79,9 @@ export default class MainProcess {
 
 // Initialize app when ready
 app.whenReady().then(async () => {
+  // Setup global error handlers first
+  GlobalErrorHandler.setup();
+
   try {
     const mainProcess = new MainProcess();
     await mainProcess.initialize();

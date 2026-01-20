@@ -166,11 +166,15 @@ export default defineConfig(({ mode }) => {
               if (id.includes('@mui') || id.includes('antd')) {
                 return 'ui-vendor';
               }
+              // Babel and related
+              if (id.includes('@babel') || id.includes('babel')) {
+                return 'babel-vendor';
+              }
               // 其他 node_modules
               return 'vendor';
             }
 
-            // 分离大型组件
+            // 分离大型组件 - 旧组件
             if (id.includes('/components/SettingsPanel')) {
               return 'settings-panel';
             }
@@ -186,6 +190,37 @@ export default defineConfig(({ mode }) => {
             if (id.includes('/components/CalculatorPad')) {
               return 'calculator-pad';
             }
+
+            // 分离新插件 - 10个新插件独立打包
+            if (id.includes('/components/PasswordStrength')) {
+              return 'plugin-password-strength';
+            }
+            if (id.includes('/components/ScientificCalculator')) {
+              return 'plugin-scientific-calculator';
+            }
+            if (id.includes('/components/ColorPalette')) {
+              return 'plugin-color-palette';
+            }
+            if (id.includes('/components/JsonToTs')) {
+              return 'plugin-json-to-ts';
+            }
+            if (id.includes('/components/RegexTester')) {
+              return 'plugin-regex-tester';
+            }
+            if (id.includes('/components/ProgressCharts')) {
+              return 'plugin-progress-charts';
+            }
+            if (id.includes('/components/WorldClock')) {
+              return 'plugin-world-clock';
+            }
+            if (id.includes('/components/MarkdownEditor')) {
+              return 'plugin-markdown-editor';
+            }
+            if (id.includes('/components/KeyboardShortcuts')) {
+              return 'plugin-keyboard-shortcuts';
+            }
+
+            // 共享组件
             if (id.includes('/components/Loading')) {
               return 'loading';
             }
@@ -198,9 +233,25 @@ export default defineConfig(({ mode }) => {
             if (id.includes('/components/ProgressBar')) {
               return 'progress-bar';
             }
+            if (id.includes('/components/PluginWindow')) {
+              return 'plugin-window';
+            }
           }
         }
-      }
+      },
+      // 启用更多优化
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+          pure_funcs: ['console.log', 'console.info']
+        }
+      },
+      // 代码压缩
+      cssCodeSplit: true,
+      // 启用源码映射（生产环境可选）
+      sourcemap: false
     },
     server: {
       port: 5173

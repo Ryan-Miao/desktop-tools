@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { fileStorageService } from '@renderer/services/FileStorageService';
 import { createLogger } from '../../../../shared/logger';
+import { debounce } from '@renderer/utils/debounce';
 
 const logger = createLogger('TodoListStore');
 
@@ -193,6 +194,33 @@ const initialLists: List[] = [
 const PLUGIN_ID = 'todolist';
 const STORAGE_KEY = 'todo-storage';
 
+// Debounced save function to reduce file I/O
+// Delay saves by 1 second to batch rapid changes
+let debouncedSaveInstance: ((getFn: () => TodoStoreState) => Promise<void>) | null = null;
+
+const getDebouncedSave = () => {
+  if (!debouncedSaveInstance) {
+    debouncedSaveInstance = debounce(async (getFn: () => TodoStoreState) => {
+      try {
+        const state = getFn();
+        const data = {
+          todos: state.todos,
+          lists: state.lists,
+          sortBy: state.sortBy,
+          sortOrder: state.sortOrder,
+          showCompletedAtBottom: state.showCompletedAtBottom,
+        };
+
+        await fileStorageService.savePluginData(PLUGIN_ID, data);
+        logger.debug('[TodoList] Debounced save completed');
+      } catch (error) {
+        logger.error('[TodoList] Error in debounced save', { error });
+      }
+    }, 1000); // 1 second debounce
+  }
+  return debouncedSaveInstance;
+};
+
 export const useTodoStore = create<TodoStoreState>((set, get) => ({
   // Initial State
   todos: [],
@@ -244,28 +272,13 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
   },
 
   /**
-   * 保存数据到文件
+   * 保存数据到文件 (使用防抖优化性能)
+   * 每次调用会延迟1秒执行，频繁调用会重置计时器
    */
   saveToFile: async () => {
-    try {
-      const state = get();
-      const data = {
-        todos: state.todos,
-        lists: state.lists,
-        sortBy: state.sortBy,
-        sortOrder: state.sortOrder,
-        showCompletedAtBottom: state.showCompletedAtBottom,
-      };
-
-      const success = await fileStorageService.savePluginData(PLUGIN_ID, data);
-      if (success) {
-        logger.debug('[TodoList] Saved data to file');
-      } else {
-        logger.error('[TodoList] Failed to save data to file');
-      }
-    } catch (error) {
-      logger.error('[TodoList] Error in saveToFile', { error });
-    }
+    // Use debounced save for better performance
+    const debouncedSave = getDebouncedSave();
+    await debouncedSave(get);
   },
 
   /**
