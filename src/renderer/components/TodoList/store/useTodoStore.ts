@@ -76,7 +76,7 @@ export interface List {
 }
 
 export type SmartView = 'inbox' | 'today' | 'week';
-export type ViewMode = 'list' | 'kanban';
+export type ViewMode = 'list' | 'kanban' | 'calendar-month' | 'calendar-week';
 
 // ========== Store State ==========
 

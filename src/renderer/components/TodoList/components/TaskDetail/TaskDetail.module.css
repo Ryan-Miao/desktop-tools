@@ -84,17 +84,17 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .editBtn:hover {
   background: var(--primary-color-dark, #5568d3);
-  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .editBtn:active {
-  transform: translateY(0);
+  background: var(--primary-color-dark, #5568d3);
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.2);
 }
 
 .closeBtn {

@@ -8,6 +8,7 @@ import TodoCard from '../TodoCard';
 import TaskDetail from '../TaskDetail';
 import EmptyState from '../EmptyState';
 import KanbanView from '../KanbanView';
+import CalendarView from '../CalendarView';
 
 function MainContent() {
   const [selectedTodoId, setSelectedTodoId] = useState<string | null>(null);
@@ -62,7 +63,9 @@ function MainContent() {
 
         {/* Todo List Area */}
         <div className={styles.todoListArea}>
-          {filteredTodos.length === 0 ? (
+          {viewMode.startsWith('calendar') ? (
+            <CalendarView />
+          ) : filteredTodos.length === 0 ? (
             <EmptyState
               type={getEmptyStateType()}
               listName={currentList?.name}

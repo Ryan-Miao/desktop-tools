@@ -87,6 +87,21 @@ function Header() {
               <rect x="17" y="3" width="5" height="18" rx="1" />
             </svg>
           </button>
+          <button
+            className={`${styles.viewButton} ${viewMode.startsWith('calendar') ? styles.active : ''}`}
+            onClick={() => setViewMode('calendar-month')}
+            aria-label="日历视图"
+            title="日历视图"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+              <line x1="3" y1="14" x2="21" y2="14" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
         </div>
 
         <SortControls />
