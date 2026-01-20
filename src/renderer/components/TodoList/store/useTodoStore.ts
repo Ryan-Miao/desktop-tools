@@ -62,6 +62,7 @@ export interface Todo {
   completedAt?: string;
   subtasks: SubTask[];        // Embedded subtasks
   activityHistory?: ActivityEvent[]; // Activity log (optional)
+  status?: 'todo' | 'in-progress' | 'done'; // Task status for kanban view
 }
 
 export interface List {
@@ -74,6 +75,7 @@ export interface List {
 }
 
 export type SmartView = 'inbox' | 'today' | 'week';
+export type ViewMode = 'list' | 'kanban';
 
 // ========== Store State ==========
 
@@ -85,6 +87,7 @@ interface TodoStoreState {
   // UI State
   currentView: SmartView | string;  // Smart view or list ID
   searchQuery: string;
+  viewMode: ViewMode;              // View mode: list or kanban
 
   // ========== Sorting State ==========
   sortBy: 'none' | 'createdAt' | 'priority' | 'dueDate';
@@ -125,6 +128,8 @@ interface TodoStoreState {
 
   setCurrentView: (view: SmartView | string) => void;
   setSearchQuery: (query: string) => void;
+  setViewMode: (mode: ViewMode) => void;
+  updateTodoStatus: (id: string, status: 'todo' | 'in-progress' | 'done') => void;
 
   // ========== Sorting Actions ==========
 
@@ -227,6 +232,7 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
   lists: initialLists,
   currentView: 'inbox',
   searchQuery: '',
+  viewMode: 'list',
   sortBy: 'none',
   sortOrder: 'desc',
   showCompletedAtBottom: true,
@@ -703,6 +709,32 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
 
   setCurrentView: (view) => set({ currentView: view }),
   setSearchQuery: (query) => set({ searchQuery: query }),
+  setViewMode: (mode) => set({ viewMode: mode }),
+
+  updateTodoStatus: (id, status) => {
+    set((state) => ({
+      todos: state.todos.map((todo) => {
+        if (todo.id === id) {
+          // Update completed based on status
+          const completed = status === 'done';
+          return addActivityToTodo(
+            {
+              ...todo,
+              status,
+              completed,
+              ...(completed && { completedAt: new Date().toISOString() })
+            },
+            completed ? 'COMPLETED' : 'REOPENED',
+            completed ? '标记为完成' : '重新打开'
+          );
+        }
+        return todo;
+      }),
+    }));
+
+    // Auto-save to file
+    get().saveToFile();
+  },
 
   // ========== Sorting Actions ==========
 

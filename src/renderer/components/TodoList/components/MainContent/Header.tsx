@@ -7,6 +7,8 @@ function Header() {
   const searchQuery = useTodoStore((state) => state.searchQuery);
   const setSearchQuery = useTodoStore((state) => state.setSearchQuery);
   const currentView = useTodoStore((state) => state.currentView);
+  const viewMode = useTodoStore((state) => state.viewMode);
+  const setViewMode = useTodoStore((state) => state.setViewMode);
   const lists = useTodoStore((state) => state.lists);
 
   const currentList = lists.find((l) => l.id === currentView);
@@ -55,6 +57,36 @@ function Header() {
               </svg>
             </button>
           )}
+        </div>
+
+        <div className={styles.viewToggle}>
+          <button
+            className={`${styles.viewButton} ${viewMode === 'list' ? styles.active : ''}`}
+            onClick={() => setViewMode('list')}
+            aria-label="列表视图"
+            title="列表视图"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
+          </button>
+          <button
+            className={`${styles.viewButton} ${viewMode === 'kanban' ? styles.active : ''}`}
+            onClick={() => setViewMode('kanban')}
+            aria-label="看板视图"
+            title="看板视图"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="5" height="18" rx="1" />
+              <rect x="10" y="3" width="5" height="18" rx="1" />
+              <rect x="17" y="3" width="5" height="18" rx="1" />
+            </svg>
+          </button>
         </div>
 
         <SortControls />

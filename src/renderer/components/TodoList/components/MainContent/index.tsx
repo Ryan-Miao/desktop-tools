@@ -7,6 +7,7 @@ import QuickAdd from './QuickAdd';
 import TodoCard from '../TodoCard';
 import TaskDetail from '../TaskDetail';
 import EmptyState from '../EmptyState';
+import KanbanView from '../KanbanView';
 
 function MainContent() {
   const [selectedTodoId, setSelectedTodoId] = useState<string | null>(null);
@@ -16,6 +17,7 @@ function MainContent() {
   const todos = useTodoStore((state) => state.todos);
   const searchQuery = useTodoStore((state) => state.searchQuery);
   const lists = useTodoStore((state) => state.lists);
+  const viewMode = useTodoStore((state) => state.viewMode);
 
   // Subscribe to sort settings to trigger re-render when they change
   // These variables are intentionally unused - we only need to subscribe to state changes
@@ -65,6 +67,8 @@ function MainContent() {
               type={getEmptyStateType()}
               listName={currentList?.name}
             />
+          ) : viewMode === 'kanban' ? (
+            <KanbanView onTodoClick={handleTaskClick} />
           ) : (
             <div className={styles.todoList}>
               {filteredTodos.map((todo) => (

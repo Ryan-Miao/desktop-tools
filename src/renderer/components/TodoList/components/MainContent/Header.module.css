@@ -83,3 +83,35 @@
   background: var(--background);
   color: var(--text-primary);
 }
+
+.viewToggle {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--background);
+  border-radius: var(--radius-md);
+}
+
+.viewButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--text-secondary);
+}
+
+.viewButton:hover {
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.viewButton.active {
+  background: var(--surface);
+  color: var(--primary-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
