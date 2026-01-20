@@ -71,7 +71,7 @@ const WeekView: React.FC<WeekViewProps> = ({
             <div className={styles.weekDayHeader}>
               {WEEK_DAYS[index]}
             </div>
-            <div className={`${styles.weekDateNumber} ${isToday ? styles.dayNumber : ''}`}>
+            <div className={styles.weekDateNumber}>
               {date.getMonth() + 1}/{date.getDate()}
             </div>
 
@@ -81,7 +81,9 @@ const WeekView: React.FC<WeekViewProps> = ({
                   textAlign: 'center',
                   color: 'var(--text-tertiary)',
                   fontSize: '0.8125rem',
-                  padding: '1rem'
+                  padding: '2rem 1rem',
+                  opacity: 0.7,
+                  fontStyle: 'italic'
                 }}>
                   暂无任务
                 </div>
@@ -89,14 +91,14 @@ const WeekView: React.FC<WeekViewProps> = ({
                 todos.map((todo) => (
                   <div
                     key={todo.id}
-                    className={`${styles.weekTaskCard} ${styles[todo.priority]}`}
+                    className={`${styles.weekTaskCard} ${styles[todo.priority]} ${todo.completed ? styles.completed : ''}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       onTaskClick(todo.id);
                     }}
                     title={todo.title}
                   >
-                    {todo.title}
+                    <span className={styles.taskTitle}>{todo.title}</span>
                   </div>
                 ))
               )}

@@ -107,7 +107,7 @@ const MonthView: React.FC<MonthViewProps> = ({
             {todos.slice(0, 3).map((todo) => (
               <div
                 key={todo.id}
-                className={`${styles.taskPreview} ${styles[todo.priority]}`}
+                className={`${styles.taskPreview} ${styles[todo.priority]} ${todo.completed ? styles.completed : ''}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   onTaskClick(todo.id);
