@@ -12,7 +12,11 @@ import styles from './CalendarView.module.css';
 
 type CalendarMode = 'month' | 'week';
 
-const CalendarView: React.FC = () => {
+interface CalendarViewProps {
+  onTodoClick?: (todoId: string) => void;
+}
+
+const CalendarView: React.FC<CalendarViewProps> = ({ onTodoClick }) => {
   const [calendarMode, setCalendarMode] = useState<CalendarMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -36,7 +40,9 @@ const CalendarView: React.FC = () => {
   // 处理任务点击
   const handleTaskClick = (todoId: string) => {
     console.log('Task clicked:', todoId);
-    // TODO: 打开任务详情面板
+    if (onTodoClick) {
+      onTodoClick(todoId);
+    }
   };
 
   return (

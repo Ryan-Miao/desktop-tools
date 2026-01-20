@@ -64,7 +64,7 @@ function MainContent() {
         {/* Todo List Area */}
         <div className={styles.todoListArea}>
           {viewMode.startsWith('calendar') ? (
-            <CalendarView />
+            <CalendarView onTodoClick={handleTaskClick} />
           ) : filteredTodos.length === 0 ? (
             <EmptyState
               type={getEmptyStateType()}
