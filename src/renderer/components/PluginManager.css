@@ -100,6 +100,28 @@
   box-shadow: 0 0 0 3px var(--primary-color-light);
 }
 
+.plugin-manager-category-select {
+  padding: 10px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--panel-background);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 150px;
+}
+
+.plugin-manager-category-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-color-light);
+}
+
+.plugin-manager-category-select:hover {
+  border-color: var(--primary-color);
+}
+
 .plugin-manager-search::placeholder {
   color: var(--text-tertiary);
 }
@@ -295,6 +317,15 @@
   50% {
     opacity: 0.5;
   }
+}
+
+.plugin-manager-item-category {
+  padding: 4px 8px;
+  background: var(--accent-color-light, rgba(102, 126, 234, 0.1));
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--accent-color, #667eea);
+  font-weight: 500;
 }
 
 /* ==================== Plugin Item Actions ==================== */

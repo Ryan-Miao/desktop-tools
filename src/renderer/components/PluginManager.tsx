@@ -29,6 +29,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
   const [plugins, setPlugins] = useState<PluginManifest[]>([]);
   const [pluginStates, setPluginStates] = useState<PluginState[]>([]);
   const [filter, setFilter] = useState<'all' | 'enabled' | 'disabled' | 'favorite'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [selectedPlugin, setSelectedPlugin] = useState<string | null>(null);
@@ -133,6 +134,17 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
     return pluginStates.find(s => s.id === pluginId);
   };
 
+  // 获取所有分类
+  const getAllCategories = (): string[] => {
+    const categories = new Set<string>();
+    plugins.forEach(p => {
+      if (p.category) {
+        categories.add(p.category);
+      }
+    });
+    return Array.from(categories).sort();
+  };
+
   // 过滤插件
   const getFilteredPlugins = (): PluginManifest[] => {
     let filtered = [...plugins];
@@ -146,6 +158,11 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
         (p.category && p.category.toLowerCase().includes(query)) ||
         (p.keywords && p.keywords.some(k => k.toLowerCase().includes(query)))
       );
+    }
+
+    // 分类过滤
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(p => p.category === categoryFilter);
     }
 
     // 状态过滤
@@ -390,6 +407,18 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
+          {/* 分类选择器 */}
+          <select
+            className="plugin-manager-category-select"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <option value="all">全部分类</option>
+            {getAllCategories().map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+
           {/* 过滤器 */}
           <div className="plugin-manager-filters">
             <button
@@ -476,6 +505,9 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
                         <div className="plugin-manager-item-desc">{plugin.description}</div>
                         <div className="plugin-manager-item-meta">
                           <span className="plugin-manager-item-version">v{plugin.version}</span>
+                          {plugin.category && (
+                            <span className="plugin-manager-item-category">{plugin.category}</span>
+                          )}
                           <span className="plugin-manager-item-source">{getSourceLabel(plugin.id)}</span>
                           {state?.updateAvailable && (
                             <span className="plugin-manager-item-update">有更新</span>
