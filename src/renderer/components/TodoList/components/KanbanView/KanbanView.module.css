@@ -22,9 +22,11 @@
 }
 
 .column.dragOver {
-  background: rgba(99, 102, 241, 0.05);
+  background: rgba(102, 126, 234, 0.08);
   border-color: var(--primary-color);
   box-shadow: 0 0 0 2px var(--primary-color-light);
+  transform: scale(1.02);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .columnHeader {
@@ -74,7 +76,7 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
 }
 
@@ -86,6 +88,12 @@
 
 .taskCard:active {
   cursor: grabbing;
+}
+
+.taskCard.dragging {
+  opacity: 0.5;
+  transform: rotate(3deg) scale(1.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .taskCard.high {

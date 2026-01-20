@@ -32,7 +32,8 @@ export type ActivityEventType =
   | 'SUBTASK_COMPLETED'
   | 'SUBTASK_REOPENED'
   | 'SUBTASK_DELETED'
-  | 'SUBTASK_TITLE_CHANGED';
+  | 'SUBTASK_TITLE_CHANGED'
+  | 'STATUS_CHANGED';
 
 // Activity Event Interface
 export interface ActivityEvent {
@@ -164,6 +165,18 @@ const createActivityEvent = (
   description,
   changes,
 });
+
+/**
+ * Get status label in Chinese
+ */
+const getStatusLabel = (status: string): string => {
+  const labels: Record<string, string> = {
+    'todo': '待办',
+    'in-progress': '进行中',
+    'done': '已完成'
+  };
+  return labels[status] || status;
+};
 
 /**
  * Add activity event to a todo
@@ -712,25 +725,47 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
   setViewMode: (mode) => set({ viewMode: mode }),
 
   updateTodoStatus: (id, status) => {
-    set((state) => ({
-      todos: state.todos.map((todo) => {
-        if (todo.id === id) {
-          // Update completed based on status
-          const completed = status === 'done';
-          return addActivityToTodo(
-            {
-              ...todo,
-              status,
-              completed,
-              ...(completed && { completedAt: new Date().toISOString() })
-            },
-            completed ? 'COMPLETED' : 'REOPENED',
-            completed ? '标记为完成' : '重新打开'
-          );
-        }
-        return todo;
-      }),
-    }));
+    set((state) => {
+      const todo = state.todos.find((t) => t.id === id);
+      if (!todo) return state;
+
+      const oldStatus = todo.status || (todo.completed ? 'done' : 'todo');
+      const newStatus = status;
+      const completed = status === 'done';
+
+      return {
+        todos: state.todos.map((todo) => {
+          if (todo.id === id) {
+            // Only record activity if status actually changed
+            if (oldStatus === newStatus) {
+              return {
+                ...todo,
+                status,
+                completed,
+                ...(completed && { completedAt: new Date().toISOString() })
+              };
+            }
+
+            return addActivityToTodo(
+              {
+                ...todo,
+                status,
+                completed,
+                ...(completed && { completedAt: new Date().toISOString() })
+              },
+              'STATUS_CHANGED',
+              `状态从 ${getStatusLabel(oldStatus)} 改为 ${getStatusLabel(newStatus)}`,
+              {
+                field: 'status',
+                oldValue: oldStatus,
+                newValue: newStatus
+              }
+            );
+          }
+          return todo;
+        }),
+      };
+    });
 
     // Auto-save to file
     get().saveToFile();

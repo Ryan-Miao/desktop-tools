@@ -79,6 +79,12 @@ function TaskDetail({ todo, onClose }: TaskDetailProps) {
   // Count completed subtasks
   const completedSubtasks = todo.subtasks.filter((st) => st.completed).length;
 
+  // Handle edit button click
+  const handleEditClick = () => {
+    console.log('Edit button clicked for todo:', todo.id);
+    setIsEditing(true);
+  };
+
   if (isEditing) {
     return (
       <TodoEditor
@@ -93,14 +99,20 @@ function TaskDetail({ todo, onClose }: TaskDetailProps) {
   }
 
   return (
-    <div className={styles.container} onClick={(e) => e.stopPropagation()}>
+    <div
+      className={styles.container}
+      onClick={(e) => e.stopPropagation()}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="task-detail-title"
+    >
       {/* Header */}
       <div className={styles.header}>
-        <h3 className={styles.headerTitle}>任务详情</h3>
+        <h3 id="task-detail-title" className={styles.headerTitle}>任务详情</h3>
         <div className={styles.headerActions}>
           <button
             className={styles.editBtn}
-            onClick={() => setIsEditing(true)}
+            onClick={handleEditClick}
             title="编辑任务"
           >
             ✏️ 编辑

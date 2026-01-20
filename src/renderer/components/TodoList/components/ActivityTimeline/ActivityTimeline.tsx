@@ -87,6 +87,11 @@ const ACTIVITY_CONFIG: Record<
     label: '修改子任务',
     color: '#3B82F6',
   },
+  STATUS_CHANGED: {
+    icon: '📊',
+    label: '状态变更',
+    color: '#3B82F6',
+  },
 };
 
 // Format timestamp to relative time

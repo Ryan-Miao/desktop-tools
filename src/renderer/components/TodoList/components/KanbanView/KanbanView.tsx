@@ -111,7 +111,7 @@ const KanbanView: React.FC<KanbanViewProps> = ({ onTodoClick }) => {
                     onDragStart={(e) => handleDragStart(e, todo.id)}
                     onDragEnd={handleDragEnd}
                     onClick={() => onTodoClick(todo.id)}
-                    className={`${styles.taskCard} ${todo.priority !== 'none' ? styles[todo.priority] : ''}`}
+                    className={`${styles.taskCard} ${todo.priority !== 'none' ? styles[todo.priority] : ''} ${draggedTodoId === todo.id ? styles.dragging : ''}`}
                   >
                     {/* 优先级指示器 */}
                     {todo.priority !== 'none' && (
