@@ -4,9 +4,9 @@
  * Screen measurement tool with pixel-level precision
  */
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import PluginWindow from '../PluginWindow/PluginWindow';
-import styles from './Ruler.module.css';
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import PluginWindow from "../PluginWindow/PluginWindow";
+import styles from "./Ruler.module.css";
 
 interface Point {
   x: number;
@@ -33,9 +33,10 @@ const Ruler: React.FC<RulerProps> = ({ onClose, onMinimize, onMaximize }) => {
     };
 
     if (showMagnifier) {
-      window.addEventListener('mousemove', handleMouseMove);
-      return () => window.removeEventListener('mousemove', handleMouseMove);
+      window.addEventListener("mousemove", handleMouseMove);
+      return () => window.removeEventListener("mousemove", handleMouseMove);
     }
+    return undefined;
   }, [showMagnifier]);
 
   // Calculate distance between two points
@@ -47,17 +48,17 @@ const Ruler: React.FC<RulerProps> = ({ onClose, onMinimize, onMaximize }) => {
 
   // Toggle orientation
   const toggleOrientation = useCallback(() => {
-    setIsHorizontal(prev => !prev);
+    setIsHorizontal((prev) => !prev);
   }, []);
 
   // Increase length
   const increaseLength = useCallback(() => {
-    setLength(prev => Math.min(prev + 50, 2000));
+    setLength((prev) => Math.min(prev + 50, 2000));
   }, []);
 
   // Decrease length
   const decreaseLength = useCallback(() => {
-    setLength(prev => Math.max(prev - 50, 100));
+    setLength((prev) => Math.max(prev - 50, 100));
   }, []);
 
   // Reset to default
@@ -69,15 +70,15 @@ const Ruler: React.FC<RulerProps> = ({ onClose, onMinimize, onMaximize }) => {
   const generateMarks = useCallback(() => {
     const marks = [];
     const majorInterval = 100; // Every 100px
-    const mediumInterval = 50;  // Every 50px
-    const minorInterval = 10;   // Every 10px
+    const mediumInterval = 50; // Every 50px
+    const minorInterval = 10; // Every 10px
 
     for (let i = 0; i <= length; i += minorInterval) {
-      let markType: 'major' | 'medium' | 'minor' = 'minor';
+      let markType: "major" | "medium" | "minor" = "minor";
       if (i % majorInterval === 0) {
-        markType = 'major';
+        markType = "major";
       } else if (i % mediumInterval === 0) {
-        markType = 'medium';
+        markType = "medium";
       }
 
       marks.push({ position: i, type: markType });
@@ -113,7 +114,7 @@ const Ruler: React.FC<RulerProps> = ({ onClose, onMinimize, onMaximize }) => {
             <div className={styles.buttonGroup}>
               <button
                 onClick={() => setIsHorizontal(true)}
-                className={`${styles.controlButton} ${isHorizontal ? styles.active : ''}`}
+                className={`${styles.controlButton} ${isHorizontal ? styles.active : ""}`}
                 aria-label="水平方向"
                 aria-pressed={isHorizontal}
               >
@@ -121,7 +122,7 @@ const Ruler: React.FC<RulerProps> = ({ onClose, onMinimize, onMaximize }) => {
               </button>
               <button
                 onClick={() => setIsHorizontal(false)}
-                className={`${styles.controlButton} ${!isHorizontal ? styles.active : ''}`}
+                className={`${styles.controlButton} ${!isHorizontal ? styles.active : ""}`}
                 aria-label="垂直方向"
                 aria-pressed={!isHorizontal}
               >
@@ -164,7 +165,7 @@ const Ruler: React.FC<RulerProps> = ({ onClose, onMinimize, onMaximize }) => {
             <div className={styles.buttonGroup}>
               <button
                 onClick={() => setShowMagnifier(!showMagnifier)}
-                className={`${styles.controlButton} ${showMagnifier ? styles.active : ''}`}
+                className={`${styles.controlButton} ${showMagnifier ? styles.active : ""}`}
                 aria-label="切换放大镜"
                 aria-pressed={showMagnifier}
               >
@@ -194,7 +195,7 @@ const Ruler: React.FC<RulerProps> = ({ onClose, onMinimize, onMaximize }) => {
           >
             {/* Marks */}
             <div className={styles.marksContainer}>
-              {marks.map(mark => (
+              {marks.map((mark) => (
                 <div
                   key={mark.position}
                   className={`${styles.mark} ${styles[mark.type]}`}
@@ -204,7 +205,7 @@ const Ruler: React.FC<RulerProps> = ({ onClose, onMinimize, onMaximize }) => {
                       : { top: `${mark.position}px` }
                   }
                 >
-                  {mark.type === 'major' && (
+                  {mark.type === "major" && (
                     <span className={styles.markLabel}>{mark.position}</span>
                   )}
                 </div>
@@ -220,7 +221,9 @@ const Ruler: React.FC<RulerProps> = ({ onClose, onMinimize, onMaximize }) => {
             <div className={styles.gridInfo}>
               <div className={styles.gridItem}>
                 <span className={styles.gridLabel}>方向</span>
-                <span className={styles.gridValue}>{isHorizontal ? '水平' : '垂直'}</span>
+                <span className={styles.gridValue}>
+                  {isHorizontal ? "水平" : "垂直"}
+                </span>
               </div>
               <div className={styles.gridItem}>
                 <span className={styles.gridLabel}>长度</span>
@@ -278,15 +281,15 @@ const Ruler: React.FC<RulerProps> = ({ onClose, onMinimize, onMaximize }) => {
 
 // Screen reader announcement helper
 function announceToScreenReader(message: string) {
-  const announcement = document.createElement('div');
-  announcement.setAttribute('role', 'status');
-  announcement.setAttribute('aria-live', 'polite');
-  announcement.className = 'sr-only';
-  announcement.style.position = 'absolute';
-  announcement.style.left = '-10000px';
-  announcement.style.width = '1px';
-  announcement.style.height = '1px';
-  announcement.style.overflow = 'hidden';
+  const announcement = document.createElement("div");
+  announcement.setAttribute("role", "status");
+  announcement.setAttribute("aria-live", "polite");
+  announcement.className = "sr-only";
+  announcement.style.position = "absolute";
+  announcement.style.left = "-10000px";
+  announcement.style.width = "1px";
+  announcement.style.height = "1px";
+  announcement.style.overflow = "hidden";
   announcement.textContent = message;
   document.body.appendChild(announcement);
   setTimeout(() => document.body.removeChild(announcement), 1000);

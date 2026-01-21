@@ -4,11 +4,11 @@
  * Create and visualize progress with beautiful charts
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
-import PluginWindow from '../PluginWindow/PluginWindow';
-import styles from './ProgressCharts.module.css';
+import React, { useState, useCallback, useMemo } from "react";
+import PluginWindow from "../PluginWindow/PluginWindow";
+import styles from "./ProgressCharts.module.css";
 
-type ChartType = 'bar' | 'progress-ring' | 'progress-bar' | 'stat-card';
+type ChartType = "bar" | "progress-ring" | "progress-bar" | "stat-card";
 
 interface ProgressChartsProps {
   onClose: () => void;
@@ -23,8 +23,14 @@ interface DataPoint {
 }
 
 const defaultColors = [
-  '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e',
-  '#f59e0b', '#10b981', '#3b82f6', '#06b6d4'
+  "#6366f1",
+  "#8b5cf6",
+  "#ec4899",
+  "#f43f5e",
+  "#f59e0b",
+  "#10b981",
+  "#3b82f6",
+  "#06b6d4",
 ];
 
 const ProgressCharts: React.FC<ProgressChartsProps> = ({
@@ -32,37 +38,42 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({
   onMinimize,
   onMaximize,
 }) => {
-  const [chartType, setChartType] = useState<ChartType>('progress-bar');
+  const [chartType, setChartType] = useState<ChartType>("progress-bar");
   const [dataPoints, setDataPoints] = useState<DataPoint[]>([
-    { label: '完成', value: 75, color: defaultColors[0] },
-    { label: '进行中', value: 50, color: defaultColors[1] },
-    { label: '待开始', value: 25, color: defaultColors[2] },
+    { label: "完成", value: 75, color: defaultColors[0] ?? "#6366f1" },
+    { label: "进行中", value: 50, color: defaultColors[1] ?? "#8b5cf6" },
+    { label: "待开始", value: 25, color: defaultColors[2] ?? "#ec4899" },
   ]);
-  const [newLabel, setNewLabel] = useState('');
-  const [newValue, setNewValue] = useState('50');
-  const [newColor, setNewColor] = useState(defaultColors[3]);
+  const [newLabel, setNewLabel] = useState("");
+  const [newValue, setNewValue] = useState("50");
+  const [newColor, setNewColor] = useState(defaultColors[3] ?? "#f43f5e");
 
   // Add new data point
   const addDataPoint = useCallback(() => {
     if (!newLabel.trim()) return;
     const value = Math.min(100, Math.max(0, parseInt(newValue) || 0));
     setDataPoints([...dataPoints, { label: newLabel, value, color: newColor }]);
-    setNewLabel('');
-    setNewValue('50');
-    setNewColor(defaultColors[dataPoints.length % defaultColors.length]);
+    setNewLabel("");
+    setNewValue("50");
+    setNewColor(
+      defaultColors[dataPoints.length % defaultColors.length] ?? "#6366f1",
+    );
   }, [newLabel, newValue, newColor, dataPoints]);
 
   // Remove data point
-  const removeDataPoint = useCallback((index: number) => {
-    setDataPoints(dataPoints.filter((_, i) => i !== index));
-  }, [dataPoints]);
+  const removeDataPoint = useCallback(
+    (index: number) => {
+      setDataPoints(dataPoints.filter((_, i) => i !== index));
+    },
+    [dataPoints],
+  );
 
   // Calculate circumference for circle progress
   const circumference = 2 * Math.PI * 45; // radius = 45
 
   // Render bar chart
   const renderBarChart = useCallback(() => {
-    const maxValue = Math.max(...dataPoints.map(d => d.value), 100);
+    const maxValue = Math.max(...dataPoints.map((d) => d.value), 100);
 
     return (
       <div className={styles.barChart}>
@@ -74,7 +85,7 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({
                 className={styles.barFill}
                 style={{
                   width: `${(point.value / maxValue) * 100}%`,
-                  backgroundColor: point.color
+                  backgroundColor: point.color,
                 }}
               >
                 <span className={styles.barValue}>{point.value}%</span>
@@ -123,9 +134,9 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({
                   strokeDashoffset={offset}
                   strokeLinecap="round"
                   style={{
-                    transform: 'rotate(-90deg)',
-                    transformOrigin: '50% 50%',
-                    transition: 'stroke-dashoffset 0.5s ease'
+                    transform: "rotate(-90deg)",
+                    transformOrigin: "50% 50%",
+                    transition: "stroke-dashoffset 0.5s ease",
                   }}
                 />
                 <text
@@ -167,7 +178,7 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({
                 className={styles.progressBarFill}
                 style={{
                   width: `${point.value}%`,
-                  backgroundColor: point.color
+                  backgroundColor: point.color,
                 }}
               />
             </div>
@@ -212,18 +223,24 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({
   // Render current chart
   const renderChart = useCallback(() => {
     switch (chartType) {
-      case 'bar':
+      case "bar":
         return renderBarChart();
-      case 'progress-ring':
+      case "progress-ring":
         return renderProgressRings();
-      case 'progress-bar':
+      case "progress-bar":
         return renderProgressBars();
-      case 'stat-card':
+      case "stat-card":
         return renderStatCards();
       default:
         return renderProgressBars();
     }
-  }, [chartType, renderBarChart, renderProgressRings, renderProgressBars, renderStatCards]);
+  }, [
+    chartType,
+    renderBarChart,
+    renderProgressRings,
+    renderProgressBars,
+    renderStatCards,
+  ]);
 
   const averageValue = useMemo(() => {
     if (dataPoints.length === 0) return 0;
@@ -256,7 +273,7 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({
           <div className={styles.summaryItem}>
             <div className={styles.summaryLabel}>最高值</div>
             <div className={styles.summaryValue}>
-              {Math.max(...dataPoints.map(d => d.value), 0)}%
+              {Math.max(...dataPoints.map((d) => d.value), 0)}%
             </div>
           </div>
         </div>
@@ -264,26 +281,26 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({
         {/* Chart Type Selector */}
         <div className={styles.chartTypeSelector}>
           <button
-            onClick={() => setChartType('progress-bar')}
-            className={`${styles.typeButton} ${chartType === 'progress-bar' ? styles.active : ''}`}
+            onClick={() => setChartType("progress-bar")}
+            className={`${styles.typeButton} ${chartType === "progress-bar" ? styles.active : ""}`}
           >
             进度条
           </button>
           <button
-            onClick={() => setChartType('progress-ring')}
-            className={`${styles.typeButton} ${chartType === 'progress-ring' ? styles.active : ''}`}
+            onClick={() => setChartType("progress-ring")}
+            className={`${styles.typeButton} ${chartType === "progress-ring" ? styles.active : ""}`}
           >
             环形图
           </button>
           <button
-            onClick={() => setChartType('bar')}
-            className={`${styles.typeButton} ${chartType === 'bar' ? styles.active : ''}`}
+            onClick={() => setChartType("bar")}
+            className={`${styles.typeButton} ${chartType === "bar" ? styles.active : ""}`}
           >
             柱状图
           </button>
           <button
-            onClick={() => setChartType('stat-card')}
-            className={`${styles.typeButton} ${chartType === 'stat-card' ? styles.active : ''}`}
+            onClick={() => setChartType("stat-card")}
+            className={`${styles.typeButton} ${chartType === "stat-card" ? styles.active : ""}`}
           >
             卡片
           </button>

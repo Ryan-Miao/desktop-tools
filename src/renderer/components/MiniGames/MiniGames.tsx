@@ -4,11 +4,11 @@
  * Classic 2048 puzzle game
  */
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import PluginWindow from '../PluginWindow/PluginWindow';
-import styles from './MiniGames.module.css';
+import React, { useState, useCallback, useEffect, useRef } from "react";
+import PluginWindow from "../PluginWindow/PluginWindow";
+import styles from "./MiniGames.module.css";
 
-type Direction = 'up' | 'down' | 'left' | 'right';
+type Direction = "up" | "down" | "left" | "right";
 
 interface GameState {
   board: number[][];
@@ -26,11 +26,17 @@ interface MiniGamesProps {
 
 const SIZE = 4;
 
-const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }) => {
+const MiniGames: React.FC<MiniGamesProps> = ({
+  onClose,
+  onMinimize,
+  onMaximize,
+}) => {
   const [gameState, setGameState] = useState<GameState>(() => {
-    const savedBest = localStorage.getItem('2048-best-score');
+    const savedBest = localStorage.getItem("2048-best-score");
     return {
-      board: Array(SIZE).fill(null).map(() => Array(SIZE).fill(0)),
+      board: Array(SIZE)
+        .fill(null)
+        .map(() => Array(SIZE).fill(0)),
       score: 0,
       bestScore: savedBest ? parseInt(savedBest, 10) : 0,
       gameOver: false,
@@ -43,11 +49,13 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
 
   // Initialize game
   const initGame = useCallback(() => {
-    const newBoard = Array(SIZE).fill(null).map(() => Array(SIZE).fill(0));
+    const newBoard = Array(SIZE)
+      .fill(null)
+      .map(() => Array(SIZE).fill(0));
     addRandomTile(newBoard);
     addRandomTile(newBoard);
 
-    setGameState(prev => ({
+    setGameState((prev) => ({
       ...prev,
       board: newBoard,
       score: 0,
@@ -69,27 +77,42 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
     });
 
     if (emptyCells.length > 0) {
-      const [row, col] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-      board[row][col] = Math.random() < 0.9 ? 2 : 4;
+      const randomIndex = Math.floor(Math.random() * emptyCells.length);
+      const position = emptyCells[randomIndex];
+      if (position) {
+        const [row, col] = position;
+        const targetRow = board[row];
+        if (targetRow) {
+          targetRow[col] = Math.random() < 0.9 ? 2 : 4;
+        }
+      }
     }
   }, []);
 
   // Clone board
   const cloneBoard = useCallback((board: number[][]) => {
-    return board.map(row => [...row]);
+    return board.map((row) => [...row]);
   }, []);
 
   // Slide row to left
   const slideRow = useCallback((row: number[]): number[] => {
-    const filtered = row.filter(cell => cell !== 0);
+    const filtered = row.filter((cell) => cell !== 0);
     const result: number[] = [];
 
     for (let i = 0; i < filtered.length; i++) {
-      if (i < filtered.length - 1 && filtered[i] === filtered[i + 1]) {
-        result.push(filtered[i] * 2);
+      const current = filtered[i];
+      const next = filtered[i + 1];
+      if (
+        i < filtered.length - 1 &&
+        current !== undefined &&
+        current === next
+      ) {
+        result.push(current * 2);
         i++;
       } else {
-        result.push(filtered[i]);
+        if (current !== undefined) {
+          result.push(current);
+        }
       }
     }
 
@@ -102,59 +125,82 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
 
   // Move board
   const moveBoard = useCallback(
-    (direction: Direction): { board: number[][]; score: number; moved: boolean } => {
+    (
+      direction: Direction,
+    ): { board: number[][]; score: number; moved: boolean } => {
       const newBoard = cloneBoard(gameState.board);
       let score = 0;
       let moved = false;
 
-      if (direction === 'left') {
+      if (direction === "left") {
         for (let i = 0; i < SIZE; i++) {
-          const originalRow = [...newBoard[i]];
-          newBoard[i] = slideRow(newBoard[i]);
-          if (originalRow.join(',') !== newBoard[i].join(',')) {
-            moved = true;
+          const row = newBoard[i];
+          if (row) {
+            const originalRow = [...row];
+            const newRow = slideRow(row);
+            newBoard[i] = newRow;
+            if (originalRow.join(",") !== newRow.join(",")) {
+              moved = true;
+            }
           }
         }
-      } else if (direction === 'right') {
+      } else if (direction === "right") {
         for (let i = 0; i < SIZE; i++) {
-          const originalRow = [...newBoard[i]];
-          const reversed = newBoard[i].reverse();
-          const slid = slideRow(reversed);
-          newBoard[i] = slid.reverse();
-          if (originalRow.join(',') !== newBoard[i].join(',')) {
-            moved = true;
+          const row = newBoard[i];
+          if (row) {
+            const originalRow = [...row];
+            const reversed = row.reverse();
+            const slid = slideRow(reversed);
+            const newRow = slid.reverse();
+            newBoard[i] = newRow;
+            if (originalRow.join(",") !== newRow.join(",")) {
+              moved = true;
+            }
           }
         }
-      } else if (direction === 'up') {
+      } else if (direction === "up") {
         for (let j = 0; j < SIZE; j++) {
-          const column = newBoard.map(row => row[j]);
+          const column = newBoard
+            .map((row) => row[j])
+            .filter((val): val is number => val !== undefined);
           const originalCol = [...column];
           const slid = slideRow(column);
           for (let i = 0; i < SIZE; i++) {
-            newBoard[i][j] = slid[i];
+            const row = newBoard[i];
+            const cell = slid[i];
+            if (row && cell !== undefined) {
+              row[j] = cell;
+            }
           }
-          if (originalCol.join(',') !== slid.join(',')) {
+          if (originalCol.join(",") !== slid.join(",")) {
             moved = true;
           }
         }
-      } else if (direction === 'down') {
+      } else if (direction === "down") {
         for (let j = 0; j < SIZE; j++) {
-          const column = newBoard.map(row => row[j]).reverse();
+          const column = newBoard
+            .map((row) => row[j])
+            .filter((val): val is number => val !== undefined)
+            .reverse();
           const originalCol = [...column];
           const slid = slideRow(column);
           const result = slid.reverse();
           for (let i = 0; i < SIZE; i++) {
-            newBoard[i][j] = result[i];
+            const row = newBoard[i];
+            const cell = result[i];
+            if (row && cell !== undefined) {
+              row[j] = cell;
+            }
           }
-          if (originalCol.join(',') !== result.join(',')) {
+          if (originalCol.join(",") !== result.join(",")) {
             moved = true;
           }
         }
       }
 
       // Calculate score
-      newBoard.forEach(row => {
-        row.forEach(cell => {
+      newBoard.forEach((row) => {
+        row.forEach((cell) => {
           if (cell > 2 && cell % 2 === 0) {
             score += cell;
           }
@@ -163,26 +209,28 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
 
       return { board: newBoard, score, moved };
     },
-    [gameState.board, cloneBoard, slideRow]
+    [gameState.board, cloneBoard, slideRow],
   );
 
   // Check game over
   const checkGameOver = useCallback((board: number[][]) => {
     // Check for empty cells
     for (let i = 0; i < SIZE; i++) {
+      const row = board[i];
+      if (!row) continue;
       for (let j = 0; j < SIZE; j++) {
-        if (board[i][j] === 0) return false;
+        if (row[j] === 0) return false;
       }
     }
 
     // Check for possible merges
     for (let i = 0; i < SIZE; i++) {
+      const row = board[i];
+      if (!row) continue;
       for (let j = 0; j < SIZE; j++) {
-        const current = board[i][j];
-        if (
-          (i < SIZE - 1 && board[i + 1][j] === current) ||
-          (j < SIZE - 1 && board[i][j + 1] === current)
-        ) {
+        const current = row[j];
+        const nextRow = board[i + 1];
+        if ((nextRow && nextRow[j] === current) || row[j + 1] === current) {
           return false;
         }
       }
@@ -193,7 +241,7 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
 
   // Check win
   const checkWin = useCallback((board: number[][]) => {
-    return board.some(row => row.some(cell => cell === 2048));
+    return board.some((row) => row.some((cell) => cell === 2048));
   }, []);
 
   // Handle move
@@ -210,12 +258,15 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
       const gameOver = checkGameOver(newBoard);
       const won = checkWin(newBoard);
 
-      const newBestScore = Math.max(gameState.bestScore, gameState.score + score);
+      const newBestScore = Math.max(
+        gameState.bestScore,
+        gameState.score + score,
+      );
       if (newBestScore > gameState.bestScore) {
-        localStorage.setItem('2048-best-score', newBestScore.toString());
+        localStorage.setItem("2048-best-score", newBestScore.toString());
       }
 
-      setGameState(prev => ({
+      setGameState((prev) => ({
         ...prev,
         board: newBoard,
         score: prev.score + score,
@@ -224,7 +275,7 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
         won: won || prev.won,
       }));
     },
-    [gameState, moveBoard, addRandomTile, checkGameOver, checkWin]
+    [gameState, moveBoard, addRandomTile, checkGameOver, checkWin],
   );
 
   // Keyboard controls
@@ -233,14 +284,14 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
       if (gameState.gameOver) return;
 
       const keyMap: Record<string, Direction> = {
-        ArrowUp: 'up',
-        ArrowDown: 'down',
-        ArrowLeft: 'left',
-        ArrowRight: 'right',
-        w: 'up',
-        s: 'down',
-        a: 'left',
-        d: 'right',
+        ArrowUp: "up",
+        ArrowDown: "down",
+        ArrowLeft: "left",
+        ArrowRight: "right",
+        w: "up",
+        s: "down",
+        a: "left",
+        d: "right",
       };
 
       const direction = keyMap[e.key];
@@ -250,27 +301,33 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [gameState.gameOver, handleMove]);
 
   // Touch controls
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartRef.current = {
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY,
-    };
+    const touch = e.touches[0];
+    if (touch) {
+      touchStartRef.current = {
+        x: touch.clientX,
+        y: touch.clientY,
+      };
+    }
   }, []);
 
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent) => {
       if (!touchStartRef.current || gameState.gameOver) return;
 
+      const touch = e.changedTouches[0];
+      if (!touch) return;
+
       const touchEnd = {
-        x: e.changedTouches[0].clientX,
-        y: e.changedTouches[0].clientY,
+        x: touch.clientX,
+        y: touch.clientY,
       };
 
       const dx = touchEnd.x - touchStartRef.current.x;
@@ -280,17 +337,17 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
 
       if (Math.abs(dx) > Math.abs(dy)) {
         if (Math.abs(dx) > minSwipeDistance) {
-          handleMove(dx > 0 ? 'right' : 'left');
+          handleMove(dx > 0 ? "right" : "left");
         }
       } else {
         if (Math.abs(dy) > minSwipeDistance) {
-          handleMove(dy > 0 ? 'down' : 'up');
+          handleMove(dy > 0 ? "down" : "up");
         }
       }
 
       touchStartRef.current = null;
     },
-    [gameState.gameOver, handleMove]
+    [gameState.gameOver, handleMove],
   );
 
   // Auto-init on mount
@@ -303,21 +360,21 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
   // Get tile color
   const getTileColor = useCallback((value: number) => {
     const colors: Record<number, { bg: string; color: string }> = {
-      0: { bg: '#cdc1b4', color: '#776e65' },
-      2: { bg: '#eee4da', color: '#776e65' },
-      4: { bg: '#ede0c8', color: '#776e65' },
-      8: { bg: '#f2b179', color: '#f9f6f2' },
-      16: { bg: '#f59563', color: '#f9f6f2' },
-      32: { bg: '#f67c5f', color: '#f9f6f2' },
-      64: { bg: '#f65e3b', color: '#f9f6f2' },
-      128: { bg: '#edcf72', color: '#f9f6f2' },
-      256: { bg: '#edcc61', color: '#f9f6f2' },
-      512: { bg: '#edc850', color: '#f9f6f2' },
-      1024: { bg: '#edc53f', color: '#f9f6f2' },
-      2048: { bg: '#edc22e', color: '#f9f6f2' },
+      0: { bg: "#cdc1b4", color: "#776e65" },
+      2: { bg: "#eee4da", color: "#776e65" },
+      4: { bg: "#ede0c8", color: "#776e65" },
+      8: { bg: "#f2b179", color: "#f9f6f2" },
+      16: { bg: "#f59563", color: "#f9f6f2" },
+      32: { bg: "#f67c5f", color: "#f9f6f2" },
+      64: { bg: "#f65e3b", color: "#f9f6f2" },
+      128: { bg: "#edcf72", color: "#f9f6f2" },
+      256: { bg: "#edcc61", color: "#f9f6f2" },
+      512: { bg: "#edc850", color: "#f9f6f2" },
+      1024: { bg: "#edc53f", color: "#f9f6f2" },
+      2048: { bg: "#edc22e", color: "#f9f6f2" },
     };
 
-    return colors[value] || { bg: '#3c3a32', color: '#f9f6f2' };
+    return colors[value] || { bg: "#3c3a32", color: "#f9f6f2" };
   }, []);
 
   return (
@@ -376,7 +433,7 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
                 return (
                   <div
                     key={`${i}-${j}`}
-                    className={`${styles.tile} ${cell > 0 ? styles.tilePop : ''}`}
+                    className={`${styles.tile} ${cell > 0 ? styles.tilePop : ""}`}
                     style={{
                       backgroundColor: colors.bg,
                       color: colors.color,
@@ -387,7 +444,7 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
                     )}
                   </div>
                 );
-              })
+              }),
             )}
           </div>
         </div>
@@ -413,7 +470,7 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
               <div className={styles.messageActions}>
                 <button
                   onClick={() =>
-                    setGameState(prev => ({ ...prev, won: false }))
+                    setGameState((prev) => ({ ...prev, won: false }))
                   }
                   className={styles.continueButton}
                 >
@@ -430,9 +487,15 @@ const MiniGames: React.FC<MiniGamesProps> = ({ onClose, onMinimize, onMaximize }
         {/* Instructions */}
         <div className={styles.instructions}>
           <h4>如何玩</h4>
-          <p>使用 <strong>方向键</strong> 或 <strong>WASD</strong> 移动方块</p>
-          <p>移动端支持 <strong>滑动</strong> 操作</p>
-          <p>当两个相同数字的方块碰撞时，它们会 <strong>合并</strong></p>
+          <p>
+            使用 <strong>方向键</strong> 或 <strong>WASD</strong> 移动方块
+          </p>
+          <p>
+            移动端支持 <strong>滑动</strong> 操作
+          </p>
+          <p>
+            当两个相同数字的方块碰撞时，它们会 <strong>合并</strong>
+          </p>
         </div>
       </div>
     </PluginWindow>

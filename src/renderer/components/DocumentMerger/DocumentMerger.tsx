@@ -4,9 +4,9 @@
  * 合并多个文本文件
  */
 
-import React, { useState, useCallback } from 'react';
-import PluginWindow from '../PluginWindow/PluginWindow';
-import styles from './DocumentMerger.module.css';
+import React, { useState, useCallback } from "react";
+import PluginWindow from "../PluginWindow/PluginWindow";
+import styles from "./DocumentMerger.module.css";
 
 interface DocumentMergerProps {
   onClose: () => void;
@@ -20,12 +20,18 @@ interface FileItem {
   content: string;
 }
 
-const DocumentMerger: React.FC<DocumentMergerProps> = ({ onClose, onMinimize, onMaximize }) => {
+const DocumentMerger: React.FC<DocumentMergerProps> = ({
+  onClose,
+  onMinimize,
+  onMaximize,
+}) => {
   const [files, setFiles] = useState<FileItem[]>([]);
-  const [separator, setSeparator] = useState<string>('\\n\\n---\\n\\n');
-  const [customSeparator, setCustomSeparator] = useState<string>('\\n\\n---\\n\\n');
-  const [separatorType, setSeparatorType] = useState<'none' | 'newline' | 'custom'>('custom');
-  const [mergedContent, setMergedContent] = useState<string>('');
+  const [customSeparator, setCustomSeparator] =
+    useState<string>("\\n\\n---\\n\\n");
+  const [separatorType, setSeparatorType] = useState<
+    "none" | "newline" | "custom"
+  >("custom");
+  const [mergedContent, setMergedContent] = useState<string>("");
 
   // 处理文件选择
   const handleFileSelect = useCallback(async (selectedFiles: FileList) => {
@@ -36,25 +42,33 @@ const DocumentMerger: React.FC<DocumentMergerProps> = ({ onClose, onMinimize, on
       const newFile: FileItem = {
         id: `${file.name}-${Date.now()}-${Math.random()}`,
         file,
-        content
+        content,
       };
-      setFiles(prev => [...prev, newFile]);
+      setFiles((prev) => [...prev, newFile]);
     }
   }, []);
 
   // 删除文件
   const removeFile = useCallback((id: string) => {
-    setFiles(prev => prev.filter(f => f.id !== id));
+    setFiles((prev) => prev.filter((f) => f.id !== id));
   }, []);
 
   // 移动文件位置
-  const moveFile = useCallback((index: number, direction: 'up' | 'down') => {
-    setFiles(prev => {
+  const moveFile = useCallback((index: number, direction: "up" | "down") => {
+    setFiles((prev) => {
       const newFiles = [...prev];
-      if (direction === 'up' && index > 0) {
-        [newFiles[index - 1], newFiles[index]] = [newFiles[index], newFiles[index - 1]];
-      } else if (direction === 'down' && index < newFiles.length - 1) {
-        [newFiles[index], newFiles[index + 1]] = [newFiles[index + 1], newFiles[index]];
+      if (direction === "up" && index > 0) {
+        const [upper, lower] = [newFiles[index - 1], newFiles[index]];
+        if (upper && lower) {
+          newFiles[index - 1] = lower;
+          newFiles[index] = upper;
+        }
+      } else if (direction === "down" && index < newFiles.length - 1) {
+        const [upper, lower] = [newFiles[index], newFiles[index + 1]];
+        if (upper && lower) {
+          newFiles[index] = lower;
+          newFiles[index + 1] = upper;
+        }
       }
       return newFiles;
     });
@@ -64,39 +78,39 @@ const DocumentMerger: React.FC<DocumentMergerProps> = ({ onClose, onMinimize, on
   const mergeFiles = useCallback(() => {
     if (files.length === 0) return;
 
-    let sep = '';
+    let sep = "";
     switch (separatorType) {
-      case 'none':
-        sep = '';
+      case "none":
+        sep = "";
         break;
-      case 'newline':
-        sep = '\\n\\n';
+      case "newline":
+        sep = "\\n\\n";
         break;
-      case 'custom':
+      case "custom":
         sep = customSeparator
-          .replace('\\n', '\n')
-          .replace('\\t', '\t')
-          .replace('\\r', '\r');
+          .replace("\\n", "\n")
+          .replace("\\t", "\t")
+          .replace("\\r", "\r");
         break;
     }
 
-    const merged = files.map(f => f.content).join(sep);
+    const merged = files.map((f) => f.content).join(sep);
     setMergedContent(merged);
   }, [files, separatorType, customSeparator]);
 
   // 清空
   const clear = useCallback(() => {
     setFiles([]);
-    setMergedContent('');
+    setMergedContent("");
   }, []);
 
   // 下载合并后的文件
   const downloadMerged = useCallback(() => {
     if (!mergedContent) return;
 
-    const blob = new Blob([mergedContent], { type: 'text/plain' });
+    const blob = new Blob([mergedContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `merged-${Date.now()}.txt`;
     a.click();
@@ -106,15 +120,15 @@ const DocumentMerger: React.FC<DocumentMergerProps> = ({ onClose, onMinimize, on
   // 获取实际分隔符预览
   const getSeparatorPreview = () => {
     switch (separatorType) {
-      case 'none':
-        return '(无分隔符)';
-      case 'newline':
-        return '(双换行)';
-      case 'custom':
+      case "none":
+        return "(无分隔符)";
+      case "newline":
+        return "(双换行)";
+      case "custom":
         return customSeparator
-          .replace('\\n', '↵')
-          .replace('\\t', '⇥')
-          .replace('\\r', '←');
+          .replace("\\n", "↵")
+          .replace("\\t", "⇥")
+          .replace("\\r", "←");
     }
   };
 
@@ -137,7 +151,9 @@ const DocumentMerger: React.FC<DocumentMergerProps> = ({ onClose, onMinimize, on
             <input
               type="file"
               multiple
-              onChange={(e) => e.target.files && handleFileSelect(e.target.files)}
+              onChange={(e) =>
+                e.target.files && handleFileSelect(e.target.files)
+              }
               className={styles.fileInput}
             />
             <span>📁 选择文件</span>
@@ -163,7 +179,7 @@ const DocumentMerger: React.FC<DocumentMergerProps> = ({ onClose, onMinimize, on
                   </span>
                   <div className={styles.fileActions}>
                     <button
-                      onClick={() => moveFile(index, 'up')}
+                      onClick={() => moveFile(index, "up")}
                       disabled={index === 0}
                       className={styles.moveButton}
                       title="上移"
@@ -171,7 +187,7 @@ const DocumentMerger: React.FC<DocumentMergerProps> = ({ onClose, onMinimize, on
                       ↑
                     </button>
                     <button
-                      onClick={() => moveFile(index, 'down')}
+                      onClick={() => moveFile(index, "down")}
                       disabled={index === files.length - 1}
                       className={styles.moveButton}
                       title="下移"
@@ -201,7 +217,7 @@ const DocumentMerger: React.FC<DocumentMergerProps> = ({ onClose, onMinimize, on
                 <input
                   type="radio"
                   value="none"
-                  checked={separatorType === 'none'}
+                  checked={separatorType === "none"}
                   onChange={(e) => setSeparatorType(e.target.value as any)}
                 />
                 无分隔符
@@ -210,7 +226,7 @@ const DocumentMerger: React.FC<DocumentMergerProps> = ({ onClose, onMinimize, on
                 <input
                   type="radio"
                   value="newline"
-                  checked={separatorType === 'newline'}
+                  checked={separatorType === "newline"}
                   onChange={(e) => setSeparatorType(e.target.value as any)}
                 />
                 双换行
@@ -219,13 +235,13 @@ const DocumentMerger: React.FC<DocumentMergerProps> = ({ onClose, onMinimize, on
                 <input
                   type="radio"
                   value="custom"
-                  checked={separatorType === 'custom'}
+                  checked={separatorType === "custom"}
                   onChange={(e) => setSeparatorType(e.target.value as any)}
                 />
                 自定义
               </label>
             </div>
-            {separatorType === 'custom' && (
+            {separatorType === "custom" && (
               <input
                 type="text"
                 value={customSeparator}
@@ -254,7 +270,10 @@ const DocumentMerger: React.FC<DocumentMergerProps> = ({ onClose, onMinimize, on
           <div className={styles.result}>
             <div className={styles.resultHeader}>
               <h3>合并结果</h3>
-              <button onClick={downloadMerged} className={styles.downloadButton}>
+              <button
+                onClick={downloadMerged}
+                className={styles.downloadButton}
+              >
                 📥 下载
               </button>
             </div>

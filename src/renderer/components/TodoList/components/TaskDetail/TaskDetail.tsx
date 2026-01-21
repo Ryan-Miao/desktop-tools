@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { useTodoStore } from '@renderer/components/TodoList/store/useTodoStore';
-import { Todo } from '@renderer/components/TodoList/store/useTodoStore';
-import ActivityTimeline from '../ActivityTimeline';
-import TodoEditor from '../TodoEditor';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import styles from './TaskDetail.module.css';
+import React, { useEffect, useState } from "react";
+import { useTodoStore } from "@renderer/components/TodoList/store/useTodoStore";
+import { Todo } from "@renderer/components/TodoList/store/useTodoStore";
+import ActivityTimeline from "../ActivityTimeline";
+import TodoEditor from "../TodoEditor";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import styles from "./TaskDetail.module.css";
 
 interface TaskDetailProps {
   todo: Todo;
@@ -21,13 +21,13 @@ function TaskDetail({ todo, onClose }: TaskDetailProps) {
   // Handle clicking outside to close
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         onClose();
       }
     };
 
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
   // Format due date
@@ -40,30 +40,30 @@ function TaskDetail({ todo, onClose }: TaskDetailProps) {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return '今天';
+      return "今天";
     } else if (date.toDateString() === tomorrow.toDateString()) {
-      return '明天';
+      return "明天";
     } else {
-      return date.toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        weekday: 'short'
+      return date.toLocaleDateString("zh-CN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        weekday: "short",
       });
     }
   };
 
   // Format absolute time
   const formatAbsoluteTime = (timestamp?: string) => {
-    if (!timestamp) return '';
+    if (!timestamp) return "";
 
     const date = new Date(timestamp);
-    return date.toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleString("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -107,7 +107,9 @@ function TaskDetail({ todo, onClose }: TaskDetailProps) {
     >
       {/* Header */}
       <div className={styles.header}>
-        <h3 id="task-detail-title" className={styles.headerTitle}>任务详情</h3>
+        <h3 id="task-detail-title" className={styles.headerTitle}>
+          任务详情
+        </h3>
         <div className={styles.headerActions}>
           <button
             className={styles.editBtn}
@@ -135,28 +137,30 @@ function TaskDetail({ todo, onClose }: TaskDetailProps) {
           {/* Meta Info */}
           <div className={styles.metaInfo}>
             {/* Priority */}
-            {todo.priority !== 'none' && (
+            {todo.priority !== "none" && (
               <div className={`${styles.metaItem} ${styles[todo.priority]}`}>
                 <span className={styles.metaIcon}>
-                  {todo.priority === 'high' && '🔴'}
-                  {todo.priority === 'medium' && '🟡'}
-                  {todo.priority === 'low' && '🟢'}
+                  {todo.priority === "high" && "🔴"}
+                  {todo.priority === "medium" && "🟡"}
+                  {todo.priority === "low" && "🟢"}
                 </span>
                 <span className={styles.metaText}>
-                  {todo.priority === 'high' && '高优先级'}
-                  {todo.priority === 'medium' && '中优先级'}
-                  {todo.priority === 'low' && '低优先级'}
+                  {todo.priority === "high" && "高优先级"}
+                  {todo.priority === "medium" && "中优先级"}
+                  {todo.priority === "low" && "低优先级"}
                 </span>
               </div>
             )}
 
             {/* Due Date */}
             {todo.dueDate && (
-              <div className={`${styles.metaItem} ${isOverdue() ? styles.overdue : ''}`}>
+              <div
+                className={`${styles.metaItem} ${isOverdue() ? styles.overdue : ""}`}
+              >
                 <span className={styles.metaIcon}>📅</span>
                 <span className={styles.metaText}>
                   {formatDueDate(todo.dueDate)}
-                  {isOverdue() && ' (已逾期)'}
+                  {isOverdue() && " (已逾期)"}
                 </span>
               </div>
             )}
@@ -182,55 +186,152 @@ function TaskDetail({ todo, onClose }: TaskDetailProps) {
                 remarkPlugins={[remarkGfm]}
                 components={{
                   // Custom styling for markdown elements
-                  p: ({ children }) => <p style={{ marginBottom: '0.5em' }}>{children}</p>,
-                  h1: ({ children }) => <h1 style={{ fontSize: '1.5em', fontWeight: 'bold', marginBottom: '0.5em' }}>{children}</h1>,
-                  h2: ({ children }) => <h2 style={{ fontSize: '1.3em', fontWeight: 'bold', marginBottom: '0.5em' }}>{children}</h2>,
-                  h3: ({ children }) => <h3 style={{ fontSize: '1.1em', fontWeight: 'bold', marginBottom: '0.5em' }}>{children}</h3>,
-                  ul: ({ children }) => <ul style={{ marginLeft: '1.5em', marginBottom: '0.5em' }}>{children}</ul>,
-                  ol: ({ children }) => <ol style={{ marginLeft: '1.5em', marginBottom: '0.5em' }}>{children}</ol>,
-                  li: ({ children }) => <li style={{ marginBottom: '0.25em' }}>{children}</li>,
-                  code: ({ inline, children }) => inline
-                    ? <code style={{
-                        background: 'var(--background)',
-                        padding: '0.2em 0.4em',
-                        borderRadius: '3px',
-                        fontFamily: "'Consolas', 'Monaco', monospace",
-                        fontSize: '0.9em'
-                      }}>{children}</code>
-                    : <code style={{
-                        display: 'block',
-                        background: 'var(--background)',
-                        padding: '1em',
-                        borderRadius: 'var(--radius-sm)',
-                        fontFamily: "'Consolas', 'Monaco', monospace",
-                        fontSize: '0.9em',
-                        overflowX: 'auto',
-                        whiteSpace: 'pre-wrap'
-                      }}>{children}</code>,
-                  a: ({ href, children }) => <a href={href} style={{ color: 'var(--primary)', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer">{children}</a>,
-                  blockquote: ({ children }) => <blockquote style={{
-                    borderLeft: '3px solid var(--primary)',
-                    paddingLeft: '1em',
-                    fontStyle: 'italic',
-                    color: 'var(--text-secondary)',
-                    marginBottom: '0.5em'
-                  }}>{children}</blockquote>,
-                  hr: () => <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '1em 0' }} />,
-                  table: ({ children }) => <table style={{
-                    borderCollapse: 'collapse',
-                    width: '100%',
-                    marginBottom: '1em'
-                  }}>{children}</table>,
-                  th: ({ children }) => <th style={{
-                    border: '1px solid var(--border)',
-                    padding: '0.5em',
-                    background: 'var(--background)',
-                    textAlign: 'left'
-                  }}>{children}</th>,
-                  td: ({ children }) => <td style={{
-                    border: '1px solid var(--border)',
-                    padding: '0.5em'
-                  }}>{children}</td>,
+                  p: ({ children }) => (
+                    <p style={{ marginBottom: "0.5em" }}>{children}</p>
+                  ),
+                  h1: ({ children }) => (
+                    <h1
+                      style={{
+                        fontSize: "1.5em",
+                        fontWeight: "bold",
+                        marginBottom: "0.5em",
+                      }}
+                    >
+                      {children}
+                    </h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2
+                      style={{
+                        fontSize: "1.3em",
+                        fontWeight: "bold",
+                        marginBottom: "0.5em",
+                      }}
+                    >
+                      {children}
+                    </h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3
+                      style={{
+                        fontSize: "1.1em",
+                        fontWeight: "bold",
+                        marginBottom: "0.5em",
+                      }}
+                    >
+                      {children}
+                    </h3>
+                  ),
+                  ul: ({ children }) => (
+                    <ul style={{ marginLeft: "1.5em", marginBottom: "0.5em" }}>
+                      {children}
+                    </ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol style={{ marginLeft: "1.5em", marginBottom: "0.5em" }}>
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children }) => (
+                    <li style={{ marginBottom: "0.25em" }}>{children}</li>
+                  ),
+                  code: ({ inline, children }: any) =>
+                    inline ? (
+                      <code
+                        style={{
+                          background: "var(--background)",
+                          padding: "0.2em 0.4em",
+                          borderRadius: "3px",
+                          fontFamily: "'Consolas', 'Monaco', monospace",
+                          fontSize: "0.9em",
+                        }}
+                      >
+                        {children}
+                      </code>
+                    ) : (
+                      <code
+                        style={{
+                          display: "block",
+                          background: "var(--background)",
+                          padding: "1em",
+                          borderRadius: "var(--radius-sm)",
+                          fontFamily: "'Consolas', 'Monaco', monospace",
+                          fontSize: "0.9em",
+                          overflowX: "auto",
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {children}
+                      </code>
+                    ),
+                  a: ({ href, children }) => (
+                    <a
+                      href={href}
+                      style={{
+                        color: "var(--primary)",
+                        textDecoration: "underline",
+                      }}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {children}
+                    </a>
+                  ),
+                  blockquote: ({ children }) => (
+                    <blockquote
+                      style={{
+                        borderLeft: "3px solid var(--primary)",
+                        paddingLeft: "1em",
+                        fontStyle: "italic",
+                        color: "var(--text-secondary)",
+                        marginBottom: "0.5em",
+                      }}
+                    >
+                      {children}
+                    </blockquote>
+                  ),
+                  hr: () => (
+                    <hr
+                      style={{
+                        border: "none",
+                        borderTop: "1px solid var(--border)",
+                        margin: "1em 0",
+                      }}
+                    />
+                  ),
+                  table: ({ children }) => (
+                    <table
+                      style={{
+                        borderCollapse: "collapse",
+                        width: "100%",
+                        marginBottom: "1em",
+                      }}
+                    >
+                      {children}
+                    </table>
+                  ),
+                  th: ({ children }) => (
+                    <th
+                      style={{
+                        border: "1px solid var(--border)",
+                        padding: "0.5em",
+                        background: "var(--background)",
+                        textAlign: "left",
+                      }}
+                    >
+                      {children}
+                    </th>
+                  ),
+                  td: ({ children }) => (
+                    <td
+                      style={{
+                        border: "1px solid var(--border)",
+                        padding: "0.5em",
+                      }}
+                    >
+                      {children}
+                    </td>
+                  ),
                 }}
               >
                 {todo.description}
@@ -254,7 +355,9 @@ function TaskDetail({ todo, onClose }: TaskDetailProps) {
                     onChange={() => toggleSubTask(todo.id, subtask.id)}
                     className={styles.subtaskCheckbox}
                   />
-                  <span className={`${styles.subtaskTitle} ${subtask.completed ? styles.subtaskCompleted : ''}`}>
+                  <span
+                    className={`${styles.subtaskTitle} ${subtask.completed ? styles.subtaskCompleted : ""}`}
+                  >
                     {subtask.title}
                   </span>
                   {subtask.updatedAt && (
@@ -302,7 +405,7 @@ function TaskDetail({ todo, onClose }: TaskDetailProps) {
           <button
             className={styles.deleteBtn}
             onClick={() => {
-              if (confirm('确定要删除这个任务吗？')) {
+              if (confirm("确定要删除这个任务吗？")) {
                 deleteTodo(todo.id);
                 onClose();
               }

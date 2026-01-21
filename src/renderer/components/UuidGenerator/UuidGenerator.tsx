@@ -4,9 +4,9 @@
  * 生成各种格式的UUID
  */
 
-import React, { useState } from 'react';
-import PluginWindow from '../PluginWindow/PluginWindow';
-import styles from './UuidGenerator.module.css';
+import React, { useState } from "react";
+import PluginWindow from "../PluginWindow/PluginWindow";
+import styles from "./UuidGenerator.module.css";
 
 interface UuidGeneratorProps {
   onClose: () => void;
@@ -14,7 +14,11 @@ interface UuidGeneratorProps {
   onMaximize?: () => void;
 }
 
-const UuidGenerator: React.FC<UuidGeneratorProps> = ({ onClose, onMinimize, onMaximize }) => {
+const UuidGenerator: React.FC<UuidGeneratorProps> = ({
+  onClose,
+  onMinimize,
+  onMaximize,
+}) => {
   const [count, setCount] = useState<number>(1);
   const [uppercase, setUppercase] = useState<boolean>(false);
   const [removeHyphens, setRemoveHyphens] = useState<boolean>(false);
@@ -28,11 +32,15 @@ const UuidGenerator: React.FC<UuidGeneratorProps> = ({ onClose, onMinimize, onMa
       let uuid = crypto.randomUUID();
 
       if (uppercase) {
-        uuid = uuid.toUpperCase();
+        uuid =
+          uuid.toUpperCase() as `${string}-${string}-${string}-${string}-${string}`;
       }
 
       if (removeHyphens) {
-        uuid = uuid.replace(/-/g, '');
+        uuid = uuid.replace(
+          /-/g,
+          "",
+        ) as `${string}-${string}-${string}-${string}-${string}`;
       }
 
       newUuids.push(uuid);
@@ -48,7 +56,7 @@ const UuidGenerator: React.FC<UuidGeneratorProps> = ({ onClose, onMinimize, onMa
 
   // 复制所有UUID
   const copyAll = () => {
-    const allUuids = uuids.join('\n');
+    const allUuids = uuids.join("\n");
     navigator.clipboard.writeText(allUuids);
   };
 
@@ -136,7 +144,10 @@ const UuidGenerator: React.FC<UuidGeneratorProps> = ({ onClose, onMinimize, onMa
 
         {/* 说明 */}
         <div className={styles.info}>
-          <p>💡 UUID v4是随机生成的唯一标识符，格式为：xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx</p>
+          <p>
+            💡 UUID
+            v4是随机生成的唯一标识符，格式为：xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+          </p>
         </div>
       </div>
     </PluginWindow>

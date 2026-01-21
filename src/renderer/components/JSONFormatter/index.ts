@@ -1,2 +1,2 @@
-export { default } from './JSONFormatter';
-export { jsonFormatterManifest } from './JSONFormatter';
+export { default } from "../JSONFormatter";
+export { jsonFormatterManifest } from "../JSONFormatter";

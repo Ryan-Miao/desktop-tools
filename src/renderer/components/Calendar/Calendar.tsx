@@ -4,9 +4,9 @@
  * Schedule management with reminders and events
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
-import PluginWindow from '../PluginWindow/PluginWindow';
-import styles from './Calendar.module.css';
+import React, { useState, useCallback, useEffect } from "react";
+import PluginWindow from "../PluginWindow/PluginWindow";
+import styles from "./Calendar.module.css";
 
 interface Event {
   id: string;
@@ -23,35 +23,39 @@ interface CalendarProps {
   onMaximize?: () => void;
 }
 
-const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) => {
+const Calendar: React.FC<CalendarProps> = ({
+  onClose,
+  onMinimize,
+  onMaximize,
+}) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [events, setEvents] = useState<Event[]>([]);
   const [showEventForm, setShowEventForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [newEvent, setNewEvent] = useState<Partial<Event>>({
-    title: '',
-    date: new Date().toISOString().split('T')[0],
-    time: '09:00',
-    description: '',
-    color: '#3b82f6',
+    title: "",
+    date: new Date().toISOString().split("T")[0],
+    time: "09:00",
+    description: "",
+    color: "#3b82f6",
   });
 
   // Load events from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('calendar-events');
+    const saved = localStorage.getItem("calendar-events");
     if (saved) {
       try {
         setEvents(JSON.parse(saved));
       } catch (err) {
-        console.error('Failed to load events:', err);
+        console.error("Failed to load events:", err);
       }
     }
   }, []);
 
   // Save events to localStorage
   const saveEvents = useCallback((updatedEvents: Event[]) => {
-    localStorage.setItem('calendar-events', JSON.stringify(updatedEvents));
+    localStorage.setItem("calendar-events", JSON.stringify(updatedEvents));
     setEvents(updatedEvents);
   }, []);
 
@@ -73,10 +77,10 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
   }, []);
 
   // Navigate month
-  const navigateMonth = useCallback((direction: 'prev' | 'next') => {
-    setCurrentDate(prev => {
+  const navigateMonth = useCallback((direction: "prev" | "next") => {
+    setCurrentDate((prev) => {
       const newDate = new Date(prev);
-      if (direction === 'next') {
+      if (direction === "next") {
         newDate.setMonth(newDate.getMonth() + 1);
       } else {
         newDate.setMonth(newDate.getMonth() - 1);
@@ -93,25 +97,38 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
   }, []);
 
   // Select date
-  const selectDate = useCallback((day: number) => {
-    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    setSelectedDate(newDate);
-    setNewEvent(prev => ({
-      ...prev,
-      date: newDate.toISOString().split('T')[0],
-    }));
-  }, [currentDate]);
+  const selectDate = useCallback(
+    (day: number) => {
+      const newDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        day,
+      );
+      setSelectedDate(newDate);
+      setNewEvent((prev) => ({
+        ...prev,
+        date: newDate.toISOString().split("T")[0],
+      }));
+    },
+    [currentDate],
+  );
 
   // Check if date has events
-  const hasEvents = useCallback((dateStr: string) => {
-    return events.some(event => event.date === dateStr);
-  }, [events]);
+  const hasEvents = useCallback(
+    (dateStr: string) => {
+      return events.some((event) => event.date === dateStr);
+    },
+    [events],
+  );
 
   // Get events for selected date
-  const getEventsForDate = useCallback((date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
-    return events.filter(event => event.date === dateStr);
-  }, [events]);
+  const getEventsForDate = useCallback(
+    (date: Date) => {
+      const dateStr = date.toISOString().split("T")[0];
+      return events.filter((event) => event.date === dateStr);
+    },
+    [events],
+  );
 
   // Add event
   const addEvent = useCallback(() => {
@@ -125,19 +142,19 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
       date: newEvent.date!,
       time: newEvent.time!,
       description: newEvent.description,
-      color: newEvent.color || '#3b82f6',
+      color: newEvent.color || "#3b82f6",
     };
 
     saveEvents([...events, event]);
     setNewEvent({
-      title: '',
-      date: new Date().toISOString().split('T')[0],
-      time: '09:00',
-      description: '',
-      color: '#3b82f6',
+      title: "",
+      date: new Date().toISOString().split("T")[0],
+      time: "09:00",
+      description: "",
+      color: "#3b82f6",
     });
     setShowEventForm(false);
-    announceToScreenReader('已添加新事件');
+    announceToScreenReader("已添加新事件");
   }, [newEvent, events, saveEvents]);
 
   // Edit event
@@ -153,53 +170,57 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
       return;
     }
 
-    const updatedEvents = events.map(event =>
+    const updatedEvents = events.map((event) =>
       event.id === editingEvent.id
         ? {
             ...event,
-            title: newEvent.title,
+            title: newEvent.title!,
             date: newEvent.date!,
             time: newEvent.time!,
-            description: newEvent.description,
+            description: newEvent.description || "",
             color: newEvent.color || event.color,
           }
-        : event
+        : event,
     );
 
     saveEvents(updatedEvents);
     setEditingEvent(null);
     setNewEvent({
-      title: '',
-      date: new Date().toISOString().split('T')[0],
-      time: '09:00',
-      description: '',
-      color: '#3b82f6',
+      title: "",
+      date: new Date().toISOString().split("T")[0],
+      time: "09:00",
+      description: "",
+      color: "#3b82f6",
     });
     setShowEventForm(false);
-    announceToScreenReader('已更新事件');
+    announceToScreenReader("已更新事件");
   }, [editingEvent, newEvent, events, saveEvents]);
 
   // Delete event
-  const deleteEvent = useCallback((eventId: string) => {
-    const updatedEvents = events.filter(event => event.id !== eventId);
-    saveEvents(updatedEvents);
-    announceToScreenReader('已删除事件');
-  }, [events, saveEvents]);
+  const deleteEvent = useCallback(
+    (eventId: string) => {
+      const updatedEvents = events.filter((event) => event.id !== eventId);
+      saveEvents(updatedEvents);
+      announceToScreenReader("已删除事件");
+    },
+    [events, saveEvents],
+  );
 
   // Format date for display
   const formatDate = useCallback((date: Date) => {
     const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'long',
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "long",
     };
-    return date.toLocaleDateString('zh-CN', options);
+    return date.toLocaleDateString("zh-CN", options);
   }, []);
 
   // Get week day names
-  const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
-  const { daysInMonth, startingDayOfWeek, year, month } = getDaysInMonth(currentDate);
+  const weekDays = ["日", "一", "二", "三", "四", "五", "六"];
+  const { daysInMonth, startingDayOfWeek, year, month } =
+    getDaysInMonth(currentDate);
   const selectedDateEvents = getEventsForDate(selectedDate);
 
   return (
@@ -217,7 +238,7 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
         {/* Header */}
         <div className={styles.header}>
           <button
-            onClick={() => navigateMonth('prev')}
+            onClick={() => navigateMonth("prev")}
             className={styles.navButton}
             aria-label="上个月"
           >
@@ -227,7 +248,7 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
             {year}年 {month + 1}月
           </h2>
           <button
-            onClick={() => navigateMonth('next')}
+            onClick={() => navigateMonth("next")}
             className={styles.navButton}
             aria-label="下个月"
           >
@@ -247,11 +268,11 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
             onClick={() => {
               setEditingEvent(null);
               setNewEvent({
-                title: '',
-                date: selectedDate.toISOString().split('T')[0],
-                time: '09:00',
-                description: '',
-                color: '#3b82f6',
+                title: "",
+                date: selectedDate.toISOString().split("T")[0],
+                time: "09:00",
+                description: "",
+                color: "#3b82f6",
               });
               setShowEventForm(true);
             }}
@@ -266,7 +287,7 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
         <div className={styles.calendarGrid}>
           {/* Week day headers */}
           <div className={styles.weekDays}>
-            {weekDays.map(day => (
+            {weekDays.map((day) => (
               <div key={day} className={styles.weekDay}>
                 {day}
               </div>
@@ -283,7 +304,7 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
             {/* Days of month */}
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const day = i + 1;
-              const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+              const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
               const isToday =
                 day === new Date().getDate() &&
                 month === new Date().getMonth() &&
@@ -298,10 +319,10 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
                 <button
                   key={day}
                   onClick={() => selectDate(day)}
-                  className={`${styles.dayCell} ${isToday ? styles.today : ''} ${
-                    isSelected ? styles.selected : ''
-                  } ${hasEvent ? styles.hasEvent : ''}`}
-                  aria-label={`${month + 1}月${day}日${hasEvent ? '有事件' : ''}`}
+                  className={`${styles.dayCell} ${isToday ? styles.today : ""} ${
+                    isSelected ? styles.selected : ""
+                  } ${hasEvent ? styles.hasEvent : ""}`}
+                  aria-label={`${month + 1}月${day}日${hasEvent ? "有事件" : ""}`}
                   aria-pressed={isSelected}
                 >
                   <span className={styles.dayNumber}>{day}</span>
@@ -319,16 +340,14 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
             <div className={styles.eventsList}>
               {selectedDateEvents
                 .sort((a, b) => a.time.localeCompare(b.time))
-                .map(event => (
+                .map((event) => (
                   <div
                     key={event.id}
                     className={styles.eventCard}
                     style={{ borderLeftColor: event.color }}
                   >
                     <div className={styles.eventHeader}>
-                      <div className={styles.eventTime}>
-                        🕐 {event.time}
-                      </div>
+                      <div className={styles.eventTime}>🕐 {event.time}</div>
                       <div className={styles.eventActions}>
                         <button
                           onClick={() => editEvent(event)}
@@ -348,7 +367,9 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
                     </div>
                     <h4 className={styles.eventTitle}>{event.title}</h4>
                     {event.description && (
-                      <p className={styles.eventDescription}>{event.description}</p>
+                      <p className={styles.eventDescription}>
+                        {event.description}
+                      </p>
                     )}
                   </div>
                 ))}
@@ -363,9 +384,9 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
           <div className={styles.modal} onClick={() => setShowEventForm(false)}>
             <div
               className={styles.modalContent}
-              onClick={e => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
             >
-              <h3>{editingEvent ? '编辑事件' : '添加新事件'}</h3>
+              <h3>{editingEvent ? "编辑事件" : "添加新事件"}</h3>
 
               <div className={styles.formGroup}>
                 <label htmlFor="event-title">标题 *</label>
@@ -373,7 +394,9 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
                   id="event-title"
                   type="text"
                   value={newEvent.title}
-                  onChange={e => setNewEvent({ ...newEvent, title: e.target.value })}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, title: e.target.value })
+                  }
                   className={styles.input}
                   placeholder="事件标题"
                   autoFocus
@@ -387,7 +410,9 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
                     id="event-date"
                     type="date"
                     value={newEvent.date}
-                    onChange={e => setNewEvent({ ...newEvent, date: e.target.value })}
+                    onChange={(e) =>
+                      setNewEvent({ ...newEvent, date: e.target.value })
+                    }
                     className={styles.input}
                   />
                 </div>
@@ -398,7 +423,9 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
                     id="event-time"
                     type="time"
                     value={newEvent.time}
-                    onChange={e => setNewEvent({ ...newEvent, time: e.target.value })}
+                    onChange={(e) =>
+                      setNewEvent({ ...newEvent, time: e.target.value })
+                    }
                     className={styles.input}
                   />
                 </div>
@@ -407,20 +434,25 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
               <div className={styles.formGroup}>
                 <label htmlFor="event-color">颜色</label>
                 <div className={styles.colorPicker}>
-                  {['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'].map(
-                    color => (
-                      <button
-                        key={color}
-                        onClick={() => setNewEvent({ ...newEvent, color })}
-                        className={`${styles.colorButton} ${
-                          newEvent.color === color ? styles.colorButtonActive : ''
-                        }`}
-                        style={{ backgroundColor: color }}
-                        aria-label={`选择颜色 ${color}`}
-                        aria-pressed={newEvent.color === color}
-                      />
-                    )
-                  )}
+                  {[
+                    "#3b82f6",
+                    "#10b981",
+                    "#f59e0b",
+                    "#ef4444",
+                    "#8b5cf6",
+                    "#ec4899",
+                  ].map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setNewEvent({ ...newEvent, color })}
+                      className={`${styles.colorButton} ${
+                        newEvent.color === color ? styles.colorButtonActive : ""
+                      }`}
+                      style={{ backgroundColor: color }}
+                      aria-label={`选择颜色 ${color}`}
+                      aria-pressed={newEvent.color === color}
+                    />
+                  ))}
                 </div>
               </div>
 
@@ -429,7 +461,9 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
                 <textarea
                   id="event-description"
                   value={newEvent.description}
-                  onChange={e => setNewEvent({ ...newEvent, description: e.target.value })}
+                  onChange={(e) =>
+                    setNewEvent({ ...newEvent, description: e.target.value })
+                  }
                   className={styles.textarea}
                   placeholder="事件描述（可选）"
                   rows={3}
@@ -450,7 +484,7 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
                   onClick={editingEvent ? updateEvent : addEvent}
                   className={styles.saveButton}
                 >
-                  {editingEvent ? '更新' : '添加'}
+                  {editingEvent ? "更新" : "添加"}
                 </button>
               </div>
             </div>
@@ -463,15 +497,15 @@ const Calendar: React.FC<CalendarProps> = ({ onClose, onMinimize, onMaximize }) 
 
 // Screen reader announcement helper
 function announceToScreenReader(message: string) {
-  const announcement = document.createElement('div');
-  announcement.setAttribute('role', 'status');
-  announcement.setAttribute('aria-live', 'polite');
-  announcement.className = 'sr-only';
-  announcement.style.position = 'absolute';
-  announcement.style.left = '-10000px';
-  announcement.style.width = '1px';
-  announcement.style.height = '1px';
-  announcement.style.overflow = 'hidden';
+  const announcement = document.createElement("div");
+  announcement.setAttribute("role", "status");
+  announcement.setAttribute("aria-live", "polite");
+  announcement.className = "sr-only";
+  announcement.style.position = "absolute";
+  announcement.style.left = "-10000px";
+  announcement.style.width = "1px";
+  announcement.style.height = "1px";
+  announcement.style.overflow = "hidden";
   announcement.textContent = message;
   document.body.appendChild(announcement);
   setTimeout(() => document.body.removeChild(announcement), 1000);

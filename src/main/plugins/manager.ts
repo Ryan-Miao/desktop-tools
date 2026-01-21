@@ -799,16 +799,6 @@ export class PluginManager implements IPluginManager {
     // 创建 ZIP 文件
     const zip = new JSZip();
 
-    // 检查是否有编译后的版本
-    const pluginName = path.basename(pluginPath);
-    const distPluginPath = path.join(
-      process.cwd(),
-      "dist",
-      "plugins",
-      pluginName,
-    );
-    const _hasCompiledVersion = fs.existsSync(distPluginPath);
-
     // 添加插件文件
     const addFiles = (dir: string, base: string = "") => {
       const files = fs.readdirSync(dir);

@@ -4,9 +4,9 @@
  * Quick scratchpad for notes and thoughts
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
-import PluginWindow from '../PluginWindow/PluginWindow';
-import styles from './QuickNote.module.css';
+import React, { useState, useCallback, useEffect } from "react";
+import PluginWindow from "../PluginWindow/PluginWindow";
+import styles from "./QuickNote.module.css";
 
 interface QuickNoteProps {
   onClose: () => void;
@@ -14,16 +14,19 @@ interface QuickNoteProps {
   onMaximize?: () => void;
 }
 
-const QuickNote: React.FC<QuickNoteProps> = ({ onClose, onMinimize, onMaximize }) => {
+const QuickNote: React.FC<QuickNoteProps> = ({
+  onClose,
+  onMinimize,
+  onMaximize,
+}) => {
   const [notes, setNotes] = useState<string[]>([]);
   const [activeNoteIndex, setActiveNoteIndex] = useState<number>(-1);
-  const [activeNote, setActiveNote] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [activeNote, setActiveNote] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Load notes from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('quick-notes');
+    const saved = localStorage.getItem("quick-notes");
     if (saved) {
       try {
         const parsedNotes = JSON.parse(saved);
@@ -33,7 +36,7 @@ const QuickNote: React.FC<QuickNoteProps> = ({ onClose, onMinimize, onMaximize }
           setActiveNote(parsedNotes[0]);
         }
       } catch (err) {
-        console.error('Failed to load notes:', err);
+        console.error("Failed to load notes:", err);
       }
     }
   }, []);
@@ -41,14 +44,14 @@ const QuickNote: React.FC<QuickNoteProps> = ({ onClose, onMinimize, onMaximize }
   // Save notes to localStorage
   useEffect(() => {
     if (notes.length > 0) {
-      localStorage.setItem('quick-notes', JSON.stringify(notes));
+      localStorage.setItem("quick-notes", JSON.stringify(notes));
     }
   }, [notes]);
 
   // Auto-save active note
   useEffect(() => {
     if (activeNoteIndex >= 0) {
-      setNotes(prev => {
+      setNotes((prev) => {
         const updated = [...prev];
         updated[activeNoteIndex] = activeNote;
         return updated;
@@ -58,40 +61,43 @@ const QuickNote: React.FC<QuickNoteProps> = ({ onClose, onMinimize, onMaximize }
 
   // Create new note
   const createNote = useCallback(() => {
-    const newNote = '';
-    setNotes(prev => [...prev, newNote]);
+    const newNote = "";
+    setNotes((prev) => [...prev, newNote]);
     setActiveNoteIndex(notes.length);
     setActiveNote(newNote);
-    announceToScreenReader('已创建新笔记');
+    announceToScreenReader("已创建新笔记");
   }, [notes.length]);
 
   // Delete note
   const deleteNote = useCallback(
     (index: number) => {
       if (notes.length <= 1) {
-        setNotes(['']);
+        setNotes([""]);
         setActiveNoteIndex(0);
-        setActiveNote('');
+        setActiveNote("");
       } else {
         const updated = notes.filter((_, i) => i !== index);
         setNotes(updated);
         if (activeNoteIndex === index) {
           setActiveNoteIndex(0);
-          setActiveNote(updated[0]);
+          setActiveNote(updated[0] ?? "");
         } else if (activeNoteIndex > index) {
           setActiveNoteIndex(activeNoteIndex - 1);
         }
       }
-      announceToScreenReader('已删除笔记');
+      announceToScreenReader("已删除笔记");
     },
-    [notes, activeNoteIndex]
+    [notes, activeNoteIndex],
   );
 
   // Select note
-  const selectNote = useCallback((index: number) => {
-    setActiveNoteIndex(index);
-    setActiveNote(notes[index]);
-  }, [notes]);
+  const selectNote = useCallback(
+    (index: number) => {
+      setActiveNoteIndex(index);
+      setActiveNote(notes[index] ?? "");
+    },
+    [notes],
+  );
 
   // Copy note
   const copyNote = useCallback(async () => {
@@ -99,30 +105,36 @@ const QuickNote: React.FC<QuickNoteProps> = ({ onClose, onMinimize, onMaximize }
 
     try {
       await navigator.clipboard.writeText(activeNote);
-      announceToScreenReader('已复制笔记内容');
+      announceToScreenReader("已复制笔记内容");
     } catch (err) {
-      console.error('Failed to copy:', err);
+      console.error("Failed to copy:", err);
     }
   }, [activeNote]);
 
   // Clear note
   const clearNote = useCallback(() => {
-    setActiveNote('');
-    announceToScreenReader('已清空笔记');
+    setActiveNote("");
+    announceToScreenReader("已清空笔记");
   }, []);
 
   // Filter notes by search
   const filteredNotes = useCallback(() => {
-    if (!searchQuery.trim()) return notes.map((note, index) => ({ note, index }));
+    if (!searchQuery.trim())
+      return notes.map((note, index) => ({ note, index }));
 
     return notes
       .map((note, index) => ({ note, index }))
-      .filter(({ note }) => note.toLowerCase().includes(searchQuery.toLowerCase()));
+      .filter(({ note }) =>
+        note.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
   }, [notes, searchQuery]);
 
   // Get word count
   const wordCount = useCallback(() => {
-    return activeNote.trim().split(/\s+/).filter(word => word.length > 0).length;
+    return activeNote
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0).length;
   }, [activeNote]);
 
   // Get character count
@@ -157,7 +169,7 @@ const QuickNote: React.FC<QuickNoteProps> = ({ onClose, onMinimize, onMaximize }
           <input
             type="text"
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="搜索笔记..."
             className={styles.searchInput}
           />
@@ -182,13 +194,13 @@ const QuickNote: React.FC<QuickNoteProps> = ({ onClose, onMinimize, onMaximize }
                 <div
                   key={index}
                   className={`${styles.noteItem} ${
-                    activeNoteIndex === index ? styles.active : ''
+                    activeNoteIndex === index ? styles.active : ""
                   }`}
                   onClick={() => selectNote(index)}
                 >
                   <div className={styles.noteItemHeader}>
                     <span className={styles.noteItemTitle}>
-                      {note.split('\n')[0]?.substring(0, 30) || '空白笔记'}
+                      {note.split("\n")[0]?.substring(0, 30) || "空白笔记"}
                     </span>
                     <button
                       onClick={(e) => {
@@ -203,7 +215,7 @@ const QuickNote: React.FC<QuickNoteProps> = ({ onClose, onMinimize, onMaximize }
                   </div>
                   <span className={styles.noteItemPreview}>
                     {note.substring(0, 50)}
-                    {note.length > 50 && '...'}
+                    {note.length > 50 && "..."}
                   </span>
                 </div>
               ))}
@@ -245,9 +257,7 @@ const QuickNote: React.FC<QuickNoteProps> = ({ onClose, onMinimize, onMaximize }
             />
 
             <div className={styles.noteFooter}>
-              <span className={styles.noteHint}>
-                💡 自动保存已启用
-              </span>
+              <span className={styles.noteHint}>💡 自动保存已启用</span>
             </div>
           </div>
         </div>
@@ -258,15 +268,15 @@ const QuickNote: React.FC<QuickNoteProps> = ({ onClose, onMinimize, onMaximize }
 
 // Screen reader announcement helper
 function announceToScreenReader(message: string) {
-  const announcement = document.createElement('div');
-  announcement.setAttribute('role', 'status');
-  announcement.setAttribute('aria-live', 'polite');
-  announcement.className = 'sr-only';
-  announcement.style.position = 'absolute';
-  announcement.style.left = '-10000px';
-  announcement.style.width = '1px';
-  announcement.style.height = '1px';
-  announcement.style.overflow = 'hidden';
+  const announcement = document.createElement("div");
+  announcement.setAttribute("role", "status");
+  announcement.setAttribute("aria-live", "polite");
+  announcement.className = "sr-only";
+  announcement.style.position = "absolute";
+  announcement.style.left = "-10000px";
+  announcement.style.width = "1px";
+  announcement.style.height = "1px";
+  announcement.style.overflow = "hidden";
   announcement.textContent = message;
   document.body.appendChild(announcement);
   setTimeout(() => document.body.removeChild(announcement), 1000);

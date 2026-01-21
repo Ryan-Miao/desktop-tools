@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import './PluginWindow.css';
+import React, { useState, useEffect } from "react";
+import "./PluginWindow.css";
 
 interface PluginWindowProps {
   /** 窗口标题 */
@@ -56,51 +56,51 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
   onClose,
   onMaximize,
   onMinimize,
-  resizable = true,
+  resizable: _resizable = true,
   maximizable = true,
   minimizable = true,
   showHeader = true,
-  className = '',
+  className = "",
   showCloseButton = true,
   pluginId,
-  showStandaloneButton = false
+  showStandaloneButton = false,
 }) => {
   const [isMaximized, setIsMaximized] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
 
   // 监听最大化状态变化（Electron 窗口事件）
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).electron) {
+    if (typeof window !== "undefined" && (window as any).electron) {
       const ipcRenderer = (window as any).electron.ipcRenderer;
 
       const handleMaximized = () => setIsMaximized(true);
       const handleUnmaximized = () => setIsMaximized(false);
 
-      ipcRenderer.on('window:maximized', handleMaximized);
-      ipcRenderer.on('window:unmaximized', handleUnmaximized);
+      ipcRenderer.on("window:maximized", handleMaximized);
+      ipcRenderer.on("window:unmaximized", handleUnmaximized);
 
       return () => {
         // 移除监听器（Electron 中不同版本API不同，这里不做清理）
         // 监听器会随着组件卸载自动失效
       };
     }
+    return undefined;
   }, []);
 
   const handleMaximizeClick = () => {
     if (onMaximize) {
       onMaximize();
-    } else if (typeof window !== 'undefined' && (window as any).electron) {
+    } else if (typeof window !== "undefined" && (window as any).electron) {
       // 默认行为：通过 IPC 最大化窗口
-      (window as any).electron.ipcRenderer.invoke('window:maximize');
+      (window as any).electron.ipcRenderer.invoke("window:maximize");
     }
   };
 
   const handleMinimizeClick = () => {
     if (onMinimize) {
       onMinimize();
-    } else if (typeof window !== 'undefined' && (window as any).electron) {
+    } else if (typeof window !== "undefined" && (window as any).electron) {
       // 默认行为：通过 IPC 最小化窗口
-      (window as any).electron.ipcRenderer.invoke('window:minimize');
+      (window as any).electron.ipcRenderer.invoke("window:minimize");
     }
   };
 
@@ -112,17 +112,21 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
     if (!pluginId || !window.electron?.ipcRenderer) return;
 
     try {
-      await window.electron.ipcRenderer.invoke('plugin:open-standalone', pluginId, title);
+      await window.electron.ipcRenderer.invoke(
+        "plugin:open-standalone",
+        pluginId,
+        title,
+      );
       // 打开独立窗口后，关闭当前模态框
       onClose();
     } catch (error) {
-      console.error('Failed to open standalone window:', error);
+      console.error("Failed to open standalone window:", error);
     }
   };
 
   // 应用透明度和主题
   const style = {
-    '--plugin-window-opacity': opacity / 100
+    "--plugin-window-opacity": opacity / 100,
   } as React.CSSProperties;
 
   const windowClassName = `plugin-window ${className}`.trim();
@@ -133,7 +137,7 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
       style={style}
       data-theme={themeId}
       data-plugin-id={pluginId}
-      data-standalone-button={showStandaloneButton ? 'true' : 'false'}
+      data-standalone-button={showStandaloneButton ? "true" : "false"}
     >
       {/* 标题栏 */}
       {showHeader && (
@@ -184,9 +188,7 @@ const PluginWindow: React.FC<PluginWindowProps> = ({
       )}
 
       {/* 内容区 */}
-      <div className="plugin-window-content">
-        {children}
-      </div>
+      <div className="plugin-window-content">{children}</div>
     </div>
   );
 };

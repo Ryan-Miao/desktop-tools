@@ -4,9 +4,9 @@
  * 创建和编辑思维导图
  */
 
-import React, { useState, useEffect } from 'react';
-import PluginWindow from '../PluginWindow/PluginWindow';
-import styles from './MindMap.module.css';
+import React, { useState, useEffect } from "react";
+import PluginWindow from "../PluginWindow/PluginWindow";
+import styles from "./MindMap.module.css";
 
 interface MindMapProps {
   onClose: () => void;
@@ -24,30 +24,40 @@ interface Node {
 }
 
 const COLORS = [
-  '#667eea', '#764ba2', '#f093fb', '#f5576c',
-  '#4facfe', '#00f2fe', '#43e97b', '#38f9d7'
+  "#667eea",
+  "#764ba2",
+  "#f093fb",
+  "#f5576c",
+  "#4facfe",
+  "#00f2fe",
+  "#43e97b",
+  "#38f9d7",
 ];
 
-const MindMap: React.FC<MindMapProps> = ({ onClose, onMinimize, onMaximize }) => {
+const MindMap: React.FC<MindMapProps> = ({
+  onClose,
+  onMinimize,
+  onMaximize,
+}) => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
-  const [nodeText, setNodeText] = useState('');
+  const [nodeText, setNodeText] = useState("");
 
   // 从本地存储加载
   useEffect(() => {
-    const saved = localStorage.getItem('mindmap-nodes');
+    const saved = localStorage.getItem("mindmap-nodes");
     if (saved) {
       setNodes(JSON.parse(saved));
     } else {
       // 创建根节点
       const rootNode: Node = {
-        id: 'root',
-        text: '中心主题',
+        id: "root",
+        text: "中心主题",
         parentId: null,
         children: [],
-        color: COLORS[0],
-        collapsed: false
+        color: COLORS[0]!,
+        collapsed: false,
       };
       setNodes([rootNode]);
     }
@@ -56,7 +66,7 @@ const MindMap: React.FC<MindMapProps> = ({ onClose, onMinimize, onMaximize }) =>
   // 保存到本地存储
   useEffect(() => {
     if (nodes.length > 0) {
-      localStorage.setItem('mindmap-nodes', JSON.stringify(nodes));
+      localStorage.setItem("mindmap-nodes", JSON.stringify(nodes));
     }
   }, [nodes]);
 
@@ -64,37 +74,37 @@ const MindMap: React.FC<MindMapProps> = ({ onClose, onMinimize, onMaximize }) =>
   const addChildNode = (parentId: string) => {
     const newNode: Node = {
       id: `node-${Date.now()}`,
-      text: '新节点',
+      text: "新节点",
       parentId,
       children: [],
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
-      collapsed: false
+      color: COLORS[Math.floor(Math.random() * COLORS.length)]!,
+      collapsed: false,
     };
 
-    setNodes(prev => [
-      ...prev.map(node =>
+    setNodes((prev) => [
+      ...prev.map((node) =>
         node.id === parentId
           ? { ...node, children: [...node.children, newNode.id] }
-          : node
+          : node,
       ),
-      newNode
+      newNode,
     ]);
     setSelectedNodeId(newNode.id);
   };
 
   // 删除节点
   const deleteNode = (nodeId: string) => {
-    if (nodeId === 'root') {
-      alert('不能删除根节点');
+    if (nodeId === "root") {
+      alert("不能删除根节点");
       return;
     }
 
-    const node = nodes.find(n => n.id === nodeId);
+    const node = nodes.find((n) => n.id === nodeId);
     if (!node) return;
 
     // 递归收集所有子节点ID
     const collectChildIds = (id: string): string[] => {
-      const n = nodes.find(node => node.id === id);
+      const n = nodes.find((node) => node.id === id);
       if (!n) return [];
       const childIds = n.children;
       return [...childIds, ...childIds.flatMap(collectChildIds)];
@@ -103,14 +113,14 @@ const MindMap: React.FC<MindMapProps> = ({ onClose, onMinimize, onMaximize }) =>
     const idsToDelete = [nodeId, ...collectChildIds(nodeId)];
 
     // 从父节点的children中移除
-    setNodes(prev =>
+    setNodes((prev) =>
       prev
-        .filter(n => !idsToDelete.includes(n.id))
-        .map(n =>
+        .filter((n) => !idsToDelete.includes(n.id))
+        .map((n) =>
           n.id === node.parentId
-            ? { ...n, children: n.children.filter(id => id !== nodeId) }
-            : n
-        )
+            ? { ...n, children: n.children.filter((id) => id !== nodeId) }
+            : n,
+        ),
     );
 
     if (selectedNodeId === nodeId) {
@@ -120,25 +130,23 @@ const MindMap: React.FC<MindMapProps> = ({ onClose, onMinimize, onMaximize }) =>
 
   // 更新节点文本
   const updateNodeText = (nodeId: string, text: string) => {
-    setNodes(prev =>
-      prev.map(node =>
-        node.id === nodeId ? { ...node, text } : node
-      )
+    setNodes((prev) =>
+      prev.map((node) => (node.id === nodeId ? { ...node, text } : node)),
     );
   };
 
   // 切换折叠状态
   const toggleCollapse = (nodeId: string) => {
-    setNodes(prev =>
-      prev.map(node =>
-        node.id === nodeId ? { ...node, collapsed: !node.collapsed } : node
-      )
+    setNodes((prev) =>
+      prev.map((node) =>
+        node.id === nodeId ? { ...node, collapsed: !node.collapsed } : node,
+      ),
     );
   };
 
   // 开始编辑节点
   const startEditing = (nodeId: string) => {
-    const node = nodes.find(n => n.id === nodeId);
+    const node = nodes.find((n) => n.id === nodeId);
     if (node) {
       setEditingNodeId(nodeId);
       setNodeText(node.text);
@@ -151,25 +159,7 @@ const MindMap: React.FC<MindMapProps> = ({ onClose, onMinimize, onMaximize }) =>
       updateNodeText(editingNodeId, nodeText.trim());
     }
     setEditingNodeId(null);
-    setNodeText('');
-  };
-
-  // 获取可见节点（考虑折叠）
-  const getVisibleNodes = (): Node[] => {
-    const visible: Node[] = [];
-    const addNodeAndChildren = (nodeId: string) => {
-      const node = nodes.find(n => n.id === nodeId);
-      if (!node) return;
-      visible.push(node);
-      if (!node.collapsed) {
-        node.children.forEach(addNodeAndChildren);
-      }
-    };
-    const root = nodes.find(n => n.id === 'root');
-    if (root) {
-      addNodeAndChildren(root.id);
-    }
-    return visible;
+    setNodeText("");
   };
 
   // 渲染节点树
@@ -178,9 +168,13 @@ const MindMap: React.FC<MindMapProps> = ({ onClose, onMinimize, onMaximize }) =>
     const isSelected = selectedNodeId === node.id;
 
     return (
-      <div key={node.id} className={styles.nodeWrapper} style={{ marginLeft: `${depth * 24}px` }}>
+      <div
+        key={node.id}
+        className={styles.nodeWrapper}
+        style={{ marginLeft: `${depth * 24}px` }}
+      >
         <div
-          className={`${styles.node} ${isSelected ? styles.selected : ''}`}
+          className={`${styles.node} ${isSelected ? styles.selected : ""}`}
           onClick={() => setSelectedNodeId(node.id)}
           onDoubleClick={() => startEditing(node.id)}
           style={{ borderColor: node.color }}
@@ -193,7 +187,7 @@ const MindMap: React.FC<MindMapProps> = ({ onClose, onMinimize, onMaximize }) =>
               }}
               className={styles.collapseButton}
             >
-              {node.collapsed ? '▶' : '▼'}
+              {node.collapsed ? "▶" : "▼"}
             </button>
           )}
           {editingNodeId === node.id ? (
@@ -203,10 +197,10 @@ const MindMap: React.FC<MindMapProps> = ({ onClose, onMinimize, onMaximize }) =>
               onChange={(e) => setNodeText(e.target.value)}
               onBlur={saveEdit}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') saveEdit();
-                if (e.key === 'Escape') {
+                if (e.key === "Enter") saveEdit();
+                if (e.key === "Escape") {
                   setEditingNodeId(null);
-                  setNodeText('');
+                  setNodeText("");
                 }
               }}
               autoFocus
@@ -228,7 +222,7 @@ const MindMap: React.FC<MindMapProps> = ({ onClose, onMinimize, onMaximize }) =>
                 ➕
               </button>
             )}
-            {node.id !== 'root' && (
+            {node.id !== "root" && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -242,15 +236,16 @@ const MindMap: React.FC<MindMapProps> = ({ onClose, onMinimize, onMaximize }) =>
             )}
           </div>
         </div>
-        {!node.collapsed && node.children.map(childId => {
-          const child = nodes.find(n => n.id === childId);
-          return child ? renderNode(child, depth + 1) : null;
-        })}
+        {!node.collapsed &&
+          node.children.map((childId) => {
+            const child = nodes.find((n) => n.id === childId);
+            return child ? renderNode(child, depth + 1) : null;
+          })}
       </div>
     );
   };
 
-  const rootNode = nodes.find(n => n.id === 'root');
+  const rootNode = nodes.find((n) => n.id === "root");
 
   return (
     <PluginWindow
@@ -273,14 +268,14 @@ const MindMap: React.FC<MindMapProps> = ({ onClose, onMinimize, onMaximize }) =>
           </button>
           <button
             onClick={() => {
-              if (confirm('确定要清空思维导图吗？')) {
+              if (confirm("确定要清空思维导图吗？")) {
                 const newRoot: Node = {
-                  id: 'root',
-                  text: '中心主题',
+                  id: "root",
+                  text: "中心主题",
                   parentId: null,
                   children: [],
-                  color: COLORS[0],
-                  collapsed: false
+                  color: COLORS[0]!,
+                  collapsed: false,
                 };
                 setNodes([newRoot]);
                 setSelectedNodeId(null);

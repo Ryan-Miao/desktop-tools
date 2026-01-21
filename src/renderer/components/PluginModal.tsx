@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useRef, Suspense } from 'react';
-import { pluginRegistry } from '../services/PluginRegistry';
-import { createLogger } from '../../shared/logger';
-import Loading from './Loading/Loading';
-import './PluginModal.css';
+import React, { useEffect, useState, useRef, Suspense } from "react";
+import { pluginRegistry } from "../services/PluginRegistry";
+import { createLogger } from "../../shared/logger";
+import Loading from "./Loading/Loading";
+import "./PluginModal.css";
 
-const logger = createLogger('PluginModal');
+const logger = createLogger("PluginModal");
 
 interface PluginModalProps {
   pluginId: string;
@@ -12,7 +12,8 @@ interface PluginModalProps {
 }
 
 export default function PluginModal({ pluginId, onClose }: PluginModalProps) {
-  const [PluginComponent, setPluginComponent] = useState<React.ComponentType<any> | null>(null);
+  const [PluginComponent, setPluginComponent] =
+    useState<React.ComponentType<any> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pluginInfo, setPluginInfo] = useState<any>(null);
@@ -23,10 +24,14 @@ export default function PluginModal({ pluginId, onClose }: PluginModalProps) {
     try {
       const info = pluginRegistry.getPluginInfo(pluginId);
       setPluginInfo(info);
-      logger.info(`[PluginModal] Plugin info loaded: ${pluginId}`, { source: info?.source });
+      logger.info(`[PluginModal] Plugin info loaded: ${pluginId}`, {
+        source: info?.source,
+      });
     } catch (err) {
-      logger.error(`[PluginModal] Failed to get plugin info: ${pluginId}`, { error: err });
-      setError('Failed to load plugin information');
+      logger.error(`[PluginModal] Failed to get plugin info: ${pluginId}`, {
+        error: err,
+      });
+      setError("Failed to load plugin information");
     } finally {
       setIsLoading(false);
     }
@@ -35,13 +40,13 @@ export default function PluginModal({ pluginId, onClose }: PluginModalProps) {
   // ESC键关闭
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         onClose();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
   // 监听来自iframe的消息
@@ -51,20 +56,20 @@ export default function PluginModal({ pluginId, onClose }: PluginModalProps) {
       if (event.source !== iframeRef.current?.contentWindow) return;
 
       // 处理关闭请求
-      if (event.data.type === 'CLOSE_MODAL') {
+      if (event.data.type === "CLOSE_MODAL") {
         onClose();
       }
     };
 
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
   }, [onClose]);
 
   // 加载插件组件（仅内置插件）
   useEffect(() => {
     const loadPlugin = async () => {
       // 远程插件不需要加载组件，使用iframe
-      if (pluginInfo?.source === 'remote') {
+      if (pluginInfo?.source === "remote") {
         return;
       }
 
@@ -74,30 +79,35 @@ export default function PluginModal({ pluginId, onClose }: PluginModalProps) {
       try {
         logger.info(`[PluginModal] Loading plugin component: ${pluginId}`);
         const component = await pluginRegistry.loadPluginComponent(pluginId);
-        logger.info(`[PluginModal] Plugin component loaded successfully: ${pluginId}`);
+        logger.info(
+          `[PluginModal] Plugin component loaded successfully: ${pluginId}`,
+        );
         setPluginComponent(() => component);
       } catch (err) {
-        logger.error(`[PluginModal] Failed to load plugin component: ${pluginId}`, { error: err });
+        logger.error(
+          `[PluginModal] Failed to load plugin component: ${pluginId}`,
+          { error: err },
+        );
         setError((err as Error).message);
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (pluginInfo && pluginInfo.source !== 'remote') {
+    if (pluginInfo && pluginInfo.source !== "remote") {
       loadPlugin();
     }
   }, [pluginId, pluginInfo]);
 
   // 生成iframe的HTML内容（仅远程插件）
   const generateIframeContent = () => {
-    if (!pluginInfo || pluginInfo.source !== 'remote') {
+    if (!pluginInfo || pluginInfo.source !== "remote") {
       return null;
     }
 
     // 获取插件URL和CSS URL
-    const packageName = pluginInfo.packageName || 'desktop-tool-pl-qrcode';
-    const version = pluginInfo.version || 'latest';
+    const packageName = pluginInfo.packageName || "desktop-tool-pl-qrcode";
+    const version = pluginInfo.version || "latest";
     const cssUrl = `https://esm.sh/${packageName}@${version}/dist/style.css`;
     const jsUrl = `https://esm.sh/${packageName}@${version}/dist/index.js?external=react,react-dom`;
 
@@ -169,7 +179,10 @@ export default function PluginModal({ pluginId, onClose }: PluginModalProps) {
   if (isLoading) {
     return (
       <div className="plugin-modal-overlay" onClick={onClose}>
-        <div className="plugin-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="plugin-modal-content"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="plugin-modal-loading">
             <Loading />
             <p>加载插件中...</p>
@@ -183,7 +196,10 @@ export default function PluginModal({ pluginId, onClose }: PluginModalProps) {
   if (error) {
     return (
       <div className="plugin-modal-overlay" onClick={onClose}>
-        <div className="plugin-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="plugin-modal-content"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="plugin-modal-error">
             <h2>❌ 加载失败</h2>
             <p>{error}</p>
@@ -196,12 +212,15 @@ export default function PluginModal({ pluginId, onClose }: PluginModalProps) {
   }
 
   // 远程插件：使用iframe隔离
-  if (pluginInfo?.source === 'remote') {
+  if (pluginInfo?.source === "remote") {
     const iframeContent = generateIframeContent();
 
     return (
       <div className="plugin-modal-overlay" onClick={onClose}>
-        <div className="plugin-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="plugin-modal-content"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="plugin-modal-header">
             <h3>{pluginInfo.manifest?.name || pluginId}</h3>
             <button
@@ -215,7 +234,7 @@ export default function PluginModal({ pluginId, onClose }: PluginModalProps) {
           <div className="plugin-modal-body iframe-container">
             <iframe
               ref={iframeRef}
-              srcDoc={iframeContent}
+              srcDoc={iframeContent ?? undefined}
               sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
               title={pluginInfo.manifest?.name || pluginId}
               className="plugin-iframe"
@@ -229,7 +248,10 @@ export default function PluginModal({ pluginId, onClose }: PluginModalProps) {
   // 内置插件：直接渲染组件（不使用iframe）
   return (
     <div className="plugin-modal-overlay" onClick={onClose}>
-      <div className="plugin-modal-content" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="plugin-modal-content"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="plugin-modal-header">
           <h3>{pluginInfo?.manifest?.name || pluginId}</h3>
           <button
@@ -241,13 +263,17 @@ export default function PluginModal({ pluginId, onClose }: PluginModalProps) {
           </button>
         </div>
         <div className="plugin-modal-body">
-          <Suspense fallback={
-            <div className="plugin-modal-loading">
-              <Loading />
-              <p>加载组件中...</p>
-            </div>
-          }>
-            {PluginComponent && <PluginComponent pluginId={pluginId} onClose={onClose} />}
+          <Suspense
+            fallback={
+              <div className="plugin-modal-loading">
+                <Loading />
+                <p>加载组件中...</p>
+              </div>
+            }
+          >
+            {PluginComponent && (
+              <PluginComponent pluginId={pluginId} onClose={onClose} />
+            )}
           </Suspense>
         </div>
       </div>

@@ -1,9 +1,9 @@
-import { create } from 'zustand';
-import { fileStorageService } from '@renderer/services/FileStorageService';
-import { createLogger } from '../../../../shared/logger';
-import { debounce } from '@renderer/utils/debounce';
+import { create } from "zustand";
+import { fileStorageService } from "@renderer/services/FileStorageService";
+import { createLogger } from "../../../../shared/logger";
+import { debounce } from "@renderer/utils/debounce";
 
-const logger = createLogger('TodoListStore');
+const logger = createLogger("TodoListStore");
 
 // ========== Simplified Data Models ==========
 
@@ -18,22 +18,22 @@ export interface SubTask {
 
 // Activity Event Types
 export type ActivityEventType =
-  | 'CREATED'
-  | 'UPDATED'
-  | 'COMPLETED'
-  | 'REOPENED'
-  | 'DELETED'
-  | 'TITLE_CHANGED'
-  | 'DESCRIPTION_CHANGED'
-  | 'PRIORITY_CHANGED'
-  | 'DUE_DATE_CHANGED'
-  | 'LIST_CHANGED'
-  | 'SUBTASK_ADDED'
-  | 'SUBTASK_COMPLETED'
-  | 'SUBTASK_REOPENED'
-  | 'SUBTASK_DELETED'
-  | 'SUBTASK_TITLE_CHANGED'
-  | 'STATUS_CHANGED';
+  | "CREATED"
+  | "UPDATED"
+  | "COMPLETED"
+  | "REOPENED"
+  | "DELETED"
+  | "TITLE_CHANGED"
+  | "DESCRIPTION_CHANGED"
+  | "PRIORITY_CHANGED"
+  | "DUE_DATE_CHANGED"
+  | "LIST_CHANGED"
+  | "SUBTASK_ADDED"
+  | "SUBTASK_COMPLETED"
+  | "SUBTASK_REOPENED"
+  | "SUBTASK_DELETED"
+  | "SUBTASK_TITLE_CHANGED"
+  | "STATUS_CHANGED";
 
 // Activity Event Interface
 export interface ActivityEvent {
@@ -51,19 +51,19 @@ export interface ActivityEvent {
 
 export interface Todo {
   id: string;
-  title: string;              // Main title (required)
-  description?: string;       // Description (optional)
+  title: string; // Main title (required)
+  description?: string; // Description (optional)
   completed: boolean;
-  priority: 'none' | 'low' | 'medium' | 'high';
-  dueDate?: string;           // YYYY-MM-DD
-  listId: string;             // Associated list
-  order: number;              // Sort order
+  priority: "none" | "low" | "medium" | "high";
+  dueDate?: string; // YYYY-MM-DD
+  listId: string; // Associated list
+  order: number; // Sort order
   createdAt: string;
-  updatedAt?: string;         // Last modification timestamp
+  updatedAt?: string; // Last modification timestamp
   completedAt?: string;
-  subtasks: SubTask[];        // Embedded subtasks
+  subtasks: SubTask[]; // Embedded subtasks
   activityHistory?: ActivityEvent[]; // Activity log (optional)
-  status?: 'todo' | 'in-progress' | 'done'; // Task status for kanban view
+  status?: "todo" | "in-progress" | "done"; // Task status for kanban view
 }
 
 export interface List {
@@ -71,12 +71,12 @@ export interface List {
   name: string;
   icon: string;
   color: string;
-  isInbox: boolean;           // Is this the inbox list?
+  isInbox: boolean; // Is this the inbox list?
   order: number;
 }
 
-export type SmartView = 'inbox' | 'today' | 'week';
-export type ViewMode = 'list' | 'kanban' | 'calendar-month' | 'calendar-week';
+export type SmartView = "inbox" | "today" | "week";
+export type ViewMode = "list" | "kanban" | "calendar-month" | "calendar-week";
 
 // ========== Store State ==========
 
@@ -86,13 +86,13 @@ interface TodoStoreState {
   lists: List[];
 
   // UI State
-  currentView: SmartView | string;  // Smart view or list ID
+  currentView: SmartView | string; // Smart view or list ID
   searchQuery: string;
-  viewMode: ViewMode;              // View mode: list or kanban
+  viewMode: ViewMode; // View mode: list or kanban
 
   // ========== Sorting State ==========
-  sortBy: 'none' | 'createdAt' | 'priority' | 'dueDate';
-  sortOrder: 'asc' | 'desc';
+  sortBy: "none" | "createdAt" | "priority" | "dueDate";
+  sortOrder: "asc" | "desc";
   showCompletedAtBottom: boolean;
 
   // ========== File Storage ==========
@@ -105,7 +105,9 @@ interface TodoStoreState {
 
   // ========== Todo Actions ==========
 
-  addTodo: (todo: Omit<Todo, 'id' | 'createdAt' | 'order' | 'subtasks'>) => void;
+  addTodo: (
+    todo: Omit<Todo, "id" | "createdAt" | "order" | "subtasks">,
+  ) => void;
   updateTodo: (id: string, updates: Partial<Todo>) => void;
   deleteTodo: (id: string) => void;
   toggleTodo: (id: string) => void;
@@ -130,12 +132,15 @@ interface TodoStoreState {
   setCurrentView: (view: SmartView | string) => void;
   setSearchQuery: (query: string) => void;
   setViewMode: (mode: ViewMode) => void;
-  updateTodoStatus: (id: string, status: 'todo' | 'in-progress' | 'done') => void;
+  updateTodoStatus: (
+    id: string,
+    status: "todo" | "in-progress" | "done",
+  ) => void;
 
   // ========== Sorting Actions ==========
 
-  setSortBy: (sortBy: 'none' | 'createdAt' | 'priority' | 'dueDate') => void;
-  setSortOrder: (order: 'asc' | 'desc') => void;
+  setSortBy: (sortBy: "none" | "createdAt" | "priority" | "dueDate") => void;
+  setSortOrder: (order: "asc" | "desc") => void;
   toggleShowCompletedAtBottom: () => void;
 
   // ========== Helpers ==========
@@ -147,7 +152,8 @@ interface TodoStoreState {
 
 // ========== Store Implementation ==========
 
-const generateId = () => Date.now().toString() + Math.random().toString(36).slice(2);
+const generateId = () =>
+  Date.now().toString() + Math.random().toString(36).slice(2);
 
 // ========== Activity Tracking Helpers ==========
 
@@ -157,7 +163,7 @@ const generateId = () => Date.now().toString() + Math.random().toString(36).slic
 const createActivityEvent = (
   type: ActivityEventType,
   description?: string,
-  changes?: { field?: string; oldValue?: any; newValue?: any }
+  changes?: { field?: string; oldValue?: any; newValue?: any },
 ): ActivityEvent => ({
   id: generateId(),
   type,
@@ -171,9 +177,9 @@ const createActivityEvent = (
  */
 const getStatusLabel = (status: string): string => {
   const labels: Record<string, string> = {
-    'todo': '待办',
-    'in-progress': '进行中',
-    'done': '已完成'
+    todo: "待办",
+    "in-progress": "进行中",
+    done: "已完成",
   };
   return labels[status] || status;
 };
@@ -185,16 +191,17 @@ const addActivityToTodo = (
   todo: Todo,
   type: ActivityEventType,
   description?: string,
-  changes?: { field?: string; oldValue?: any; newValue?: any }
+  changes?: { field?: string; oldValue?: any; newValue?: any },
 ): Todo => {
   const event = createActivityEvent(type, description, changes);
   const history = todo.activityHistory || [];
 
   // Keep only last 50 activities to prevent storage bloat
   const maxActivities = 50;
-  const trimmedHistory = history.length >= maxActivities
-    ? history.slice(-maxActivities + 1)
-    : history;
+  const trimmedHistory =
+    history.length >= maxActivities
+      ? history.slice(-maxActivities + 1)
+      : history;
 
   return {
     ...todo,
@@ -204,21 +211,46 @@ const addActivityToTodo = (
 };
 
 const initialLists: List[] = [
-  { id: 'list-inbox', name: '收集箱', icon: '📥', color: '#3B82F6', isInbox: true, order: 0 },
-  { id: 'list-today', name: '今天', icon: '☀️', color: '#F59E0B', isInbox: false, order: 1 },
-  { id: 'list-week', name: '最近7天', icon: '📅', color: '#10B981', isInbox: false, order: 2 },
+  {
+    id: "list-inbox",
+    name: "收集箱",
+    icon: "📥",
+    color: "#3B82F6",
+    isInbox: true,
+    order: 0,
+  },
+  {
+    id: "list-today",
+    name: "今天",
+    icon: "☀️",
+    color: "#F59E0B",
+    isInbox: false,
+    order: 1,
+  },
+  {
+    id: "list-week",
+    name: "最近7天",
+    icon: "📅",
+    color: "#10B981",
+    isInbox: false,
+    order: 2,
+  },
 ];
 
-const PLUGIN_ID = 'todolist';
-const STORAGE_KEY = 'todo-storage';
+const PLUGIN_ID = "todolist";
+const STORAGE_KEY = "todo-storage";
 
 // Debounced save function to reduce file I/O
 // Delay saves by 1 second to batch rapid changes
-let debouncedSaveInstance: ((getFn: () => TodoStoreState) => Promise<void>) | null = null;
+let debouncedSaveInstance:
+  | ((getFn: () => TodoStoreState) => Promise<void>)
+  | null = null;
 
-const getDebouncedSave = () => {
+const getDebouncedSave = (): ((
+  getFn: () => TodoStoreState,
+) => Promise<void>) => {
   if (!debouncedSaveInstance) {
-    debouncedSaveInstance = debounce(async (getFn: () => TodoStoreState) => {
+    debouncedSaveInstance = debounce((getFn: () => TodoStoreState) => {
       try {
         const state = getFn();
         const data = {
@@ -229,12 +261,12 @@ const getDebouncedSave = () => {
           showCompletedAtBottom: state.showCompletedAtBottom,
         };
 
-        await fileStorageService.savePluginData(PLUGIN_ID, data);
-        logger.debug('[TodoList] Debounced save completed');
+        return fileStorageService.savePluginData(PLUGIN_ID, data);
       } catch (error) {
-        logger.error('[TodoList] Error in debounced save', { error });
+        logger.error("[TodoList] Error in debounced save", { error });
+        return Promise.reject(error);
       }
-    }, 1000); // 1 second debounce
+    }, 1000) as (getFn: () => TodoStoreState) => Promise<void>; // 1 second debounce
   }
   return debouncedSaveInstance;
 };
@@ -243,11 +275,11 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
   // Initial State
   todos: [],
   lists: initialLists,
-  currentView: 'list-inbox',
-  searchQuery: '',
-  viewMode: 'list',
-  sortBy: 'none',
-  sortOrder: 'desc',
+  currentView: "list-inbox",
+  searchQuery: "",
+  viewMode: "list",
+  sortBy: "none",
+  sortOrder: "desc",
   showCompletedAtBottom: true,
 
   // ========== File Storage ==========
@@ -261,32 +293,34 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
       const data = await fileStorageService.loadPluginData<{
         todos: Todo[];
         lists: List[];
-        sortBy: TodoStoreState['sortBy'];
-        sortOrder: TodoStoreState['sortOrder'];
+        sortBy: TodoStoreState["sortBy"];
+        sortOrder: TodoStoreState["sortOrder"];
         showCompletedAtBottom: boolean;
       }>(PLUGIN_ID);
 
       if (data) {
-        logger.info('[TodoList] Loaded data from file storage');
+        logger.info("[TodoList] Loaded data from file storage");
         set({
           todos: data.todos || [],
           lists: data.lists || initialLists,
-          sortBy: data.sortBy || 'none',
-          sortOrder: data.sortOrder || 'desc',
+          sortBy: data.sortBy || "none",
+          sortOrder: data.sortOrder || "desc",
           showCompletedAtBottom: data.showCompletedAtBottom ?? true,
         });
       } else {
         // 文件不存在，尝试从localStorage迁移
-        logger.info('[TodoList] No file data found, trying localStorage migration');
+        logger.info(
+          "[TodoList] No file data found, trying localStorage migration",
+        );
         const migrated = await get().migrateFromLocalStorage();
         if (migrated) {
-          logger.info('[TodoList] Successfully migrated from localStorage');
+          logger.info("[TodoList] Successfully migrated from localStorage");
         } else {
-          logger.info('[TodoList] Starting with empty state');
+          logger.info("[TodoList] Starting with empty state");
         }
       }
     } catch (error) {
-      logger.error('[TodoList] Failed to initialize', { error });
+      logger.error("[TodoList] Failed to initialize", { error });
     }
   },
 
@@ -297,7 +331,9 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
   saveToFile: async () => {
     // Use debounced save for better performance
     const debouncedSave = getDebouncedSave();
-    await debouncedSave(get);
+    if (debouncedSave) {
+      await debouncedSave(get);
+    }
   },
 
   /**
@@ -320,28 +356,31 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
         set({
           todos: data.todos || [],
           lists: data.lists || initialLists,
-          sortBy: data.sortBy || 'none',
-          sortOrder: data.sortOrder || 'desc',
+          sortBy: data.sortBy || "none",
+          sortOrder: data.sortOrder || "desc",
           showCompletedAtBottom: data.showCompletedAtBottom ?? true,
         });
 
         // 创建localStorage备份
-        localStorage.setItem(`${STORAGE_KEY}-migrated-backup`, localStorageData);
-        logger.info('[TodoList] Migrated from localStorage to file storage');
+        localStorage.setItem(
+          `${STORAGE_KEY}-migrated-backup`,
+          localStorageData,
+        );
+        logger.info("[TodoList] Migrated from localStorage to file storage");
         return true;
       }
 
       return false;
     } catch (error) {
-      logger.error('[TodoList] Failed to migrate from localStorage', { error });
+      logger.error("[TodoList] Failed to migrate from localStorage", { error });
       return false;
     }
   },
 
   // ========== Migration Helper ==========
   migrateOldData: () => {
-    const oldTodos = localStorage.getItem('todo-items');
-    const oldCategories = localStorage.getItem('todo-categories');
+    const oldTodos = localStorage.getItem("todo-items");
+    const oldCategories = localStorage.getItem("todo-categories");
 
     if (oldTodos) {
       try {
@@ -349,21 +388,21 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
         // Migrate to new data model
         const migrated: Todo[] = parsed.map((todo: any) => ({
           id: todo.id || generateId(),
-          title: todo.text || todo.title || '',
+          title: todo.text || todo.title || "",
           description: todo.description,
           completed: todo.completed || false,
-          priority: todo.priority || 'none',
+          priority: todo.priority || "none",
           dueDate: todo.dueDate,
-          listId: 'list-inbox', // Default to inbox
+          listId: "list-inbox", // Default to inbox
           order: todo.order || 0,
           createdAt: todo.createdAt || new Date().toISOString(),
           completedAt: todo.completedAt,
           subtasks: [], // Start with empty subtasks
         }));
         set({ todos: migrated });
-        localStorage.removeItem('todo-items');
+        localStorage.removeItem("todo-items");
       } catch (err) {
-        console.error('Failed to migrate old todos:', err);
+        console.error("Failed to migrate old todos:", err);
       }
     }
 
@@ -374,17 +413,17 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
         const customLists: List[] = parsed.map((cat: any) => ({
           id: cat.id || generateId(),
           name: cat.name,
-          icon: cat.icon || '📁',
-          color: cat.color || '#3B82F6',
+          icon: cat.icon || "📁",
+          color: cat.color || "#3B82F6",
           isInbox: false,
           order: get().lists.length,
         }));
         set((state) => ({
           lists: [...state.lists, ...customLists],
         }));
-        localStorage.removeItem('todo-categories');
+        localStorage.removeItem("todo-categories");
       } catch (err) {
-        console.error('Failed to migrate old categories:', err);
+        console.error("Failed to migrate old categories:", err);
       }
     }
   },
@@ -400,8 +439,8 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
       order: get().todos.length,
       subtasks: [],
       activityHistory: [
-        createActivityEvent('CREATED', '创建了任务', {
-          field: 'title',
+        createActivityEvent("CREATED", "创建了任务", {
+          field: "title",
           newValue: todoData.title,
         }),
       ],
@@ -409,16 +448,21 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
 
     set((state) => ({ todos: [newTodo, ...state.todos] }));
 
-    logger.info('[TodoList] Task created', { id: newTodo.id, title: newTodo.title });
+    logger.info("[TodoList] Task created", {
+      id: newTodo.id,
+      title: newTodo.title,
+    });
 
     // Auto-save to file
     get().saveToFile();
   },
 
   updateTodo: (id, updates) => {
-    let activityType: ActivityEventType = 'UPDATED';
-    let activityDesc = '更新了任务';
-    let activityChanges: { field?: string; oldValue?: any; newValue?: any } | undefined;
+    let activityType: ActivityEventType = "UPDATED";
+    let activityDesc = "更新了任务";
+    let activityChanges:
+      | { field?: string; oldValue?: any; newValue?: any }
+      | undefined;
 
     set((state) => ({
       todos: state.todos.map((todo) => {
@@ -427,45 +471,54 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
           const oldTodo = { ...todo };
 
           // Track specific field changes
-          if ('title' in updates && updates.title !== oldTodo.title) {
-            activityType = 'TITLE_CHANGED';
-            activityDesc = '修改了标题';
+          if ("title" in updates && updates.title !== oldTodo.title) {
+            activityType = "TITLE_CHANGED";
+            activityDesc = "修改了标题";
             activityChanges = {
-              field: 'title',
+              field: "title",
               oldValue: oldTodo.title,
               newValue: updates.title,
             };
-          } else if ('description' in updates && updates.description !== oldTodo.description) {
-            activityType = 'DESCRIPTION_CHANGED';
-            activityDesc = '修改了描述';
+          } else if (
+            "description" in updates &&
+            updates.description !== oldTodo.description
+          ) {
+            activityType = "DESCRIPTION_CHANGED";
+            activityDesc = "修改了描述";
             activityChanges = {
-              field: 'description',
+              field: "description",
               oldValue: oldTodo.description,
               newValue: updates.description,
             };
-          } else if ('priority' in updates && updates.priority !== oldTodo.priority) {
-            activityType = 'PRIORITY_CHANGED';
+          } else if (
+            "priority" in updates &&
+            updates.priority !== oldTodo.priority
+          ) {
+            activityType = "PRIORITY_CHANGED";
             activityDesc = `修改了优先级为${updates.priority}`;
             activityChanges = {
-              field: 'priority',
+              field: "priority",
               oldValue: oldTodo.priority,
               newValue: updates.priority,
             };
-          } else if ('dueDate' in updates && updates.dueDate !== oldTodo.dueDate) {
-            activityType = 'DUE_DATE_CHANGED';
+          } else if (
+            "dueDate" in updates &&
+            updates.dueDate !== oldTodo.dueDate
+          ) {
+            activityType = "DUE_DATE_CHANGED";
             activityDesc = updates.dueDate
               ? `设置到期日期为${updates.dueDate}`
-              : '移除了到期日期';
+              : "移除了到期日期";
             activityChanges = {
-              field: 'dueDate',
+              field: "dueDate",
               oldValue: oldTodo.dueDate,
               newValue: updates.dueDate,
             };
-          } else if ('listId' in updates && updates.listId !== oldTodo.listId) {
-            activityType = 'LIST_CHANGED';
-            activityDesc = '移动了任务';
+          } else if ("listId" in updates && updates.listId !== oldTodo.listId) {
+            activityType = "LIST_CHANGED";
+            activityDesc = "移动了任务";
             activityChanges = {
-              field: 'listId',
+              field: "listId",
               oldValue: oldTodo.listId,
               newValue: updates.listId,
             };
@@ -476,7 +529,7 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
             { ...todo, ...updates },
             activityType,
             activityDesc,
-            activityChanges
+            activityChanges,
           );
         }
         return todo;
@@ -504,18 +557,22 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
 
           // Add completion/reopen activity
           if (isCompleting) {
-            logger.info('[TodoList] Task completed', { id, title: todo.title });
+            logger.info("[TodoList] Task completed", { id, title: todo.title });
             return addActivityToTodo(
-              { ...todo, completed: true, completedAt: new Date().toISOString() },
-              'COMPLETED',
-              '完成了任务'
+              {
+                ...todo,
+                completed: true,
+                completedAt: new Date().toISOString(),
+              },
+              "COMPLETED",
+              "完成了任务",
             );
           } else {
-            logger.info('[TodoList] Task reopened', { id, title: todo.title });
+            logger.info("[TodoList] Task reopened", { id, title: todo.title });
             return addActivityToTodo(
               { ...todo, completed: false, completedAt: undefined },
-              'REOPENED',
-              '重新打开任务'
+              "REOPENED",
+              "重新打开任务",
             );
           }
         }
@@ -551,12 +608,12 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
     set((state) => ({
       todos: state.todos.map((todo) => {
         if (todo.id === todoId) {
-          logger.info('[TodoList] Subtask added', { todoId, title });
+          logger.info("[TodoList] Subtask added", { todoId, title });
           return addActivityToTodo(
             { ...todo, subtasks: [...todo.subtasks, newSubTask] },
-            'SUBTASK_ADDED',
+            "SUBTASK_ADDED",
             `添加了子任务: ${title}`,
-            { field: 'subtask', newValue: title }
+            { field: "subtask", newValue: title },
           );
         }
         return todo;
@@ -571,7 +628,7 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
     set((state) => ({
       todos: state.todos.map((todo) => {
         if (todo.id === todoId) {
-          const subtask = todo.subtasks.find(st => st.id === subtaskId);
+          const subtask = todo.subtasks.find((st) => st.id === subtaskId);
           if (subtask) {
             const isCompleting = !subtask.completed;
 
@@ -580,13 +637,19 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
                 ...todo,
                 subtasks: todo.subtasks.map((st) =>
                   st.id === subtaskId
-                    ? { ...st, completed: isCompleting, updatedAt: new Date().toISOString() }
-                    : st
+                    ? {
+                        ...st,
+                        completed: isCompleting,
+                        updatedAt: new Date().toISOString(),
+                      }
+                    : st,
                 ),
               },
-              isCompleting ? 'SUBTASK_COMPLETED' : 'SUBTASK_REOPENED',
-              isCompleting ? `完成了子任务: ${subtask.title}` : `重新打开子任务: ${subtask.title}`,
-              { field: 'subtask', newValue: subtask.title }
+              isCompleting ? "SUBTASK_COMPLETED" : "SUBTASK_REOPENED",
+              isCompleting
+                ? `完成了子任务: ${subtask.title}`
+                : `重新打开子任务: ${subtask.title}`,
+              { field: "subtask", newValue: subtask.title },
             );
           }
         }
@@ -602,14 +665,20 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
     set((state) => ({
       todos: state.todos.map((todo) => {
         if (todo.id === todoId) {
-          const subtask = todo.subtasks.find(st => st.id === subtaskId);
+          const subtask = todo.subtasks.find((st) => st.id === subtaskId);
           if (subtask) {
-            logger.info('[TodoList] Subtask deleted', { todoId, title: subtask.title });
+            logger.info("[TodoList] Subtask deleted", {
+              todoId,
+              title: subtask.title,
+            });
             return addActivityToTodo(
-              { ...todo, subtasks: todo.subtasks.filter((st) => st.id !== subtaskId) },
-              'SUBTASK_DELETED',
+              {
+                ...todo,
+                subtasks: todo.subtasks.filter((st) => st.id !== subtaskId),
+              },
+              "SUBTASK_DELETED",
               `删除了子任务: ${subtask.title}`,
-              { field: 'subtask', oldValue: subtask.title }
+              { field: "subtask", oldValue: subtask.title },
             );
           }
         }
@@ -625,21 +694,25 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
     set((state) => ({
       todos: state.todos.map((todo) => {
         if (todo.id === todoId) {
-          const subtask = todo.subtasks.find(st => st.id === subtaskId);
+          const subtask = todo.subtasks.find((st) => st.id === subtaskId);
           if (subtask && subtask.title !== title) {
-            logger.info('[TodoList] Subtask updated', { todoId, oldTitle: subtask.title, newTitle: title });
+            logger.info("[TodoList] Subtask updated", {
+              todoId,
+              oldTitle: subtask.title,
+              newTitle: title,
+            });
             return addActivityToTodo(
               {
                 ...todo,
                 subtasks: todo.subtasks.map((st) =>
                   st.id === subtaskId
                     ? { ...st, title, updatedAt: new Date().toISOString() }
-                    : st
+                    : st,
                 ),
               },
-              'SUBTASK_TITLE_CHANGED',
+              "SUBTASK_TITLE_CHANGED",
               `修改了子任务: ${title}`,
-              { field: 'subtask', oldValue: subtask.title, newValue: title }
+              { field: "subtask", oldValue: subtask.title, newValue: title },
             );
           }
           // Just update timestamp if title hasn't changed
@@ -648,7 +721,7 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
             subtasks: todo.subtasks.map((subtask) =>
               subtask.id === subtaskId
                 ? { ...subtask, updatedAt: new Date().toISOString() }
-                : subtask
+                : subtask,
             ),
           };
         }
@@ -663,7 +736,7 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
   reorderSubTasks: (todoId, subtasks) => {
     set((state) => ({
       todos: state.todos.map((todo) =>
-        todo.id === todoId ? { ...todo, subtasks } : todo
+        todo.id === todoId ? { ...todo, subtasks } : todo,
       ),
     }));
 
@@ -677,8 +750,8 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
     const newList: List = {
       id: generateId(),
       name,
-      icon: icon || '📁',
-      color: color || '#3B82F6',
+      icon: icon || "📁",
+      color: color || "#3B82F6",
       isInbox: false,
       order: get().lists.length,
     };
@@ -693,7 +766,7 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
   updateList: (id, name) => {
     set((state) => ({
       lists: state.lists.map((list) =>
-        list.id === id ? { ...list, name } : list
+        list.id === id ? { ...list, name } : list,
       ),
     }));
 
@@ -710,7 +783,7 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
       lists: state.lists.filter((list) => list.id !== id),
       // Move todos from deleted list to inbox
       todos: state.todos.map((todo) =>
-        todo.listId === id ? { ...todo, listId: 'list-inbox' } : todo
+        todo.listId === id ? { ...todo, listId: "list-inbox" } : todo,
       ),
     }));
 
@@ -729,9 +802,9 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
       const todo = state.todos.find((t) => t.id === id);
       if (!todo) return state;
 
-      const oldStatus = todo.status || (todo.completed ? 'done' : 'todo');
+      const oldStatus = todo.status || (todo.completed ? "done" : "todo");
       const newStatus = status;
-      const completed = status === 'done';
+      const completed = status === "done";
 
       return {
         todos: state.todos.map((todo) => {
@@ -742,7 +815,7 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
                 ...todo,
                 status,
                 completed,
-                ...(completed && { completedAt: new Date().toISOString() })
+                ...(completed && { completedAt: new Date().toISOString() }),
               };
             }
 
@@ -751,15 +824,15 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
                 ...todo,
                 status,
                 completed,
-                ...(completed && { completedAt: new Date().toISOString() })
+                ...(completed && { completedAt: new Date().toISOString() }),
               },
-              'STATUS_CHANGED',
+              "STATUS_CHANGED",
               `状态从 ${getStatusLabel(oldStatus)} 改为 ${getStatusLabel(newStatus)}`,
               {
-                field: 'status',
+                field: "status",
                 oldValue: oldStatus,
-                newValue: newStatus
-              }
+                newValue: newStatus,
+              },
             );
           }
           return todo;
@@ -802,95 +875,113 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
 
   getFilteredTodos: () => {
     const state = get();
-    const { todos, currentView, searchQuery, sortBy, sortOrder, showCompletedAtBottom } = state;
+    const {
+      todos,
+      currentView,
+      searchQuery,
+      sortBy,
+      sortOrder,
+      showCompletedAtBottom,
+    } = state;
 
     // 1. Filter by search query
     let filtered = searchQuery.trim()
       ? todos.filter(
           (todo) =>
             todo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            todo.description?.toLowerCase().includes(searchQuery.toLowerCase())
+            todo.description?.toLowerCase().includes(searchQuery.toLowerCase()),
         )
       : [...todos]; // Create a copy to avoid mutation
 
     // 2. Filter by view
     const now = new Date();
     const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
     const todayStr = `${year}-${month}-${day}`; // 格式: YYYY-MM-DD (本地日期)
 
     // Debug logging
-    logger.info('[getFilteredTodos] Debug', {
+    logger.info("[getFilteredTodos] Debug", {
       currentView,
       todayStr,
       totalTodos: todos.length,
-      todosWithDueDates: todos.filter(t => t.dueDate).length,
-      sampleTodosWithDates: todos.filter(t => t.dueDate).slice(0, 3).map(t => ({
-        title: t.title,
-        dueDate: t.dueDate,
-        listId: t.listId
-      }))
+      todosWithDueDates: todos.filter((t) => t.dueDate).length,
+      sampleTodosWithDates: todos
+        .filter((t) => t.dueDate)
+        .slice(0, 3)
+        .map((t) => ({
+          title: t.title,
+          dueDate: t.dueDate,
+          listId: t.listId,
+        })),
     });
 
-    if (currentView === 'list-inbox') {
+    if (currentView === "list-inbox") {
       // Show all tasks in inbox list
-      filtered = filtered.filter((todo) => todo.listId === 'list-inbox');
-      logger.info('[getFilteredTodos] Inbox view - filtered count:', filtered.length);
-    } else if (currentView === 'list-today') {
+      filtered = filtered.filter((todo) => todo.listId === "list-inbox");
+      logger.info(
+        "[getFilteredTodos] Inbox view - filtered count:",
+        filtered.length,
+      );
+    } else if (currentView === "list-today") {
       // Show tasks due today (字符串比较，避免时区问题)
       const beforeCount = filtered.length;
-      filtered = filtered.filter(
-        (todo) => todo.dueDate === todayStr
-      );
-      logger.info('[getFilteredTodos] Today view', {
+      filtered = filtered.filter((todo) => todo.dueDate === todayStr);
+      logger.info("[getFilteredTodos] Today view", {
         todayStr,
         beforeCount,
         afterCount: filtered.length,
-        matchedTodos: filtered.map(t => ({ title: t.title, dueDate: t.dueDate }))
+        matchedTodos: filtered.map((t) => ({
+          title: t.title,
+          dueDate: t.dueDate,
+        })),
       });
-    } else if (currentView === 'list-week') {
+    } else if (currentView === "list-week") {
       // Show tasks due in next 7 days
       const beforeCount = filtered.length;
       filtered = filtered.filter((todo) => {
         if (!todo.dueDate) return false;
 
         // 计算日期差（使用本地时间）
-        const dueDate = new Date(todo.dueDate + 'T00:00:00'); // 强制使用本地时区
-        const todayDate = new Date(todayStr + 'T00:00:00');
+        const dueDate = new Date(todo.dueDate + "T00:00:00"); // 强制使用本地时区
+        const todayDate = new Date(todayStr + "T00:00:00");
 
         const diffTime = dueDate.getTime() - todayDate.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
         return diffDays >= 0 && diffDays <= 7;
       });
-      logger.info('[getFilteredTodos] Week view', {
+      logger.info("[getFilteredTodos] Week view", {
         beforeCount,
         afterCount: filtered.length,
-        matchedTodos: filtered.map(t => ({ title: t.title, dueDate: t.dueDate }))
+        matchedTodos: filtered.map((t) => ({
+          title: t.title,
+          dueDate: t.dueDate,
+        })),
       });
     } else {
       // Custom list view
       filtered = filtered.filter((todo) => todo.listId === currentView);
-      logger.info('[getFilteredTodos] Custom list view', {
+      logger.info("[getFilteredTodos] Custom list view", {
         listId: currentView,
-        filteredCount: filtered.length
+        filteredCount: filtered.length,
       });
     }
 
     // 3. Sort function
     const sortFn = (a: Todo, b: Todo) => {
       switch (sortBy) {
-        case 'priority': {
+        case "priority": {
           const priorityOrder = { high: 3, medium: 2, low: 1, none: 0 };
           const aPriority = priorityOrder[a.priority] || 0;
           const bPriority = priorityOrder[b.priority] || 0;
-          const result = sortOrder === 'desc'
-            ? bPriority - aPriority
-            : aPriority - bPriority;
+          const result =
+            sortOrder === "desc"
+              ? bPriority - aPriority
+              : aPriority - bPriority;
 
           // Debug: log priority comparison
-          logger.debug('[Sort] Priority', {
+          logger.debug("[Sort] Priority", {
             aTitle: a.title,
             aPriority: a.priority,
             aPriorityValue: aPriority,
@@ -898,21 +989,21 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
             bPriority: b.priority,
             bPriorityValue: bPriority,
             sortOrder,
-            result
+            result,
           });
 
           return result;
         }
 
-        case 'dueDate':
+        case "dueDate":
           if (!a.dueDate) return 1; // Items without due date go last
           if (!b.dueDate) return -1;
-          return sortOrder === 'desc'
+          return sortOrder === "desc"
             ? new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()
             : new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
 
-        case 'createdAt':
-          return sortOrder === 'desc'
+        case "createdAt":
+          return sortOrder === "desc"
             ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
 
@@ -925,18 +1016,18 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
     let sorted = [...filtered].sort(sortFn);
 
     // Debug logging for sorting
-    if (sortBy !== 'none') {
-      logger.info('[getFilteredTodos] Applied sorting', {
+    if (sortBy !== "none") {
+      logger.info("[getFilteredTodos] Applied sorting", {
         sortBy,
         sortOrder,
         beforeCount: filtered.length,
         afterCount: sorted.length,
-        sampleOrder: sorted.slice(0, 5).map(t => ({
+        sampleOrder: sorted.slice(0, 5).map((t) => ({
           title: t.title,
           priority: t.priority,
           dueDate: t.dueDate,
-          createdAt: t.createdAt
-        }))
+          createdAt: t.createdAt,
+        })),
       });
     }
 

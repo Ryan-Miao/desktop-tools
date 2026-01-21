@@ -4,9 +4,9 @@
  * 从图片提取调色板
  */
 
-import React, { useState } from 'react';
-import PluginWindow from '../PluginWindow/PluginWindow';
-import styles from './ColorExtractor.module.css';
+import React, { useState } from "react";
+import PluginWindow from "../PluginWindow/PluginWindow";
+import styles from "./ColorExtractor.module.css";
 
 interface ColorExtractorProps {
   onClose: () => void;
@@ -21,8 +21,12 @@ interface ExtractedColor {
   count: number;
 }
 
-const ColorExtractor: React.FC<ColorExtractorProps> = ({ onClose, onMinimize, onMaximize }) => {
-  const [image, setImage] = useState<string>('');
+const ColorExtractor: React.FC<ColorExtractorProps> = ({
+  onClose,
+  onMinimize,
+  onMaximize,
+}) => {
+  const [image, setImage] = useState<string>("");
   const [colors, setColors] = useState<ExtractedColor[]>([]);
   const [colorCount, setColorCount] = useState<number>(8);
 
@@ -46,11 +50,11 @@ const ColorExtractor: React.FC<ColorExtractorProps> = ({ onClose, onMinimize, on
   // 提取颜色
   const extractColors = (imageSrc: string) => {
     const img = new Image();
-    img.crossOrigin = 'Anonymous';
+    img.crossOrigin = "Anonymous";
 
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
       // 缩小图片以提高性能
@@ -67,10 +71,10 @@ const ColorExtractor: React.FC<ColorExtractorProps> = ({ onClose, onMinimize, on
 
       // 采样像素
       for (let i = 0; i < pixels.length; i += 4 * 10) {
-        const r = pixels[i];
-        const g = pixels[i + 1];
-        const b = pixels[i + 2];
-        const a = pixels[i + 3];
+        const r = pixels[i] ?? 0;
+        const g = pixels[i + 1] ?? 0;
+        const b = pixels[i + 2] ?? 0;
+        const a = pixels[i + 3] ?? 255;
 
         // 跳过透明像素
         if (a < 128) continue;
@@ -90,8 +94,12 @@ const ColorExtractor: React.FC<ColorExtractorProps> = ({ onClose, onMinimize, on
         .map(([hex, count]) => ({
           hex,
           rgb: hexToRgb(hex),
-          hsl: rgbToHsl(parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)),
-          count
+          hsl: rgbToHsl(
+            parseInt(hex.slice(1, 3), 16),
+            parseInt(hex.slice(3, 5), 16),
+            parseInt(hex.slice(5, 7), 16),
+          ),
+          count,
         }))
         .sort((a, b) => b.count - a.count)
         .slice(0, colorCount);
@@ -104,7 +112,7 @@ const ColorExtractor: React.FC<ColorExtractorProps> = ({ onClose, onMinimize, on
 
   // RGB转HEX
   const rgbToHex = (r: number, g: number, b: number): string => {
-    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+    return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
   };
 
   // HEX转RGB

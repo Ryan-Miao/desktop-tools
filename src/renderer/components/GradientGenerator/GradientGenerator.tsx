@@ -4,9 +4,9 @@
  * CSS渐变代码生成器
  */
 
-import React, { useState, useEffect } from 'react';
-import PluginWindow from '../PluginWindow/PluginWindow';
-import styles from './GradientGenerator.module.css';
+import React, { useState, useEffect } from "react";
+import PluginWindow from "../PluginWindow/PluginWindow";
+import styles from "./GradientGenerator.module.css";
 
 interface GradientGeneratorProps {
   onClose: () => void;
@@ -20,14 +20,20 @@ interface ColorStop {
   position: number;
 }
 
-const GradientGenerator: React.FC<GradientGeneratorProps> = ({ onClose, onMinimize, onMaximize }) => {
-  const [gradientType, setGradientType] = useState<'linear' | 'radial'>('linear');
+const GradientGenerator: React.FC<GradientGeneratorProps> = ({
+  onClose,
+  onMinimize,
+  onMaximize,
+}) => {
+  const [gradientType, setGradientType] = useState<"linear" | "radial">(
+    "linear",
+  );
   const [direction, setDirection] = useState(90);
   const [colorStops, setColorStops] = useState<ColorStop[]>([
-    { id: '1', color: '#667eea', position: 0 },
-    { id: '2', color: '#764ba2', position: 100 }
+    { id: "1", color: "#667eea", position: 0 },
+    { id: "2", color: "#764ba2", position: 100 },
   ]);
-  const [cssCode, setCssCode] = useState('');
+  const [cssCode, setCssCode] = useState("");
 
   // 生成CSS代码
   useEffect(() => {
@@ -35,11 +41,11 @@ const GradientGenerator: React.FC<GradientGeneratorProps> = ({ onClose, onMinimi
 
     const stops = colorStops
       .sort((a, b) => a.position - b.position)
-      .map(stop => `${stop.color} ${stop.position}%`)
-      .join(', ');
+      .map((stop) => `${stop.color} ${stop.position}%`)
+      .join(", ");
 
-    let gradient = '';
-    if (gradientType === 'linear') {
+    let gradient = "";
+    if (gradientType === "linear") {
       gradient = `linear-gradient(${direction}deg, ${stops})`;
     } else {
       gradient = `radial-gradient(circle, ${stops})`;
@@ -52,8 +58,12 @@ const GradientGenerator: React.FC<GradientGeneratorProps> = ({ onClose, onMinimi
   const addColorStop = () => {
     const newStop: ColorStop = {
       id: Date.now().toString(),
-      color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'),
-      position: 50
+      color:
+        "#" +
+        Math.floor(Math.random() * 16777215)
+          .toString(16)
+          .padStart(6, "0"),
+      position: 50,
     };
     setColorStops([...colorStops, newStop]);
   };
@@ -61,14 +71,20 @@ const GradientGenerator: React.FC<GradientGeneratorProps> = ({ onClose, onMinimi
   // 删除颜色点
   const removeColorStop = (id: string) => {
     if (colorStops.length <= 2) return;
-    setColorStops(colorStops.filter(stop => stop.id !== id));
+    setColorStops(colorStops.filter((stop) => stop.id !== id));
   };
 
   // 更新颜色点
-  const updateColorStop = (id: string, field: keyof ColorStop, value: string | number) => {
-    setColorStops(colorStops.map(stop =>
-      stop.id === id ? { ...stop, [field]: value } : stop
-    ));
+  const updateColorStop = (
+    id: string,
+    field: keyof ColorStop,
+    value: string | number,
+  ) => {
+    setColorStops(
+      colorStops.map((stop) =>
+        stop.id === id ? { ...stop, [field]: value } : stop,
+      ),
+    );
   };
 
   // 复制CSS代码
@@ -78,18 +94,18 @@ const GradientGenerator: React.FC<GradientGeneratorProps> = ({ onClose, onMinimi
 
   // 预设渐变
   const presets = [
-    { colors: ['#667eea', '#764ba2'], direction: 135, name: '紫蓝' },
-    { colors: ['#f093fb', '#f5576c'], direction: 135, name: '粉红' },
-    { colors: ['#4facfe', '#00f2fe'], direction: 90, name: '青蓝' },
-    { colors: ['#43e97b', '#38f9d7'], direction: 135, name: '绿色' },
-    { colors: ['#fa709a', '#fee140'], direction: 135, name: '暖色' },
-    { colors: ['#30cfd0', '#330867'], direction: 135, name: '深蓝' }
+    { colors: ["#667eea", "#764ba2"], direction: 135, name: "紫蓝" },
+    { colors: ["#f093fb", "#f5576c"], direction: 135, name: "粉红" },
+    { colors: ["#4facfe", "#00f2fe"], direction: 90, name: "青蓝" },
+    { colors: ["#43e97b", "#38f9d7"], direction: 135, name: "绿色" },
+    { colors: ["#fa709a", "#fee140"], direction: 135, name: "暖色" },
+    { colors: ["#30cfd0", "#330867"], direction: 135, name: "深蓝" },
   ];
 
-  const applyPreset = (preset: typeof presets[0]) => {
+  const applyPreset = (preset: (typeof presets)[0]) => {
     setColorStops([
-      { id: '1', color: preset.colors[0], position: 0 },
-      { id: '2', color: preset.colors[1], position: 100 }
+      { id: "1", color: preset.colors[0] ?? "#000000", position: 0 },
+      { id: "2", color: preset.colors[1] ?? "#000000", position: 100 },
     ]);
     setDirection(preset.direction);
   };
@@ -109,7 +125,9 @@ const GradientGenerator: React.FC<GradientGeneratorProps> = ({ onClose, onMinimi
         {/* 预览 */}
         <div
           className={styles.preview}
-          style={{ background: cssCode.replace('background: ', '').replace(';', '') }}
+          style={{
+            background: cssCode.replace("background: ", "").replace(";", ""),
+          }}
         />
 
         {/* 控制面板 */}
@@ -118,21 +136,21 @@ const GradientGenerator: React.FC<GradientGeneratorProps> = ({ onClose, onMinimi
             <label>渐变类型</label>
             <div className={styles.buttonGroup}>
               <button
-                onClick={() => setGradientType('linear')}
-                className={`${styles.typeButton} ${gradientType === 'linear' ? styles.active : ''}`}
+                onClick={() => setGradientType("linear")}
+                className={`${styles.typeButton} ${gradientType === "linear" ? styles.active : ""}`}
               >
                 线性
               </button>
               <button
-                onClick={() => setGradientType('radial')}
-                className={`${styles.typeButton} ${gradientType === 'radial' ? styles.active : ''}`}
+                onClick={() => setGradientType("radial")}
+                className={`${styles.typeButton} ${gradientType === "radial" ? styles.active : ""}`}
               >
                 径向
               </button>
             </div>
           </div>
 
-          {gradientType === 'linear' && (
+          {gradientType === "linear" && (
             <div className={styles.controlGroup}>
               <label>方向: {direction}°</label>
               <input
@@ -149,12 +167,14 @@ const GradientGenerator: React.FC<GradientGeneratorProps> = ({ onClose, onMinimi
           <div className={styles.controlGroup}>
             <label>颜色点</label>
             <div className={styles.colorStops}>
-              {colorStops.map((stop, index) => (
+              {colorStops.map((stop, _index) => (
                 <div key={stop.id} className={styles.colorStopRow}>
                   <input
                     type="color"
                     value={stop.color}
-                    onChange={(e) => updateColorStop(stop.id, 'color', e.target.value)}
+                    onChange={(e) =>
+                      updateColorStop(stop.id, "color", e.target.value)
+                    }
                     className={styles.colorPicker}
                   />
                   <input
@@ -162,7 +182,13 @@ const GradientGenerator: React.FC<GradientGeneratorProps> = ({ onClose, onMinimi
                     min="0"
                     max="100"
                     value={stop.position}
-                    onChange={(e) => updateColorStop(stop.id, 'position', Number(e.target.value))}
+                    onChange={(e) =>
+                      updateColorStop(
+                        stop.id,
+                        "position",
+                        Number(e.target.value),
+                      )
+                    }
                     className={styles.positionInput}
                   />
                   <span className={styles.percentSign}>%</span>
@@ -192,7 +218,7 @@ const GradientGenerator: React.FC<GradientGeneratorProps> = ({ onClose, onMinimi
                 key={index}
                 className={styles.presetItem}
                 style={{
-                  background: `linear-gradient(${preset.direction}deg, ${preset.colors[0]}, ${preset.colors[1]})`
+                  background: `linear-gradient(${preset.direction}deg, ${preset.colors[0]}, ${preset.colors[1]})`,
                 }}
                 onClick={() => applyPreset(preset)}
                 title={preset.name}

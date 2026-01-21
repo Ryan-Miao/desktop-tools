@@ -4,9 +4,9 @@
  * 每日时间规划和安排
  */
 
-import React, { useState, useEffect } from 'react';
-import PluginWindow from '../PluginWindow/PluginWindow';
-import styles from './SchedulePlanner.module.css';
+import React, { useState, useEffect } from "react";
+import PluginWindow from "../PluginWindow/PluginWindow";
+import styles from "./SchedulePlanner.module.css";
 
 interface SchedulePlannerProps {
   onClose: () => void;
@@ -23,25 +23,38 @@ interface TimeBlock {
 }
 
 const COLORS = [
-  '#667eea', '#764ba2', '#f093fb', '#f5576c',
-  '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
-  '#fa709a', '#fee140', '#30cfd0', '#c43a30'
+  "#667eea",
+  "#764ba2",
+  "#f093fb",
+  "#f5576c",
+  "#4facfe",
+  "#00f2fe",
+  "#43e97b",
+  "#38f9d7",
+  "#fa709a",
+  "#fee140",
+  "#30cfd0",
+  "#c43a30",
 ];
 
-const SchedulePlanner: React.FC<SchedulePlannerProps> = ({ onClose, onMinimize, onMaximize }) => {
+const SchedulePlanner: React.FC<SchedulePlannerProps> = ({
+  onClose,
+  onMinimize,
+  onMaximize,
+}) => {
   const [blocks, setBlocks] = useState<TimeBlock[]>([]);
   const [selectedBlock, setSelectedBlock] = useState<TimeBlock | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    title: '',
-    startTime: '09:00',
-    endTime: '10:00',
-    color: COLORS[0]
+    title: "",
+    startTime: "09:00",
+    endTime: "10:00",
+    color: COLORS[0],
   });
 
   // 从本地存储加载数据
   useEffect(() => {
-    const saved = localStorage.getItem('schedule-blocks');
+    const saved = localStorage.getItem("schedule-blocks");
     if (saved) {
       setBlocks(JSON.parse(saved));
     }
@@ -50,7 +63,7 @@ const SchedulePlanner: React.FC<SchedulePlannerProps> = ({ onClose, onMinimize, 
   // 保存到本地存储
   useEffect(() => {
     if (blocks.length > 0) {
-      localStorage.setItem('schedule-blocks', JSON.stringify(blocks));
+      localStorage.setItem("schedule-blocks", JSON.stringify(blocks));
     }
   }, [blocks]);
 
@@ -60,12 +73,15 @@ const SchedulePlanner: React.FC<SchedulePlannerProps> = ({ onClose, onMinimize, 
 
     const newBlock: TimeBlock = {
       id: Date.now().toString(),
-      ...formData
+      ...formData,
+      color: formData.color ?? COLORS[0],
     };
 
-    setBlocks(prev => [...prev, newBlock].sort((a, b) =>
-      a.startTime.localeCompare(b.startTime)
-    ));
+    setBlocks((prev) =>
+      [...prev, newBlock].sort((a, b) =>
+        a.startTime.localeCompare(b.startTime),
+      ),
+    );
     resetForm();
   };
 
@@ -73,17 +89,19 @@ const SchedulePlanner: React.FC<SchedulePlannerProps> = ({ onClose, onMinimize, 
   const updateBlock = () => {
     if (!selectedBlock || !formData.title.trim()) return;
 
-    setBlocks(prev => prev.map(block =>
-      block.id === selectedBlock.id
-        ? { ...block, ...formData }
-        : block
-    ).sort((a, b) => a.startTime.localeCompare(b.startTime)));
+    setBlocks((prev) =>
+      prev
+        .map((block) =>
+          block.id === selectedBlock.id ? { ...block, ...formData } : block,
+        )
+        .sort((a, b) => a.startTime.localeCompare(b.startTime)),
+    );
     resetForm();
   };
 
   // 删除时间段
   const deleteBlock = (id: string) => {
-    setBlocks(prev => prev.filter(block => block.id !== id));
+    setBlocks((prev) => prev.filter((block) => block.id !== id));
     if (selectedBlock?.id === id) {
       resetForm();
     }
@@ -96,7 +114,7 @@ const SchedulePlanner: React.FC<SchedulePlannerProps> = ({ onClose, onMinimize, 
       title: block.title,
       startTime: block.startTime,
       endTime: block.endTime,
-      color: block.color
+      color: block.color,
     });
     setIsEditing(true);
   };
@@ -106,29 +124,31 @@ const SchedulePlanner: React.FC<SchedulePlannerProps> = ({ onClose, onMinimize, 
     setSelectedBlock(null);
     setIsEditing(false);
     setFormData({
-      title: '',
-      startTime: '09:00',
-      endTime: '10:00',
-      color: COLORS[0]
+      title: "",
+      startTime: "09:00",
+      endTime: "10:00",
+      color: COLORS[0],
     });
   };
 
   // 清空所有
   const clearAll = () => {
-    if (confirm('确定要清空所有日程吗？')) {
+    if (confirm("确定要清空所有日程吗？")) {
       setBlocks([]);
       resetForm();
-      localStorage.removeItem('schedule-blocks');
+      localStorage.removeItem("schedule-blocks");
     }
   };
 
   // 检查时间冲突
   const hasConflict = (start: string, end: string, excludeId?: string) => {
-    return blocks.some(block => {
+    return blocks.some((block) => {
       if (excludeId && block.id === excludeId) return false;
-      return (start >= block.startTime && start < block.endTime) ||
-             (end > block.startTime && end <= block.endTime) ||
-             (start <= block.startTime && end >= block.endTime);
+      return (
+        (start >= block.startTime && start < block.endTime) ||
+        (end > block.startTime && end <= block.endTime) ||
+        (start <= block.startTime && end >= block.endTime)
+      );
     });
   };
 
@@ -146,13 +166,15 @@ const SchedulePlanner: React.FC<SchedulePlannerProps> = ({ onClose, onMinimize, 
       <div className={styles.container}>
         {/* 表单 */}
         <div className={styles.formSection}>
-          <h3>{isEditing ? '编辑日程' : '添加日程'}</h3>
+          <h3>{isEditing ? "编辑日程" : "添加日程"}</h3>
           <div className={styles.formGroup}>
             <label>标题</label>
             <input
               type="text"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
               placeholder="例如：晨会、午休..."
               className={styles.input}
             />
@@ -163,7 +185,9 @@ const SchedulePlanner: React.FC<SchedulePlannerProps> = ({ onClose, onMinimize, 
               <input
                 type="time"
                 value={formData.startTime}
-                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, startTime: e.target.value })
+                }
                 className={styles.input}
               />
             </div>
@@ -172,7 +196,9 @@ const SchedulePlanner: React.FC<SchedulePlannerProps> = ({ onClose, onMinimize, 
               <input
                 type="time"
                 value={formData.endTime}
-                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, endTime: e.target.value })
+                }
                 className={styles.input}
               />
             </div>
@@ -180,11 +206,11 @@ const SchedulePlanner: React.FC<SchedulePlannerProps> = ({ onClose, onMinimize, 
           <div className={styles.formGroup}>
             <label>颜色</label>
             <div className={styles.colorPicker}>
-              {COLORS.map(color => (
+              {COLORS.map((color) => (
                 <button
                   key={color}
                   onClick={() => setFormData({ ...formData, color })}
-                  className={`${styles.colorButton} ${formData.color === color ? styles.active : ''}`}
+                  className={`${styles.colorButton} ${formData.color === color ? styles.active : ""}`}
                   style={{ background: color }}
                 />
               ))}
@@ -279,7 +305,8 @@ const SchedulePlanner: React.FC<SchedulePlannerProps> = ({ onClose, onMinimize, 
                   const start = new Date(`2000-01-01 ${block.startTime}`);
                   const end = new Date(`2000-01-01 ${block.endTime}`);
                   return acc + (end.getTime() - start.getTime()) / (1000 * 60);
-                }, 0)} 分钟
+                }, 0)}{" "}
+                分钟
               </span>
             </div>
           </div>

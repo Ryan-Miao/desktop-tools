@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import './Toast.css';
+import React, { useEffect, useState } from "react";
+import "./Toast.css";
 
 export interface ToastProps {
   /** 通知类型 */
-  type?: 'success' | 'error' | 'warning' | 'info';
+  type?: "success" | "error" | "warning" | "info";
   /** 标题 */
   title?: string;
   /** 消息内容 */
@@ -27,13 +27,13 @@ export interface ToastProps {
  * 带有平滑进入/退出动画的通知提示
  */
 const Toast: React.FC<ToastProps> = ({
-  type = 'info',
+  type = "info",
   title,
   message,
   duration = 3000,
   onClose,
   action,
-  showIcon = true
+  showIcon = true,
 }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [isClosing, setIsClosing] = useState(false);
@@ -46,6 +46,7 @@ const Toast: React.FC<ToastProps> = ({
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [duration]);
 
   const handleClose = () => {
@@ -66,19 +67,15 @@ const Toast: React.FC<ToastProps> = ({
   }
 
   const icons = {
-    success: '✓',
-    error: '✕',
-    warning: '⚠',
-    info: 'ℹ'
+    success: "✓",
+    error: "✕",
+    warning: "⚠",
+    info: "ℹ",
   };
 
   return (
-    <div className={`toast toast-${type} ${isClosing ? 'toast-closing' : ''}`}>
-      {showIcon && (
-        <div className="toast-icon">
-          {icons[type]}
-        </div>
-      )}
+    <div className={`toast toast-${type} ${isClosing ? "toast-closing" : ""}`}>
+      {showIcon && <div className="toast-icon">{icons[type]}</div>}
 
       <div className="toast-content">
         {title && <div className="toast-title">{title}</div>}
@@ -91,11 +88,7 @@ const Toast: React.FC<ToastProps> = ({
         </button>
       )}
 
-      <button
-        className="toast-close"
-        onClick={handleClose}
-        aria-label="关闭"
-      >
+      <button className="toast-close" onClick={handleClose} aria-label="关闭">
         ×
       </button>
     </div>
@@ -110,7 +103,7 @@ export default Toast;
 export interface ToastContainerProps {
   toasts: Array<{
     id: string;
-    type?: 'success' | 'error' | 'warning' | 'info';
+    type?: "success" | "error" | "warning" | "info";
     title?: string;
     message: string;
     duration?: number;
@@ -122,10 +115,13 @@ export interface ToastContainerProps {
   onRemove: (id: string) => void;
 }
 
-export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemove }) => {
+export const ToastContainer: React.FC<ToastContainerProps> = ({
+  toasts,
+  onRemove,
+}) => {
   return (
     <div className="toast-container">
-      {toasts.map(toast => (
+      {toasts.map((toast) => (
         <div key={toast.id} className="toast-wrapper">
           <Toast
             type={toast.type}
@@ -145,34 +141,36 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemove
  * Toast Hook（简化使用）
  */
 export function useToast() {
-  const [toasts, setToasts] = useState<Array<{
-    id: string;
-    type?: 'success' | 'error' | 'warning' | 'info';
-    title?: string;
-    message: string;
-    duration?: number;
-  }>>([]);
+  const [toasts, setToasts] = useState<
+    Array<{
+      id: string;
+      type?: "success" | "error" | "warning" | "info";
+      title?: string;
+      message: string;
+      duration?: number;
+    }>
+  >([]);
 
   const show = (
     message: string,
     options?: {
-      type?: 'success' | 'error' | 'warning' | 'info';
+      type?: "success" | "error" | "warning" | "info";
       title?: string;
       duration?: number;
-    }
+    },
   ) => {
     const id = Date.now().toString();
     const toast = {
       id,
       message,
-      ...options
+      ...options,
     };
 
-    setToasts(prev => [...prev, toast]);
+    setToasts((prev) => [...prev, toast]);
 
     if (options?.duration !== 0) {
       setTimeout(() => {
-        setToasts(prev => prev.filter(t => t.id !== id));
+        setToasts((prev) => prev.filter((t) => t.id !== id));
       }, options?.duration || 3000);
     }
 
@@ -180,16 +178,20 @@ export function useToast() {
   };
 
   const remove = (id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
   return {
     toasts,
     show,
     remove,
-    success: (message: string, title?: string) => show(message, { type: 'success', title }),
-    error: (message: string, title?: string) => show(message, { type: 'error', title }),
-    warning: (message: string, title?: string) => show(message, { type: 'warning', title }),
-    info: (message: string, title?: string) => show(message, { type: 'info', title })
+    success: (message: string, title?: string) =>
+      show(message, { type: "success", title }),
+    error: (message: string, title?: string) =>
+      show(message, { type: "error", title }),
+    warning: (message: string, title?: string) =>
+      show(message, { type: "warning", title }),
+    info: (message: string, title?: string) =>
+      show(message, { type: "info", title }),
   };
 }

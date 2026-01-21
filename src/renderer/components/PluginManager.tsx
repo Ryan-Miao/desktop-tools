@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { IPCChannels, PluginEvents } from '@shared/constants/channels';
-import { PluginManifest, PluginState, PluginSource } from '@shared/types/plugin';
-import { createLogger } from '../../shared/logger';
-import { eventBus, AppEvents } from '../utils/eventBus';
-import { pluginRegistry } from '../services/PluginRegistry';
-import { remotePluginLoader } from '../services/RemotePluginLoader';
-import './PluginManager.css';
+import React, { useState, useEffect } from "react";
+import { IPCChannels, PluginEvents } from "@shared/constants/channels";
+import {
+  PluginManifest,
+  PluginState,
+  PluginSource,
+} from "@shared/types/plugin";
+import { createLogger } from "../../shared/logger";
+import { eventBus, AppEvents } from "../utils/eventBus";
+import { pluginRegistry } from "../services/PluginRegistry";
+import { remotePluginLoader } from "../services/RemotePluginLoader";
+import "./PluginManager.css";
 
-const logger = createLogger('PluginManager');
+const logger = createLogger("PluginManager");
 
 interface PluginManagerProps {
   visible: boolean;
@@ -28,15 +32,19 @@ interface PluginManagerProps {
 const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
   const [plugins, setPlugins] = useState<PluginManifest[]>([]);
   const [pluginStates, setPluginStates] = useState<PluginState[]>([]);
-  const [filter, setFilter] = useState<'all' | 'enabled' | 'disabled' | 'favorite'>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState<
+    "all" | "enabled" | "disabled" | "favorite"
+  >("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [selectedPlugin, setSelectedPlugin] = useState<string | null>(null);
   const [installing, setInstalling] = useState<string | null>(null);
-  const [uninstallingPluginId, setUninstallingPluginId] = useState<string | null>(null);
+  const [uninstallingPluginId, setUninstallingPluginId] = useState<
+    string | null
+  >(null);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
+  const [toastMessage, setToastMessage] = useState("");
 
   // 加载插件列表
   useEffect(() => {
@@ -49,10 +57,14 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
   const loadPlugins = async () => {
     try {
       // 从主进程获取插件列表（内置和本地ZIP）
-      const mainProcessPlugins = await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_LIST) || [];
+      const mainProcessPlugins =
+        (await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_LIST)) ||
+        [];
 
       // 从PluginRegistry获取已注册的插件（包含npm插件）
-      const registryPlugins = pluginRegistry.getAll().map(info => info.manifest);
+      const registryPlugins = pluginRegistry
+        .getAll()
+        .map((info) => info.manifest);
 
       // 合并并去重（使用Map以pluginId为key）
       const pluginMap = new Map<string, PluginManifest>();
@@ -63,7 +75,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
       });
 
       // 添加/覆盖PluginRegistry中的插件（npm插件）
-      registryPlugins.forEach(p => {
+      registryPlugins.forEach((p) => {
         pluginMap.set(p.id, p);
       });
 
@@ -71,50 +83,62 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
       const allPlugins = Array.from(pluginMap.values());
       setPlugins(allPlugins);
     } catch (error) {
-      logger.error('Failed to load plugins', { error });
+      logger.error("Failed to load plugins", { error });
     }
   };
 
   const loadPluginStates = async () => {
     try {
-      const states = await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_GET_ALL_STATES) || [];
+      const states =
+        (await window.electron?.ipcRenderer?.invoke(
+          IPCChannels.PLUGIN_GET_ALL_STATES,
+        )) || [];
       setPluginStates(states);
     } catch (error) {
-      logger.error('Failed to load plugin states', { error });
+      logger.error("Failed to load plugin states", { error });
     }
   };
 
   // 监听插件事件
   useEffect(() => {
-    const handlePluginLoaded = (_event: any, pluginId: string) => {
+    const handlePluginLoaded = (_event: any, _pluginId: string) => {
       loadPlugins();
       loadPluginStates();
     };
 
-    const handlePluginUnloaded = (_event: any, pluginId: string) => {
+    const handlePluginUnloaded = (_event: any, _pluginId: string) => {
       loadPlugins();
       loadPluginStates();
     };
 
-    const handlePluginInstalled = (_event: any, pluginId: string) => {
+    const handlePluginInstalled = (_event: any, _pluginId: string) => {
       loadPlugins();
       loadPluginStates();
     };
 
-    const handlePluginUninstalled = (_event: any, pluginId: string) => {
+    const handlePluginUninstalled = (_event: any, _pluginId: string) => {
       loadPlugins();
       loadPluginStates();
     };
 
-    const handlePluginUpdated = (_event: any, pluginId: string) => {
+    const handlePluginUpdated = (_event: any, _pluginId: string) => {
       loadPlugins();
     };
 
     if (window.electron?.ipcRenderer) {
       window.electron.ipcRenderer.on(PluginEvents.LOADED, handlePluginLoaded);
-      window.electron.ipcRenderer.on(PluginEvents.UNLOADED, handlePluginUnloaded);
-      window.electron.ipcRenderer.on(PluginEvents.INSTALLED, handlePluginInstalled);
-      window.electron.ipcRenderer.on(PluginEvents.UNINSTALLED, handlePluginUninstalled);
+      window.electron.ipcRenderer.on(
+        PluginEvents.UNLOADED,
+        handlePluginUnloaded,
+      );
+      window.electron.ipcRenderer.on(
+        PluginEvents.INSTALLED,
+        handlePluginInstalled,
+      );
+      window.electron.ipcRenderer.on(
+        PluginEvents.UNINSTALLED,
+        handlePluginUninstalled,
+      );
       window.electron.ipcRenderer.on(PluginEvents.UPDATED, handlePluginUpdated);
     }
 
@@ -123,7 +147,9 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
         window.electron.ipcRenderer.removeAllListeners(PluginEvents.LOADED);
         window.electron.ipcRenderer.removeAllListeners(PluginEvents.UNLOADED);
         window.electron.ipcRenderer.removeAllListeners(PluginEvents.INSTALLED);
-        window.electron.ipcRenderer.removeAllListeners(PluginEvents.UNINSTALLED);
+        window.electron.ipcRenderer.removeAllListeners(
+          PluginEvents.UNINSTALLED,
+        );
         window.electron.ipcRenderer.removeAllListeners(PluginEvents.UPDATED);
       }
     };
@@ -131,13 +157,13 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
 
   // 获取插件状态
   const getPluginState = (pluginId: string): PluginState | undefined => {
-    return pluginStates.find(s => s.id === pluginId);
+    return pluginStates.find((s) => s.id === pluginId);
   };
 
   // 获取所有分类
   const getAllCategories = (): string[] => {
     const categories = new Set<string>();
-    plugins.forEach(p => {
+    plugins.forEach((p) => {
       if (p.category) {
         categories.add(p.category);
       }
@@ -152,32 +178,34 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
     // 搜索过滤
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(p =>
-        p.name.toLowerCase().includes(query) ||
-        p.description.toLowerCase().includes(query) ||
-        (p.category && p.category.toLowerCase().includes(query)) ||
-        (p.keywords && p.keywords.some(k => k.toLowerCase().includes(query)))
+      filtered = filtered.filter(
+        (p) =>
+          p.name.toLowerCase().includes(query) ||
+          p.description.toLowerCase().includes(query) ||
+          (p.category && p.category.toLowerCase().includes(query)) ||
+          (p.keywords &&
+            p.keywords.some((k) => k.toLowerCase().includes(query))),
       );
     }
 
     // 分类过滤
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(p => p.category === categoryFilter);
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter((p) => p.category === categoryFilter);
     }
 
     // 状态过滤
-    if (filter === 'enabled') {
-      filtered = filtered.filter(p => {
+    if (filter === "enabled") {
+      filtered = filtered.filter((p) => {
         const state = getPluginState(p.id);
         return state?.enabled;
       });
-    } else if (filter === 'disabled') {
-      filtered = filtered.filter(p => {
+    } else if (filter === "disabled") {
+      filtered = filtered.filter((p) => {
         const state = getPluginState(p.id);
         return state && !state.enabled;
       });
-    } else if (filter === 'favorite') {
-      filtered = filtered.filter(p => {
+    } else if (filter === "favorite") {
+      filtered = filtered.filter((p) => {
         const state = getPluginState(p.id);
         return state?.customData?.favorite;
       });
@@ -196,9 +224,11 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
     try {
       const newState = { ...state, enabled: !state.enabled };
       // TODO: 需要添加保存插件状态的 IPC
-      setPluginStates(prev => prev.map(s => s.id === pluginId ? newState : s));
+      setPluginStates((prev) =>
+        prev.map((s) => (s.id === pluginId ? newState : s)),
+      );
     } catch (error) {
-      logger.error('Failed to toggle plugin', { error });
+      logger.error("Failed to toggle plugin", { error });
     }
   };
 
@@ -210,29 +240,29 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
     try {
       const newState = {
         ...state,
-        customData: { ...state.customData, favorite: !state.customData?.favorite }
+        customData: {
+          ...state.customData,
+          favorite: !state.customData?.favorite,
+        },
       };
       // TODO: 需要添加保存插件状态的 IPC
-      setPluginStates(prev => prev.map(s => s.id === pluginId ? newState : s));
+      setPluginStates((prev) =>
+        prev.map((s) => (s.id === pluginId ? newState : s)),
+      );
     } catch (error) {
-      logger.error('Failed to toggle favorite', { error });
+      logger.error("Failed to toggle favorite", { error });
     }
   };
 
-  // 卸载/重载插件
-  const unloadPlugin = async (pluginId: string) => {
-    try {
-      await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_UNLOAD, pluginId);
-    } catch (error) {
-      logger.error('Failed to unload plugin', { error });
-    }
-  };
-
+  // 重载插件
   const reloadPlugin = async (pluginId: string) => {
     try {
-      await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_RELOAD, pluginId);
+      await window.electron?.ipcRenderer?.invoke(
+        IPCChannels.PLUGIN_RELOAD,
+        pluginId,
+      );
     } catch (error) {
-      logger.error('Failed to reload plugin', { error });
+      logger.error("Failed to reload plugin", { error });
     }
   };
 
@@ -248,14 +278,19 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
     try {
       // 检查插件是否在PluginRegistry中且标记为local或remote（npm插件）
       const registryPlugin = pluginRegistry.getPluginInfo(uninstallingPluginId);
-      const isNpmPlugin = registryPlugin?.source === 'local' || registryPlugin?.source === 'remote';
+      const isNpmPlugin =
+        registryPlugin?.source === "local" ||
+        registryPlugin?.source === "remote";
 
       if (isNpmPlugin) {
         // npm插件：使用RemotePluginLoader卸载
         remotePluginLoader.uninstallPlugin(uninstallingPluginId);
       } else {
         // 本地ZIP插件：使用IPC卸载
-        await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_UNINSTALL, uninstallingPluginId);
+        await window.electron?.ipcRenderer?.invoke(
+          IPCChannels.PLUGIN_UNINSTALL,
+          uninstallingPluginId,
+        );
       }
 
       // 显示成功提示
@@ -271,7 +306,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
         eventBus.emit(AppEvents.PLUGINS_CHANGED);
       }
     } catch (error) {
-      logger.error('Failed to uninstall plugin', { error });
+      logger.error("Failed to uninstall plugin", { error });
       setToastMessage(`卸载插件失败: ${error}`);
       setShowSuccessToast(true);
       setTimeout(() => setShowSuccessToast(false), 2000);
@@ -290,19 +325,19 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
     if (!file) return;
 
     // 检查文件类型
-    if (!file.name.endsWith('.zip')) {
-      alert('请选择 ZIP 格式的插件文件');
+    if (!file.name.endsWith(".zip")) {
+      alert("请选择 ZIP 格式的插件文件");
       return;
     }
 
     try {
       // 读取文件
       const arrayBuffer = await file.arrayBuffer();
-      const blob = new Blob([arrayBuffer], { type: 'application/zip' });
+      const blob = new Blob([arrayBuffer], { type: "application/zip" });
 
       // 保存到临时目录（需要主进程处理）
       const formData = new FormData();
-      formData.append('plugin', blob, file.name);
+      formData.append("plugin", blob, file.name);
 
       // TODO: 添加导入插件的 IPC 处理
       setInstalling(file.name);
@@ -313,7 +348,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
         loadPluginStates();
       }, 2000);
     } catch (error) {
-      logger.error('Failed to import plugin', { error });
+      logger.error("Failed to import plugin", { error });
       alert(`导入插件失败: ${error}`);
     }
   };
@@ -321,17 +356,23 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
   // 导出插件
   const exportPlugin = async (pluginId: string) => {
     try {
-      const result = await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_EXPORT, pluginId);
+      const result = await window.electron?.ipcRenderer?.invoke(
+        IPCChannels.PLUGIN_EXPORT,
+        pluginId,
+      );
       if (result?.canceled) {
-        logger.info('Export canceled');
+        logger.info("Export canceled");
         return;
       }
       if (result?.exported) {
-        logger.info('Plugin exported successfully', { pluginId, path: result.path });
+        logger.info("Plugin exported successfully", {
+          pluginId,
+          path: result.path,
+        });
         alert(`插件已导出到:\n${result.path}`);
       }
     } catch (error) {
-      logger.error('Failed to export plugin', { error });
+      logger.error("Failed to export plugin", { error });
       alert(`导出插件失败: ${error}`);
     }
   };
@@ -339,13 +380,15 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
   // 导入插件
   const importPlugin = async () => {
     try {
-      const result = await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_IMPORT);
+      const result = await window.electron?.ipcRenderer?.invoke(
+        IPCChannels.PLUGIN_IMPORT,
+      );
       if (result?.canceled) {
-        logger.info('Import canceled');
+        logger.info("Import canceled");
         return;
       }
       if (result?.imported) {
-        logger.info('Plugin imported successfully', { path: result.path });
+        logger.info("Plugin imported successfully", { path: result.path });
         alert(`插件导入成功！\n${result.path}`);
         // 重新加载插件列表
         loadPlugins();
@@ -354,7 +397,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
         eventBus.emit(AppEvents.PLUGINS_CHANGED);
       }
     } catch (error) {
-      logger.error('Failed to import plugin', { error });
+      logger.error("Failed to import plugin", { error });
       alert(`导入插件失败: ${error}`);
     }
   };
@@ -362,26 +405,28 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
   // // 检查更新
   const checkUpdates = async () => {
     try {
-      await window.electron?.ipcRenderer?.invoke(IPCChannels.PLUGIN_CHECK_UPDATES);
+      await window.electron?.ipcRenderer?.invoke(
+        IPCChannels.PLUGIN_CHECK_UPDATES,
+      );
     } catch (error) {
-      logger.error('Failed to check updates', { error });
+      logger.error("Failed to check updates", { error });
     }
   };
 
   // 获取插件来源标签
   const getSourceLabel = (pluginId: string): string => {
     const state = getPluginState(pluginId);
-    if (!state) return 'Unknown';
+    if (!state) return "Unknown";
 
     switch (state.source) {
       case PluginSource.BUILTIN:
-        return '内置';
+        return "内置";
       case PluginSource.LOCAL:
-        return '本地';
+        return "本地";
       case PluginSource.REMOTE:
-        return '远程';
+        return "远程";
       default:
-        return 'Unknown';
+        return "Unknown";
     }
   };
 
@@ -389,11 +434,16 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
 
   return (
     <div className="plugin-manager-overlay" onClick={onClose}>
-      <div className="plugin-manager-modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="plugin-manager-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* 头部 */}
         <div className="plugin-manager-header">
           <h2 className="plugin-manager-title">插件管理</h2>
-          <button className="plugin-manager-close" onClick={onClose}>✕</button>
+          <button className="plugin-manager-close" onClick={onClose}>
+            ✕
+          </button>
         </div>
 
         {/* 工具栏 */}
@@ -414,34 +464,36 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
             onChange={(e) => setCategoryFilter(e.target.value)}
           >
             <option value="all">全部分类</option>
-            {getAllCategories().map(category => (
-              <option key={category} value={category}>{category}</option>
+            {getAllCategories().map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
             ))}
           </select>
 
           {/* 过滤器 */}
           <div className="plugin-manager-filters">
             <button
-              className={`plugin-manager-filter ${filter === 'all' ? 'active' : ''}`}
-              onClick={() => setFilter('all')}
+              className={`plugin-manager-filter ${filter === "all" ? "active" : ""}`}
+              onClick={() => setFilter("all")}
             >
               全部
             </button>
             <button
-              className={`plugin-manager-filter ${filter === 'enabled' ? 'active' : ''}`}
-              onClick={() => setFilter('enabled')}
+              className={`plugin-manager-filter ${filter === "enabled" ? "active" : ""}`}
+              onClick={() => setFilter("enabled")}
             >
               已启用
             </button>
             <button
-              className={`plugin-manager-filter ${filter === 'disabled' ? 'active' : ''}`}
-              onClick={() => setFilter('disabled')}
+              className={`plugin-manager-filter ${filter === "disabled" ? "active" : ""}`}
+              onClick={() => setFilter("disabled")}
             >
               已禁用
             </button>
             <button
-              className={`plugin-manager-filter ${filter === 'favorite' ? 'active' : ''}`}
-              onClick={() => setFilter('favorite')}
+              className={`plugin-manager-filter ${filter === "favorite" ? "active" : ""}`}
+              onClick={() => setFilter("favorite")}
             >
               已收藏
             </button>
@@ -480,7 +532,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
         <div className="plugin-manager-content">
           {filteredPlugins.length === 0 ? (
             <div className="plugin-manager-empty">
-              {searchQuery ? '未找到匹配的插件' : '没有插件'}
+              {searchQuery ? "未找到匹配的插件" : "没有插件"}
             </div>
           ) : (
             <div className="plugin-manager-list">
@@ -492,8 +544,12 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
                 return (
                   <div
                     key={plugin.id}
-                    className={`plugin-manager-item ${selectedPlugin === plugin.id ? 'selected' : ''}`}
-                    onClick={() => setSelectedPlugin(plugin.id === selectedPlugin ? null : plugin.id)}
+                    className={`plugin-manager-item ${selectedPlugin === plugin.id ? "selected" : ""}`}
+                    onClick={() =>
+                      setSelectedPlugin(
+                        plugin.id === selectedPlugin ? null : plugin.id,
+                      )
+                    }
                   >
                     {/* 插件信息 */}
                     <div className="plugin-manager-item-info">
@@ -501,16 +557,28 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
                         {plugin.icon}
                       </div>
                       <div className="plugin-manager-item-details">
-                        <div className="plugin-manager-item-name">{plugin.name}</div>
-                        <div className="plugin-manager-item-desc">{plugin.description}</div>
+                        <div className="plugin-manager-item-name">
+                          {plugin.name}
+                        </div>
+                        <div className="plugin-manager-item-desc">
+                          {plugin.description}
+                        </div>
                         <div className="plugin-manager-item-meta">
-                          <span className="plugin-manager-item-version">v{plugin.version}</span>
+                          <span className="plugin-manager-item-version">
+                            v{plugin.version}
+                          </span>
                           {plugin.category && (
-                            <span className="plugin-manager-item-category">{plugin.category}</span>
+                            <span className="plugin-manager-item-category">
+                              {plugin.category}
+                            </span>
                           )}
-                          <span className="plugin-manager-item-source">{getSourceLabel(plugin.id)}</span>
+                          <span className="plugin-manager-item-source">
+                            {getSourceLabel(plugin.id)}
+                          </span>
                           {state?.updateAvailable && (
-                            <span className="plugin-manager-item-update">有更新</span>
+                            <span className="plugin-manager-item-update">
+                              有更新
+                            </span>
                           )}
                         </div>
                       </div>
@@ -519,17 +587,17 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
                     {/* 操作按钮 */}
                     <div className="plugin-manager-item-actions">
                       <button
-                        className={`plugin-manager-action plugin-manager-action-enable ${isEnabled ? 'enabled' : 'disabled'}`}
+                        className={`plugin-manager-action plugin-manager-action-enable ${isEnabled ? "enabled" : "disabled"}`}
                         onClick={() => togglePluginEnabled(plugin.id)}
-                        title={isEnabled ? '禁用' : '启用'}
+                        title={isEnabled ? "禁用" : "启用"}
                       >
-                        {isEnabled ? '🟢' : '⚫'}
+                        {isEnabled ? "🟢" : "⚫"}
                       </button>
 
                       <button
-                        className={`plugin-manager-action plugin-manager-action-favorite ${isFavorite ? 'active' : ''}`}
+                        className={`plugin-manager-action plugin-manager-action-favorite ${isFavorite ? "active" : ""}`}
                         onClick={() => togglePluginFavorite(plugin.id)}
-                        title={isFavorite ? '取消收藏' : '收藏'}
+                        title={isFavorite ? "取消收藏" : "收藏"}
                       >
                         ⭐
                       </button>
@@ -542,8 +610,12 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
                         🔄
                       </button>
 
-                      {(state?.source === PluginSource.LOCAL || pluginRegistry.getPluginInfo(plugin.id)?.source === 'local' || pluginRegistry.getPluginInfo(plugin.id)?.source === 'remote') && (
-                        uninstallingPluginId === plugin.id ? (
+                      {(state?.source === PluginSource.LOCAL ||
+                        pluginRegistry.getPluginInfo(plugin.id)?.source ===
+                          "local" ||
+                        pluginRegistry.getPluginInfo(plugin.id)?.source ===
+                          "remote") &&
+                        (uninstallingPluginId === plugin.id ? (
                           <div className="plugin-manager-uninstall-confirm">
                             <button
                               className="plugin-manager-confirm-yes"
@@ -566,8 +638,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
                           >
                             🗑
                           </button>
-                        )
-                      )}
+                        ))}
 
                       <button
                         className="plugin-manager-action plugin-manager-action-export"
@@ -588,7 +659,7 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
         {selectedPlugin && (
           <div className="plugin-manager-detail">
             {(() => {
-              const plugin = plugins.find(p => p.id === selectedPlugin);
+              const plugin = plugins.find((p) => p.id === selectedPlugin);
               if (!plugin) return null;
 
               const state = getPluginState(selectedPlugin);
@@ -611,7 +682,9 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
                   <div className="plugin-detail-body">
                     <div className="plugin-detail-section">
                       <label className="plugin-detail-label">描述：</label>
-                      <p className="plugin-detail-value">{plugin.description}</p>
+                      <p className="plugin-detail-value">
+                        {plugin.description}
+                      </p>
                     </div>
 
                     <div className="plugin-detail-section">
@@ -631,7 +704,9 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
 
                     <div className="plugin-detail-section">
                       <label className="plugin-detail-label">来源：</label>
-                      <p className="plugin-detail-value">{getSourceLabel(plugin.id)}</p>
+                      <p className="plugin-detail-value">
+                        {getSourceLabel(plugin.id)}
+                      </p>
                     </div>
 
                     {plugin.category && (
@@ -645,25 +720,33 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
                       <div className="plugin-detail-section">
                         <label className="plugin-detail-label">关键词：</label>
                         <p className="plugin-detail-value">
-                          {plugin.keywords.join(', ')}
+                          {plugin.keywords.join(", ")}
                         </p>
                       </div>
                     )}
 
                     {state && (
                       <div className="plugin-detail-section">
-                        <label className="plugin-detail-label">安装时间：</label>
+                        <label className="plugin-detail-label">
+                          安装时间：
+                        </label>
                         <p className="plugin-detail-value">
-                          {state.installedAt ? new Date(state.installedAt).toLocaleString('zh-CN') : 'Unknown'}
+                          {state.installedAt
+                            ? new Date(state.installedAt).toLocaleString(
+                                "zh-CN",
+                              )
+                            : "Unknown"}
                         </p>
                       </div>
                     )}
 
                     {state?.lastUsed && (
                       <div className="plugin-detail-section">
-                        <label className="plugin-detail-label">最后使用：</label>
+                        <label className="plugin-detail-label">
+                          最后使用：
+                        </label>
                         <p className="plugin-detail-value">
-                          {new Date(state.lastUsed).toLocaleString('zh-CN')}
+                          {new Date(state.lastUsed).toLocaleString("zh-CN")}
                         </p>
                       </div>
                     )}
@@ -677,7 +760,9 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
                       重载插件
                     </button>
 
-                    {(state?.source === PluginSource.LOCAL || pluginRegistry.getPluginInfo(selectedPlugin)?.source === 'local') && (
+                    {(state?.source === PluginSource.LOCAL ||
+                      pluginRegistry.getPluginInfo(selectedPlugin)?.source ===
+                        "local") && (
                       <>
                         <button
                           className="plugin-detail-action-button"
@@ -706,24 +791,29 @@ const PluginManager: React.FC<PluginManagerProps> = ({ visible, onClose }) => {
           <div className="plugin-import-dialog">
             <div className="plugin-import-content">
               <h3 className="plugin-import-title">导入插件</h3>
-              <p className="plugin-import-desc">选择 ZIP 格式的插件文件进行安装</p>
+              <p className="plugin-import-desc">
+                选择 ZIP 格式的插件文件进行安装
+              </p>
 
               <div
                 className="plugin-import-drop-dzone"
                 onDragOver={(e) => {
                   e.preventDefault();
-                  e.currentTarget.classList.add('drag-over');
+                  e.currentTarget.classList.add("drag-over");
                 }}
                 onDragLeave={(e) => {
-                  e.currentTarget.classList.remove('drag-over');
+                  e.currentTarget.classList.remove("drag-over");
                 }}
                 onDrop={(e) => {
                   e.preventDefault();
-                  e.currentTarget.classList.remove('drag-over');
+                  e.currentTarget.classList.remove("drag-over");
 
                   const files = e.dataTransfer?.files;
                   if (files && files.length > 0) {
-                    handleImportPlugin(files[0]);
+                    const file = files[0];
+                    if (file) {
+                      handleImportPlugin(file);
+                    }
                   }
                 }}
               >

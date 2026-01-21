@@ -4,9 +4,9 @@
  * CSV/JSON数据分析和可视化
  */
 
-import React, { useState } from 'react';
-import PluginWindow from '../PluginWindow/PluginWindow';
-import styles from './DataPivot.module.css';
+import React, { useState } from "react";
+import PluginWindow from "../PluginWindow/PluginWindow";
+import styles from "./DataPivot.module.css";
 
 interface DataPivotProps {
   onClose: () => void;
@@ -18,13 +18,19 @@ interface DataRow {
   [key: string]: string | number;
 }
 
-const DataPivot: React.FC<DataPivotProps> = ({ onClose, onMinimize, onMaximize }) => {
+const DataPivot: React.FC<DataPivotProps> = ({
+  onClose,
+  onMinimize,
+  onMaximize,
+}) => {
   const [data, setData] = useState<DataRow[]>([]);
   const [columns, setColumns] = useState<string[]>([]);
-  const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
-  const [pivotColumn, setPivotColumn] = useState<string>('');
-  const [valueColumn, setValueColumn] = useState<string>('');
-  const [aggregateFunction, setAggregateFunction] = useState<'count' | 'sum' | 'avg'>('count');
+  const [_selectedColumns, setSelectedColumns] = useState<string[]>([]);
+  const [pivotColumn, setPivotColumn] = useState<string>("");
+  const [valueColumn, setValueColumn] = useState<string>("");
+  const [aggregateFunction, setAggregateFunction] = useState<
+    "count" | "sum" | "avg"
+  >("count");
   const [pivotResult, setPivotResult] = useState<{ [key: string]: number }>({});
 
   // 处理文件上传
@@ -36,25 +42,25 @@ const DataPivot: React.FC<DataPivotProps> = ({ onClose, onMinimize, onMaximize }
     reader.onload = (event) => {
       const content = event.target?.result as string;
 
-      if (file.name.endsWith('.json')) {
+      if (file.name.endsWith(".json")) {
         try {
           const jsonData = JSON.parse(content);
           const dataArray = Array.isArray(jsonData) ? jsonData : [jsonData];
           processData(dataArray);
         } catch (err) {
-          alert('JSON格式错误');
+          alert("JSON格式错误");
         }
       } else {
         // CSV处理
-        const lines = content.trim().split('\n');
+        const lines = content.trim().split("\n");
         if (lines.length < 2) return;
 
-        const headers = lines[0].split(',').map(h => h.trim());
-        const rows = lines.slice(1).map(line => {
-          const values = line.split(',');
+        const headers = lines[0]!.split(",").map((h) => h.trim());
+        const rows = lines.slice(1).map((line) => {
+          const values = line.split(",");
           const row: DataRow = {};
           headers.forEach((header, index) => {
-            row[header] = values[index]?.trim() || '';
+            row[header] = values[index]?.trim() || "";
           });
           return row;
         });
@@ -82,7 +88,7 @@ const DataPivot: React.FC<DataPivotProps> = ({ onClose, onMinimize, onMaximize }
 
     const result: { [key: string]: number[] } = {};
 
-    data.forEach(row => {
+    data.forEach((row) => {
       const key = String(row[pivotColumn]);
       const value = parseFloat(String(row[valueColumn])) || 0;
 
@@ -96,13 +102,13 @@ const DataPivot: React.FC<DataPivotProps> = ({ onClose, onMinimize, onMaximize }
 
     Object.entries(result).forEach(([key, values]) => {
       switch (aggregateFunction) {
-        case 'count':
+        case "count":
           aggregated[key] = values.length;
           break;
-        case 'sum':
+        case "sum":
           aggregated[key] = values.reduce((a, b) => a + b, 0);
           break;
-        case 'avg':
+        case "avg":
           aggregated[key] = values.reduce((a, b) => a + b, 0) / values.length;
           break;
       }
@@ -114,27 +120,27 @@ const DataPivot: React.FC<DataPivotProps> = ({ onClose, onMinimize, onMaximize }
   // 导出数据
   const exportData = () => {
     const csv = [
-      columns.join(','),
-      ...data.map(row => columns.map(col => row[col]).join(','))
-    ].join('\n');
+      columns.join(","),
+      ...data.map((row) => columns.map((col) => row[col]).join(",")),
+    ].join("\n");
 
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'data-export.csv';
+    a.download = "data-export.csv";
     a.click();
     URL.revokeObjectURL(url);
   };
 
   // 清空数据
   const clearData = () => {
-    if (confirm('确定要清空数据吗？')) {
+    if (confirm("确定要清空数据吗？")) {
       setData([]);
       setColumns([]);
       setSelectedColumns([]);
-      setPivotColumn('');
-      setValueColumn('');
+      setPivotColumn("");
+      setValueColumn("");
       setPivotResult({});
     }
   };
@@ -186,7 +192,7 @@ const DataPivot: React.FC<DataPivotProps> = ({ onClose, onMinimize, onMaximize }
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    {columns.map(col => (
+                    {columns.map((col) => (
                       <th key={col}>{col}</th>
                     ))}
                   </tr>
@@ -194,7 +200,7 @@ const DataPivot: React.FC<DataPivotProps> = ({ onClose, onMinimize, onMaximize }
                 <tbody>
                   {data.slice(0, 10).map((row, index) => (
                     <tr key={index}>
-                      {columns.map(col => (
+                      {columns.map((col) => (
                         <td key={col}>{String(row[col])}</td>
                       ))}
                     </tr>
@@ -223,8 +229,10 @@ const DataPivot: React.FC<DataPivotProps> = ({ onClose, onMinimize, onMaximize }
                   className={styles.select}
                 >
                   <option value="">选择列</option>
-                  {columns.map(col => (
-                    <option key={col} value={col}>{col}</option>
+                  {columns.map((col) => (
+                    <option key={col} value={col}>
+                      {col}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -236,8 +244,10 @@ const DataPivot: React.FC<DataPivotProps> = ({ onClose, onMinimize, onMaximize }
                   className={styles.select}
                 >
                   <option value="">选择列</option>
-                  {columns.map(col => (
-                    <option key={col} value={col}>{col}</option>
+                  {columns.map((col) => (
+                    <option key={col} value={col}>
+                      {col}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -271,7 +281,7 @@ const DataPivot: React.FC<DataPivotProps> = ({ onClose, onMinimize, onMaximize }
                   <div key={key} className={styles.resultItem}>
                     <span className={styles.resultKey}>{key}</span>
                     <span className={styles.resultValue}>
-                      {typeof value === 'number' ? value.toFixed(2) : value}
+                      {typeof value === "number" ? value.toFixed(2) : value}
                     </span>
                   </div>
                 ))}

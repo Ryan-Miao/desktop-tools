@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { getThemeById } from '../themes/themes';
-import './WindowControls.css';
+import React, { useState, useEffect } from "react";
+import { getThemeById } from "../themes/themes";
+import "./WindowControls.css";
 
 interface WindowControlsProps {
   themeId: string;
@@ -21,17 +21,19 @@ const WindowControls: React.FC<WindowControlsProps> = ({
   onClose,
   onOpenSettings,
   onOpenPluginManager,
-  onOpenPluginMarket
+  onOpenPluginMarket,
 }) => {
   const theme = getThemeById(themeId);
-  const mode = theme?.mode || 'light';
+  const mode = theme?.mode || "light";
   const [isMaximized, setIsMaximized] = useState(false);
 
   useEffect(() => {
     // Check if window is maximized
     const checkMaximized = async () => {
       if (window.electron?.ipcRenderer) {
-        const maximized = await window.electron.ipcRenderer.invoke('window:is-maximized');
+        const maximized = await window.electron.ipcRenderer.invoke(
+          "window:is-maximized",
+        );
         setIsMaximized(maximized);
       }
     };
@@ -43,14 +45,16 @@ const WindowControls: React.FC<WindowControlsProps> = ({
       const handleMaximize = () => setIsMaximized(true);
       const handleUnmaximize = () => setIsMaximized(false);
 
-      window.electron.ipcRenderer.on('window:maximized', handleMaximize);
-      window.electron.ipcRenderer.on('window:unmaximized', handleUnmaximize);
+      window.electron.ipcRenderer.on("window:maximized", handleMaximize);
+      window.electron.ipcRenderer.on("window:unmaximized", handleUnmaximize);
 
       return () => {
-        window.electron?.ipcRenderer.removeAllListeners('window:maximized');
-        window.electron?.ipcRenderer.removeAllListeners('window:unmaximized');
+        window.electron?.ipcRenderer.removeAllListeners("window:maximized");
+        window.electron?.ipcRenderer.removeAllListeners("window:unmaximized");
       };
     }
+
+    return undefined;
   }, []);
 
   const handleMaximizeClick = () => {
@@ -157,7 +161,7 @@ const WindowControls: React.FC<WindowControlsProps> = ({
           onClick={onToggleTheme}
           aria-label="Toggle theme"
         >
-          {mode === 'light' ? '🌙' : '☀️'}
+          {mode === "light" ? "🌙" : "☀️"}
         </button>
       </div>
     </div>
