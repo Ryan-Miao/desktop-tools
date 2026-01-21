@@ -392,7 +392,7 @@ const plugins: Plugin[] = [
 ];
 ```
 
-详细插件开发指南请查看 [PLUGIN_DEVELOPMENT.md](./doc/PLUGIN_DEVELOPMENT.md)
+详细插件开发指南请查看 [PLUGIN_DEVELOPMENT.md](./PLUGIN_DEVELOPMENT.md)
 
 ## 数据备份
 
