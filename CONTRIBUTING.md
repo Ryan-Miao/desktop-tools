@@ -27,6 +27,125 @@ npm run dev
 npm start
 ```
 
+## AI辅助开发规范
+
+本项目使用AI辅助开发时，需要遵循特定的开发规范和流程。
+
+### 核心原则
+
+1. **代码质量优先**: AI生成的代码必须满足项目质量标准
+2. **测试驱动**: 核心代码变更必须先编写测试
+3. **文档完整**: 所有变更需要适当的文档
+4. **安全第一**: 不引入安全漏洞
+
+### 变更分类
+
+在开始开发前，请先分类你的变更：
+
+| 类型 | 描述 | 测试要求 | 设计审批 |
+|------|------|----------|----------|
+| **Critical** | 核心代码、破坏性变更、安全 | 80%覆盖+E2E+性能 | ✅ 必需 |
+| **Major** | 新功能、架构变更 | 70%覆盖+集成测试 | ✅ 必需 |
+| **Minor** | Bug修复、小增强 | 复现测试+边界测试 | ❌ 不需要 |
+| **Trivial** | UI调整、配置、文档 | 现有测试通过 | ❌ 不需要 |
+
+**变更分类决策树**:
+```
+是否修改 src/main/ 或 src/shared/？
+├─ 是 → Critical（需要设计审批 + 80%测试）
+└─ 否 → 是否有破坏性变更？
+    ├─ 是 → Critical（需要设计审批 + 80%测试）
+    └─ 否 → 是否是新功能？
+        ├─ 是 → Major（需要设计审批 + 70%测试）
+        └─ 否 → 是否是bug修复？
+            ├─ 是 → Minor（需要复现测试）
+            └─ 否 → Trivial（现有测试通过即可）
+```
+
+### Critical/Major变更流程
+
+**对于Critical或Major变更，必须**:
+
+1. **创建设计文档** (使用模板: `doc/templates/DESIGN_DOC_TEMPLATE.md`)
+   ```bash
+   cp doc/templates/DESIGN_DOC_TEMPLATE.md doc/designs/my-feature.md
+   ```
+
+2. **设计评审**
+   - 提交设计文档供评审
+   - 获得批准后开始开发
+
+3. **TDD开发**
+   - 先编写失败的测试
+   - 实现功能使测试通过
+   - 重构保持测试通过
+
+4. **完整测试**
+   - 单元测试 (>= 70-80% 覆盖率)
+   - 集成测试
+   - E2E测试
+   - 性能测试
+
+5. **文档更新**
+   - API文档
+   - 用户文档
+   - 迁移指南（如破坏性变更）
+
+### 开发检查点
+
+**开发前**:
+- [ ] 分类变更类型
+- [ ] 如Critical/Major，创建设计文档
+- [ ] 设计文档已批准
+
+**开发中**:
+- [ ] 测试优先编写（TDD）
+- [ ] 频繁提交（Conventional Commits）
+- [ ] 每次提交后运行测试
+- [ ] 检查类型错误
+
+**提交前**:
+- [ ] 所有测试通过
+- [ ] 覆盖率达标
+- [ ] Lint通过
+- [ ] 类型检查通过
+- [ ] 无控制台错误
+- [ ] 文档已更新
+
+### 详细规范
+
+完整的AI开发规范请参考:
+- [AI开发规范](./doc/AI_DEVELOPMENT_STANDARDS.md) - 完整的开发标准和流程
+- [变更分类指南](./doc/CHANGE_CLASSIFICATION.md) - 详细的变更分类标准和示例
+- [代码评审检查清单](./doc/CODE_REVIEW_CHECKLIST.md) - PR评审检查清单
+- [测试指南](./doc/TESTING.md) - TDD流程和最佳实践
+
+### Pre-commit自动化
+
+项目配置了pre-commit hooks，每次commit前自动运行：
+
+```bash
+# Lint和格式化
+npx lint-staged
+
+# Commit消息格式验证
+npx commitlint --edit "$1"
+```
+
+### CI/CD自动化
+
+Pull Request会自动运行：
+
+```bash
+npm run lint
+npm run type-check
+npm run test:coverage
+npm run test:verify-coverage
+npm run test:e2e
+```
+
+---
+
 ## 代码规范
 
 ### TypeScript
@@ -108,24 +227,61 @@ git push origin feature/your-feature-name
 
 ## 测试要求
 
+### 测试策略
+
+我们采用**测试驱动开发（TDD）**方法，遵循以下原则：
+
+1. **测试优先**: 在编写功能代码之前先编写测试
+2. **覆盖率要求**:
+   - 核心代码: 80% 行/函数/语句覆盖率，70% 分支覆盖率
+   - UI组件: 60% 行/函数/语句覆盖率，50% 分支覆盖率
+   - 工具函数: 80% 行/函数/语句覆盖率，70% 分支覆盖率
+
+### 什么代码需要测试？
+
+**必须测试（核心代码）**:
+- `src/main/` - 整个主进程
+- `src/shared/types/` - 类型定义
+- `src/shared/logger/` - 日志框架
+- `src/renderer/services/` - 渲染服务
+
+**建议测试**:
+- UI组件
+- 插件代码
+- 工具函数
+
 ### 运行测试
 
 ```bash
 # 运行所有测试
 npm test
 
-# 运行测试并生成覆盖率报告
+# 仅测试核心代码
+npm run test:core
+
+# 生成覆盖率报告
 npm run test:coverage
 
-# 运行测试UI
+# 验证核心代码覆盖率 >= 80%
+npm run test:verify-coverage
+
+# 测试UI模式
 npm run test:ui
+
+# E2E测试
+npm run test:e2e
 ```
 
-### 手动测试
+### 测试模板
 
-- 测试新增功能是否正常工作
-- 检查是否有控制台错误
-- 验证在不同平台上的表现
+项目提供了测试模板以加快测试编写：
+
+- **单元测试**: `tests/templates/unit-test.template.ts`
+- **集成测试**: `tests/templates/integration-test.template.ts`
+
+### 测试文档
+
+详细的测试指南请参考: [测试指南](./doc/TESTING.md)
 
 ## 插件开发
 
