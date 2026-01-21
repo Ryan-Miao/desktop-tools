@@ -109,11 +109,10 @@ electron-builder.yml.backup
 # ============================================
 # Package managers
 # ============================================
-package-lock.json
+# package-lock.json  # Committed for CI/CD reproducibility
 yarn.lock
 pnpm-lock.yaml
-# Uncomment if you want to commit lock files:
-# !package-lock.json
+!package-lock.json
 
 # ============================================
 # User data & Backups (development only)
