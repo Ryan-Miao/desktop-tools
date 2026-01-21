@@ -3,7 +3,7 @@
 > 一个类似 uTools 的跨平台桌面工具平台，基于 Electron + React + TypeScript 构建。
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/desktop-tool)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E=18.0.0-brightgreen.svg)](https://nodejs.org)
 [![Electron](https://img.shields.io/badge/electron-28.3.3-9FE349.svg)](https://electronjs.org)
 
@@ -28,11 +28,11 @@
 
 ### 🔗 相关文档
 
-- **AI 开发规范**: [claude.md](../claude.md) - AI 辅助开发核心规范
-- **开发者文档**: [devdoc/](../devdoc/) - 完整的开发者文档目录
-- **插件开发**: [PLUGIN_DEVELOPMENT.md](./PLUGIN_DEVELOPMENT.md) - 详细的插件开发指南
-- **构建指南**: [BUILD.md](./BUILD.md) - 构建和打包说明
-- **贡献指南**: [CONTRIBUTING.md](./CONTRIBUTING.md) - 贡献流程和规范
+- **AI 开发规范**: [claude.md](claude.md) - AI 辅助开发核心规范
+- **开发者文档**: [devdoc/](devdoc/) - 完整的开发者文档目录
+- **插件开发**: [PLUGIN_DEVELOPMENT.md](doc/PLUGIN_DEVELOPMENT.md) - 详细的插件开发指南
+- **构建指南**: [BUILD.md](doc/BUILD.md) - 构建和打包说明
+- **贡献指南**: [CONTRIBUTING.md](doc/CONTRIBUTING.md) - 贡献流程和规范
 
 ---
 
@@ -392,7 +392,7 @@ const plugins: Plugin[] = [
 ];
 ```
 
-详细插件开发指南请查看 [PLUGIN_DEVELOPMENT.md](./PLUGIN_DEVELOPMENT.md)
+详细插件开发指南请查看 [PLUGIN_DEVELOPMENT.md](doc/PLUGIN_DEVELOPMENT.md)
 
 ## 数据备份
 
@@ -559,7 +559,7 @@ chore: 构建/工具链更新
 
 ## 许可证
 
-本项目采用 [MIT](./LICENSE) 许可证。
+本项目采用 [MIT](LICENSE) 许可证。
 
 ## 致谢
 
