@@ -81,7 +81,6 @@ function TaskDetail({ todo, onClose }: TaskDetailProps) {
 
   // Handle edit button click
   const handleEditClick = () => {
-    console.log('Edit button clicked for todo:', todo.id);
     setIsEditing(true);
   };
 

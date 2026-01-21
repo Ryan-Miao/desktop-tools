@@ -19,16 +19,13 @@ function QuickAdd() {
 
   const handleAddTodo = useCallback(() => {
     const inputValue = input; // Capture current input value
-    console.log('[QuickAdd] handleAddTodo called:', { inputValue, priority, dueDate, currentView });
 
     if (!inputValue.trim()) {
-      console.log('[QuickAdd] Input is empty, returning');
       return;
     }
 
     // Parse natural language at the moment of adding
     const parsedData = parseNaturalLanguageInput(inputValue);
-    console.log('[QuickAdd] Parsed data:', parsedData);
 
     // Use natural language parsed data, falling back to manual selections
     const finalPriority = parsedData?.priority || priority;
@@ -57,7 +54,6 @@ function QuickAdd() {
       dueDate: finalDueDate,
     };
 
-    console.log('[QuickAdd] Adding todo:', todoData);
     addTodo(todoData);
 
     setInput('');

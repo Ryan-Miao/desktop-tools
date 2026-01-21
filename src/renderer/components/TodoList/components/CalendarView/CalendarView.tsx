@@ -33,13 +33,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({ onTodoClick }) => {
   // 处理日期点击
   const handleDateClick = (dateStr: string) => {
     setSelectedDate(dateStr);
-    console.log('Date clicked:', dateStr);
     // TODO: 打开创建任务对话框或显示任务列表
   };
 
   // 处理任务点击
   const handleTaskClick = (todoId: string) => {
-    console.log('Task clicked:', todoId);
     if (onTodoClick) {
       onTodoClick(todoId);
     }
@@ -75,4 +73,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ onTodoClick }) => {
   );
 };
 
-export default CalendarView;
+// Memoize to prevent unnecessary re-renders
+const CalendarViewMemo = React.memo(CalendarView);
+CalendarViewMemo.displayName = 'CalendarView';
+
+export default CalendarViewMemo;

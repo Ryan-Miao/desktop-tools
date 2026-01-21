@@ -155,4 +155,8 @@ const KanbanView: React.FC<KanbanViewProps> = ({ onTodoClick }) => {
   );
 };
 
-export default KanbanView;
+// Memoize to prevent unnecessary re-renders
+const KanbanViewMemo = React.memo(KanbanView);
+KanbanViewMemo.displayName = 'KanbanView';
+
+export default KanbanViewMemo;
