@@ -39,7 +39,7 @@ describe('useTodoStore', () => {
 
       expect(result.current.todos).toEqual([]);
       expect(result.current.lists).toHaveLength(3);
-      expect(result.current.currentView).toBe('inbox');
+      expect(result.current.currentView).toBe('list-inbox');
       expect(result.current.searchQuery).toBe('');
     });
 
@@ -443,7 +443,7 @@ describe('useTodoStore', () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
-        result.current.setCurrentView('inbox');
+        result.current.setCurrentView('list-inbox');
       });
 
       const filtered = result.current.getFilteredTodos();

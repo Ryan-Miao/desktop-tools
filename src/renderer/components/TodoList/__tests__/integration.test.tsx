@@ -42,7 +42,7 @@ describe('TodoList Integration Tests - Bug Reproduction', () => {
 
       // Initial state
       expect(result.current.todos).toHaveLength(0);
-      expect(result.current.currentView).toBe('inbox');
+      expect(result.current.currentView).toBe('list-inbox');
 
       // Get filtered todos (should be empty)
       let filteredTodos = result.current.getFilteredTodos();
@@ -109,9 +109,9 @@ describe('TodoList Integration Tests - Bug Reproduction', () => {
 
       // Ensure view is set to inbox
       act(() => {
-        result.current.setCurrentView('inbox');
+        result.current.setCurrentView('list-inbox');
       });
-      expect(result.current.currentView).toBe('inbox');
+      expect(result.current.currentView).toBe('list-inbox');
 
       // Add a todo to list-inbox
       act(() => {

@@ -39,9 +39,9 @@ function MainContent() {
   // Determine empty state type
   const getEmptyStateType = () => {
     if (searchQuery) return 'search';
-    if (currentView === 'inbox') return 'inbox';
-    if (currentView === 'today') return 'today';
-    if (currentView === 'week') return 'week';
+    if (currentView === 'list-inbox') return 'inbox';
+    if (currentView === 'list-today') return 'today';
+    if (currentView === 'list-week') return 'week';
     return 'list';
   };
 

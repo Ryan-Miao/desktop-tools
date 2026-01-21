@@ -101,7 +101,7 @@ describe('CalendarView Component', () => {
     store.lists = [
       { id: 'list-inbox', name: '收件箱', icon: '📥' },
     ];
-    store.currentView = 'inbox';
+    store.currentView = 'list-inbox';
     store.searchQuery = '';
   });
 

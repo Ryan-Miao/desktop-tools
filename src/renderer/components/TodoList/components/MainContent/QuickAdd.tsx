@@ -41,7 +41,7 @@ function QuickAdd() {
       if (matchingList) {
         finalListId = matchingList.id;
       }
-    } else if (currentView !== 'inbox' && currentView !== 'today' && currentView !== 'week') {
+    } else if (currentView !== 'list-inbox' && currentView !== 'list-today' && currentView !== 'list-week') {
       // If current view is a custom list, add to that list
       finalListId = currentView;
     }

@@ -243,7 +243,7 @@ export const useTodoStore = create<TodoStoreState>((set, get) => ({
   // Initial State
   todos: [],
   lists: initialLists,
-  currentView: 'inbox',
+  currentView: 'list-inbox',
   searchQuery: '',
   viewMode: 'list',
   sortBy: 'none',

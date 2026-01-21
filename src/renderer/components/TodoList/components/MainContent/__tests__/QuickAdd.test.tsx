@@ -39,7 +39,7 @@ describe('QuickAdd Component', () => {
     const store = useTodoStore.getState();
     // Clear todos
     store.todos = [];
-    store.currentView = 'inbox';
+    store.currentView = 'list-inbox';
     store.searchQuery = '';
   });
 
