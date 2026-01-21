@@ -15,6 +15,7 @@ JSON 格式化插件已删除，现在你可以测试导入功能了！
 #### 步骤 1：导出计算稿纸插件
 
 1. **启动应用**
+
    ```bash
    npm run dev
    ```
@@ -40,6 +41,7 @@ JSON 格式化插件已删除，现在你可以测试导入功能了！
 如果要测试完整的导入流程：
 
 1. **删除插件目录**
+
    ```bash
    rm -rf plugins/calculator-pad
    ```
@@ -100,6 +102,7 @@ git checkout e97908c -- src/renderer/components/json-formatter/
 #### 步骤 3：删除并重新导入
 
 1. 删除插件：
+
    ```bash
    rm -rf external-plugins/json-formatter src/renderer/components/json-formatter
    ```
@@ -125,6 +128,7 @@ mkdir -p plugins/test-plugin
 ```
 
 创建 `plugins/test-plugin/manifest.json`：
+
 ```json
 {
   "id": "com.test.plugin",
@@ -139,10 +143,11 @@ mkdir -p plugins/test-plugin
 ```
 
 创建 `plugins/test-plugin/index.ts`：
+
 ```typescript
 export default {
-  id: 'com.test.plugin',
-  name: '测试插件'
+  id: "com.test.plugin",
+  name: "测试插件",
 };
 ```
 
@@ -174,6 +179,7 @@ npm run dev
 测试完成后，确认以下功能正常：
 
 ### 导出功能
+
 - [ ] 导出按钮存在且可点击
 - [ ] 文件选择对话框正常打开
 - [ ] 可以选择保存位置
@@ -182,6 +188,7 @@ npm run dev
 - [ ] ZIP 文件包含完整内容
 
 ### 导入功能
+
 - [ ] 导入按钮存在且可点击
 - [ ] 文件选择对话框正常打开
 - [ ] 可以选择 ZIP 文件
@@ -201,10 +208,12 @@ npm run dev
 **问题**：点击导出按钮没反应
 
 **可能原因**：
+
 - 插件是内置插件（只能导出本地安装的插件）
 - 窗口无法打开文件对话框
 
 **解决**：
+
 - 确保导出的是本地安装的插件
 - 查看开发者工具控制台错误信息
 
@@ -213,12 +222,14 @@ npm run dev
 **问题**：导入时报错
 
 **可能原因**：
+
 - ZIP 文件格式错误
 - ZIP 缺少 manifest.json
 - manifest.json 格式错误
 - 插件 ID 冲突
 
 **解决**：
+
 - 检查 ZIP 文件完整性
 - 确认 ZIP 包含 manifest.json
 - 验证 JSON 格式正确
@@ -229,6 +240,7 @@ npm run dev
 **问题**：导入成功但看不到
 
 **解决**：
+
 1. 刷新插件列表（关闭再打开插件管理）
 2. 重启应用
 3. 检查过滤器设置（是否被过滤掉）
@@ -245,6 +257,7 @@ npm run dev
 4. ✅ 易于调试问题
 
 **推荐执行顺序**：
+
 1. 先用方案三测试基本功能
 2. 确认导入导出功能正常
 3. 再用方案一或二测试真实场景

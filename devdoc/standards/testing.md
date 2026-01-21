@@ -26,11 +26,11 @@
 
 ### 测试类型
 
-| 测试类型 | 目的 | 工具 | 覆盖率要求 |
-|---------|------|------|-----------|
-| **单元测试** | 测试独立函数/类 | Vitest | 核心代码 >= 80% |
-| **集成测试** | 测试模块间协作 | Vitest + Testing Library | 核心代码 >= 70% |
-| **E2E测试** | 测试完整用户流程 | Playwright | 关键流程 100% |
+| 测试类型     | 目的             | 工具                     | 覆盖率要求      |
+| ------------ | ---------------- | ------------------------ | --------------- |
+| **单元测试** | 测试独立函数/类  | Vitest                   | 核心代码 >= 80% |
+| **集成测试** | 测试模块间协作   | Vitest + Testing Library | 核心代码 >= 70% |
+| **E2E测试**  | 测试完整用户流程 | Playwright               | 关键流程 100%   |
 
 ---
 
@@ -69,12 +69,12 @@ src/renderer/services/
 
 ### 覆盖率阈值
 
-| 代码类型 | 行覆盖率 | 分支覆盖率 | 函数覆盖率 | 语句覆盖率 |
-|---------|----------|------------|-----------|-----------|
-| **核心代码** | **80%** | **70%** | **80%** | **80%** |
-| UI组件 | 60% | 50% | 60% | 60% |
-| 插件代码 | 60% | 50% | 60% | 60% |
-| 工具函数 | 80% | 70% | 80% | 80% |
+| 代码类型     | 行覆盖率 | 分支覆盖率 | 函数覆盖率 | 语句覆盖率 |
+| ------------ | -------- | ---------- | ---------- | ---------- |
+| **核心代码** | **80%**  | **70%**    | **80%**    | **80%**    |
+| UI组件       | 60%      | 50%        | 60%        | 60%        |
+| 插件代码     | 60%      | 50%        | 60%        | 60%        |
+| 工具函数     | 80%      | 70%        | 80%        | 80%        |
 
 ### 验证覆盖率
 
@@ -116,11 +116,11 @@ start coverage/index.html  # Windows
 
 ```typescript
 // tests/sum.test.ts
-import { describe, it, expect } from 'vitest';
-import { sum } from './sum';
+import { describe, it, expect } from "vitest";
+import { sum } from "./sum";
 
-describe('sum', () => {
-  it('should add two numbers', () => {
+describe("sum", () => {
+  it("should add two numbers", () => {
     expect(sum(1, 2)).toBe(3);
   });
 });
@@ -166,6 +166,7 @@ npm test
 ### 何时使用TDD
 
 **必须使用TDD**:
+
 - ✅ 核心代码开发
 - ✅ Bug修复（先写失败测试重现bug）
 - ✅ 新功能开发
@@ -173,6 +174,7 @@ npm test
 - ✅ 重构
 
 **可以后写测试**:
+
 - 纯UI调整
 - 文档更新
 - 配置文件变更
@@ -191,10 +193,10 @@ npm test
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./tests/setup.ts'],
+    environment: "jsdom",
+    setupFiles: ["./tests/setup.ts"],
     coverage: {
-      provider: 'v8',
+      provider: "v8",
       thresholds: {
         lines: 60,
         functions: 60,
@@ -211,7 +213,7 @@ export default defineConfig({
 React组件测试工具。
 
 ```typescript
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 ```
 
 ### Playwright
@@ -219,7 +221,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 E2E测试框架。
 
 ```typescript
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 ```
 
 ---
@@ -281,7 +283,7 @@ npm run test:e2e
 每个测试遵循 Arrange-Act-Assert 模式：
 
 ```typescript
-it('should calculate total price', () => {
+it("should calculate total price", () => {
   // Arrange (准备)
   const price = 100;
   const quantity = 2;
@@ -301,32 +303,32 @@ it('should calculate total price', () => {
 
 ```typescript
 // ✅ 好的命名
-it('should return empty array when no items exist')
-it('should throw error when input is invalid')
-it('should update cache after fetching data')
+it("should return empty array when no items exist");
+it("should throw error when input is invalid");
+it("should update cache after fetching data");
 
 // ❌ 不好的命名
-it('test1')
-it('works')
+it("test1");
+it("works");
 ```
 
 ### 3. 一个测试一个断言
 
 ```typescript
 // ✅ 好的实践
-it('should return correct result', () => {
+it("should return correct result", () => {
   expect(result.value).toBe(42);
 });
 
-it('should update timestamp', () => {
+it("should update timestamp", () => {
   expect(result.timestamp).toBeGreaterThan(0);
 });
 
 // ❌ 不好的实践
-it('should do everything', () => {
+it("should do everything", () => {
   expect(result.value).toBe(42);
   expect(result.timestamp).toBeGreaterThan(0);
-  expect(result.status).toBe('active');
+  expect(result.status).toBe("active");
 });
 ```
 
@@ -347,32 +349,32 @@ expect(a).toBe(200);
 
 ```typescript
 // ✅ Mock外部API
-vi.mock('./api', () => ({
-  fetchUser: vi.fn().mockResolvedValue({ id: 1, name: 'John' }),
+vi.mock("./api", () => ({
+  fetchUser: vi.fn().mockResolvedValue({ id: 1, name: "John" }),
 }));
 
 // ❌ 不要mock被测试的模块
-vi.mock('./sum', () => ({ sum: vi.fn() }));
-const { sum } = require('./sum');  // 错误！
+vi.mock("./sum", () => ({ sum: vi.fn() }));
+const { sum } = require("./sum"); // 错误！
 ```
 
 ### 6. 测试边界条件
 
 ```typescript
-describe('validateInput', () => {
-  it('should handle empty string', () => {
-    expect(validateInput('')).toBe(false);
+describe("validateInput", () => {
+  it("should handle empty string", () => {
+    expect(validateInput("")).toBe(false);
   });
 
-  it('should handle null', () => {
+  it("should handle null", () => {
     expect(validateInput(null)).toBe(false);
   });
 
-  it('should handle undefined', () => {
+  it("should handle undefined", () => {
     expect(validateInput(undefined)).toBe(false);
   });
 
-  it('should handle zero', () => {
+  it("should handle zero", () => {
     expect(validateInput(0)).toBe(false);
   });
 });
@@ -409,10 +411,10 @@ it('bad test', (done) => {
 ### 8. 清理副作用
 
 ```typescript
-describe('tests with side effects', () => {
+describe("tests with side effects", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    document.body.innerHTML = '';
+    document.body.innerHTML = "";
   });
 
   afterEach(() => {
@@ -452,17 +454,17 @@ describe('Counter', () => {
 ### 场景2: 测试异步操作
 
 ```typescript
-describe('UserService', () => {
-  it('should fetch user data', async () => {
+describe("UserService", () => {
+  it("should fetch user data", async () => {
     const user = await UserService.fetch(1);
     expect(user.id).toBe(1);
     expect(user.name).toBeDefined();
   });
 
-  it('should handle network error', async () => {
-    vi.spyOn(api, 'fetch').mockRejectedValue(new Error('Network error'));
+  it("should handle network error", async () => {
+    vi.spyOn(api, "fetch").mockRejectedValue(new Error("Network error"));
 
-    await expect(UserService.fetch(1)).rejects.toThrow('Network error');
+    await expect(UserService.fetch(1)).rejects.toThrow("Network error");
   });
 });
 ```
@@ -470,22 +472,22 @@ describe('UserService', () => {
 ### 场景3: 测试Store/状态管理
 
 ```typescript
-describe('useTodoStore', () => {
+describe("useTodoStore", () => {
   beforeEach(() => {
     const store = useTodoStore.getState();
     store.todos = [];
   });
 
-  it('should add todo', () => {
+  it("should add todo", () => {
     const store = useTodoStore.getState();
 
     store.addTodo({
-      title: 'Test',
+      title: "Test",
       completed: false,
     });
 
     expect(store.todos).toHaveLength(1);
-    expect(store.todos[0].title).toBe('Test');
+    expect(store.todos[0].title).toBe("Test");
   });
 });
 ```
@@ -511,14 +513,14 @@ describe('LoginForm', () => {
 ### 场景5: 测试错误处理
 
 ```typescript
-describe('DatabaseService', () => {
-  it('should handle connection error gracefully', async () => {
-    vi.spyOn(db, 'connect').mockRejectedValue(new Error('Connection failed'));
+describe("DatabaseService", () => {
+  it("should handle connection error gracefully", async () => {
+    vi.spyOn(db, "connect").mockRejectedValue(new Error("Connection failed"));
 
-    const result = await DatabaseService.query('SELECT * FROM users');
+    const result = await DatabaseService.query("SELECT * FROM users");
 
     expect(result).toEqual([]);
-    expect(logger.error).toHaveBeenCalledWith('Connection failed');
+    expect(logger.error).toHaveBeenCalledWith("Connection failed");
   });
 });
 ```
@@ -526,8 +528,8 @@ describe('DatabaseService', () => {
 ### 场景6: 测试性能
 
 ```typescript
-describe('Performance', () => {
-  it('should process 10000 items within 1 second', () => {
+describe("Performance", () => {
+  it("should process 10000 items within 1 second", () => {
     const items = Array.from({ length: 10000 }, (_, i) => i);
     const start = performance.now();
 
@@ -589,16 +591,19 @@ npx commitlint --edit "$1"
 ### 测试失败
 
 1. **查看详细错误**:
+
    ```bash
    npm test -- --reporter=verbose
    ```
 
 2. **运行特定测试文件**:
+
    ```bash
    npm test path/to/test.test.ts
    ```
 
 3. **运行特定测试用例**:
+
    ```bash
    npm test -- -t "should do something"
    ```
@@ -611,12 +616,14 @@ npx commitlint --edit "$1"
 ### 覆盖率不达标
 
 1. **查看未覆盖的代码**:
+
    ```bash
    npm run test:coverage
    open coverage/index.html
    ```
 
 2. **找出哪些文件需要更多测试**:
+
    ```bash
    npm run test:verify-coverage
    ```

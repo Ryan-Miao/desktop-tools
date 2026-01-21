@@ -83,6 +83,7 @@
 **总计**: 26个新文件 + 3个更新的文件
 
 #### 配置和脚本 (8个)
+
 1. `.github/workflows/ci.yml` - CI/CD工作流
 2. `.husky/pre-commit` - Pre-commit钩子
 3. `.husky/commit-msg` - Commit消息验证
@@ -94,6 +95,7 @@
 9. `.github/ISSUE_TEMPLATE/DESIGN_REQUEST.md` - 设计请求模板
 
 #### 文档 (7个)
+
 10. `doc/TESTING.md` - 测试指南
 11. `doc/AI_DEVELOPMENT_STANDARDS.md` - AI开发规范
 12. `doc/CHANGE_CLASSIFICATION.md` - 变更分类指南
@@ -103,10 +105,12 @@
 16. `doc/templates/MIGRATION_GUIDE_TEMPLATE.md` - 迁移指南模板
 
 #### 测试模板 (2个)
+
 17. `tests/templates/unit-test.template.ts` - 单元测试模板
 18. `tests/templates/integration-test.template.ts` - 集成测试模板
 
 #### 更新的文件 (3个)
+
 19. `vitest.config.ts` - 添加核心代码阈值
 20. `package.json` - 添加依赖和脚本
 21. `CONTRIBUTING.md` - 添加AI开发规范章节
@@ -138,12 +142,14 @@
 ### 1. 自动化质量检查
 
 **Pre-commit**:
+
 ```bash
 npx lint-staged      # eslint + prettier
 npx commitlint       # conventional commits验证
 ```
 
 **CI/CD**:
+
 ```bash
 npm run lint
 npm run type-check
@@ -169,6 +175,7 @@ npm run test:core:watch        # 核心代码监听模式
 ### 4. 变更分类系统
 
 **4种类型**:
+
 - **Critical**: 核心、破坏、安全 → 设计审批 + 80%测试
 - **Major**: 新功能、架构 → 设计审批 + 70%测试
 - **Minor**: Bug修复、小增强 → 复现测试
@@ -179,29 +186,34 @@ npm run test:core:watch        # 核心代码监听模式
 ### 5. 完整文档体系
 
 **规范文档**:
+
 - AI开发规范 (总览)
 - 变更分类 (详细标准)
 - 代码评审 (检查清单)
 - 测试指南 (TDD和最佳实践)
 
 **模板**:
+
 - 设计文档模板
 - 迁移指南模板
 - 单元测试模板
 - 集成测试模板
 
 **快速参考**:
+
 - 快速参考卡 (速查手册)
 
 ### 6. GitHub模板
 
 **PR模板**:
+
 - 变更描述
 - 破坏性变更说明
 - 测试策略
 - 自审检查清单
 
 **Issue模板**:
+
 - Bug报告
 - 功能请求
 - 设计请求 (Critical/Major)
@@ -213,6 +225,7 @@ npm run test:core:watch        # 核心代码监听模式
 ### 核心代码定义
 
 明确的**核心代码路径**:
+
 ```
 src/main/              # 主进程
 src/shared/types/      # 类型定义
@@ -223,6 +236,7 @@ src/renderer/services/ # 渲染服务
 ### TDD要求
 
 **必须先写测试**:
+
 - ✅ 所有核心代码修改
 - ✅ Bug修复 (先写失败测试)
 - ✅ 新功能开发
@@ -232,6 +246,7 @@ src/renderer/services/ # 渲染服务
 ### 开发检查点
 
 **10个检查点**:
+
 1. 需求分析 (开发前)
 2. 设计评审 (Critical/Major)
 3. 测试规划
@@ -250,11 +265,13 @@ src/renderer/services/ # 渲染服务
 ### 快速开始
 
 1. **查阅快速参考卡**
+
    ```bash
    cat doc/QUICK_REFERENCE.md
    ```
 
 2. **分类你的变更**
+
    ```
    修改 src/main/？ → Critical
    新功能？ → Major
@@ -262,6 +279,7 @@ src/renderer/services/ # 渲染服务
    ```
 
 3. **Critical/Major变更**
+
    ```bash
    # 创建设计文档
    cp doc/templates/DESIGN_DOC_TEMPLATE.md doc/designs/my-feature.md
@@ -272,6 +290,7 @@ src/renderer/services/ # 渲染服务
    ```
 
 4. **开始开发**
+
    ```bash
    # TDD循环
    # 1. 写测试 (RED)
@@ -285,15 +304,18 @@ src/renderer/services/ # 渲染服务
 ### 日常使用
 
 **开发前** (2分钟):
+
 - 分类变更类型
 - Critical/Major? 创建设计文档
 
 **开发中** (持续):
+
 - 测试优先编写
 - 频繁提交
 - 每次提交后: `npm test`
 
 **提交前** (5分钟):
+
 - `npm test` - 测试通过
 - `npm run lint` - Lint通过
 - `npm run type-check` - 类型检查
@@ -421,16 +443,19 @@ open coverage/index.html
 ### 持续改进
 
 **每周审查**:
+
 - 规范执行情况
 - 团队反馈收集
 - 指标跟踪
 
 **月度调整**:
+
 - 根据反馈更新规范
 - 调整阈值
 - 优化流程
 
 **季度总结**:
+
 - 整体评估
 - 成功案例
 - 改进建议
@@ -464,14 +489,14 @@ open coverage/index.html
 
 ## 关键文档链接
 
-| 文档 | 路径 | 用途 |
-|------|------|------|
-| 快速参考 | `doc/QUICK_REFERENCE.md` | 速查手册 |
-| AI开发规范 | `doc/AI_DEVELOPMENT_STANDARDS.md` | 完整标准 |
-| 变更分类 | `doc/CHANGE_CLASSIFICATION.md` | 分类标准 |
-| 代码评审 | `doc/CODE_REVIEW_CHECKLIST.md` | PR评审 |
-| 测试指南 | `doc/TESTING.md` | TDD和测试 |
-| 贡献指南 | `CONTRIBUTING.md` | 总览 |
+| 文档       | 路径                              | 用途      |
+| ---------- | --------------------------------- | --------- |
+| 快速参考   | `doc/QUICK_REFERENCE.md`          | 速查手册  |
+| AI开发规范 | `doc/AI_DEVELOPMENT_STANDARDS.md` | 完整标准  |
+| 变更分类   | `doc/CHANGE_CLASSIFICATION.md`    | 分类标准  |
+| 代码评审   | `doc/CODE_REVIEW_CHECKLIST.md`    | PR评审    |
+| 测试指南   | `doc/TESTING.md`                  | TDD和测试 |
+| 贡献指南   | `CONTRIBUTING.md`                 | 总览      |
 
 ---
 

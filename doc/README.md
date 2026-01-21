@@ -7,19 +7,36 @@
 [![Node](https://img.shields.io/badge/node-%3E=18.0.0-brightgreen.svg)](https://nodejs.org)
 [![Electron](https://img.shields.io/badge/electron-28.3.3-9FE349.svg)](https://electronjs.org)
 
-## 目录
+---
 
-- [特性](#-特性)
-- [核心组件](#-核心组件)
-- [快速开始](#-快速开始)
-- [项目结构](#-项目结构)
-- [主题系统](#-主题系统)
-- [插件开发](#-插件开发)
-- [数据备份](#-数据备份)
-- [性能优化](#-性能优化)
-- [常见问题](#-常见问题)
-- [贡献指南](#-贡献指南)
-- [许可证](#-许可证)
+## 📖 文档导航
+
+### 👤 用户指南 (For Users)
+
+- [特性介绍](#-特性) - 核心功能和技术亮点
+- [插件列表](#-核心组件) - 已实现的插件和功能组件
+- [快速开始](#-快速开始) - 安装和使用指南
+- [常见问题](#-常见问题) - FAQ 和问题排查
+
+### 👨‍💻 开发者指南 (For Developers)
+
+- [项目架构](#-项目结构) - 代码结构和组织
+- [插件开发](#-插件开发) - 如何开发插件
+- [主题系统](#-主题系统) - 主题定制指南
+- [性能优化](#-性能优化) - 性能优化要点
+- [贡献指南](#-贡献指南) - 如何参与贡献
+
+### 🔗 相关文档
+
+- **AI 开发规范**: [claude.md](../claude.md) - AI 辅助开发核心规范
+- **开发者文档**: [devdoc/](../devdoc/) - 完整的开发者文档目录
+- **插件开发**: [PLUGIN_DEVELOPMENT.md](./PLUGIN_DEVELOPMENT.md) - 详细的插件开发指南
+- **构建指南**: [BUILD.md](./BUILD.md) - 构建和打包说明
+- **贡献指南**: [CONTRIBUTING.md](./CONTRIBUTING.md) - 贡献流程和规范
+
+---
+
+# 👤 用户指南
 
 ## 特性
 
@@ -57,26 +74,26 @@
 
 ### 已实现的插件
 
-| 插件 | 功能 | 状态 |
-|------|------|------|
-| **计算器** | 基础计算功能，支持键盘输入 | ✅ 生产就绪 |
-| **TodoList** | 任务管理，支持Markdown、活动历史、全屏编辑 | ✅ 生产就绪 |
-| **Notepad** | 笔记工具，支持Markdown预览、修改历史 | ✅ 生产就绪 |
-| **Base64 Tool** | Base64 编码/解码工具 | ✅ 生产就绪 |
-| **Crypto Tool** | AES 加密/解密工具 | ✅ 生产就绪 |
-| **OCR Tool** | 图片文字识别（Tesseract.js） | ✅ 生产就绪 |
-| **Password Generator** | 安全密码生成器 | ✅ 生产就绪 |
-| **QR Code** | 二维码生成工具 | ✅ 生产就绪 |
-| **URL Codec** | URL 编码/解码工具 | ✅ 生产就绪 |
+| 插件                   | 功能                                       | 状态        |
+| ---------------------- | ------------------------------------------ | ----------- |
+| **计算器**             | 基础计算功能，支持键盘输入                 | ✅ 生产就绪 |
+| **TodoList**           | 任务管理，支持Markdown、活动历史、全屏编辑 | ✅ 生产就绪 |
+| **Notepad**            | 笔记工具，支持Markdown预览、修改历史       | ✅ 生产就绪 |
+| **Base64 Tool**        | Base64 编码/解码工具                       | ✅ 生产就绪 |
+| **Crypto Tool**        | AES 加密/解密工具                          | ✅ 生产就绪 |
+| **OCR Tool**           | 图片文字识别（Tesseract.js）               | ✅ 生产就绪 |
+| **Password Generator** | 安全密码生成器                             | ✅ 生产就绪 |
+| **QR Code**            | 二维码生成工具                             | ✅ 生产就绪 |
+| **URL Codec**          | URL 编码/解码工具                          | ✅ 生产就绪 |
 
 ### 核心功能组件
 
-| 组件 | 功能 |
-|------|------|
+| 组件           | 功能                                 |
+| -------------- | ------------------------------------ |
 | **插件管理器** | 插件列表、启用/禁用、导入/导出、卸载 |
-| **设置面板** | 主题切换、面板透明度、应用设置 |
-| **备份面板** | 数据备份和恢复，支持预览 |
-| **性能监控** | 实时性能指标监控 |
+| **设置面板**   | 主题切换、面板透明度、应用设置       |
+| **备份面板**   | 数据备份和恢复，支持预览             |
+| **性能监控**   | 实时性能指标监控                     |
 
 ### 未来计划
 
@@ -146,6 +163,10 @@ npm run dist:linux
 ```
 
 打包后的文件位于 `release/` 目录。
+
+---
+
+# 👨‍💻 开发者指南
 
 ## 项目结构
 
@@ -218,39 +239,39 @@ desktop-tool/
 
 ### 浅色主题
 
-| 主题 | 特点 |
-|------|------|
-| **Light Blue** | 默认蓝色主题，清爽明亮 |
-| **Light Purple** | 薰衣草紫，优雅浪漫 |
-| **Light Pink** | 樱花粉，温馨柔和 |
-| **Light Green** | 薄荷绿，清新自然 |
-| **Light Orange** | 暖阳橙，温暖活力 |
-| **Light Teal** | 清新青，宁静舒适 |
+| 主题             | 特点                   |
+| ---------------- | ---------------------- |
+| **Light Blue**   | 默认蓝色主题，清爽明亮 |
+| **Light Purple** | 薰衣草紫，优雅浪漫     |
+| **Light Pink**   | 樱花粉，温馨柔和       |
+| **Light Green**  | 薄荷绿，清新自然       |
+| **Light Orange** | 暖阳橙，温暖活力       |
+| **Light Teal**   | 清新青，宁静舒适       |
 
 ### 深色主题
 
-| 主题 | 特点 |
-|------|------|
-| **Dark Ocean** | 深海蓝，深邃宁静 |
-| **Dark Purple** | 星云紫，神秘优雅 |
-| **Dark Forest** | 森林绿，护眼舒适 |
-| **Dark Sunset** | 日落红，温暖沉稳 |
-| **Dark Midnight** | 午夜黑，纯粹简约 |
-| **Dark Slate** | 岩板灰，沉稳大气 |
-| **Cyberpunk** | 赛博朋克，霓虹炫酷 |
+| 主题                | 特点               |
+| ------------------- | ------------------ |
+| **Dark Ocean**      | 深海蓝，深邃宁静   |
+| **Dark Purple**     | 星云紫，神秘优雅   |
+| **Dark Forest**     | 森林绿，护眼舒适   |
+| **Dark Sunset**     | 日落红，温暖沉稳   |
+| **Dark Midnight**   | 午夜黑，纯粹简约   |
+| **Dark Slate**      | 岩板灰，沉稳大气   |
+| **Cyberpunk**       | 赛博朋克，霓虹炫酷 |
 | **Sunset Gradient** | 日落渐变，温暖视觉 |
 | **Northern Lights** | 极光幻彩，绚丽多彩 |
-| **Rose Gold** | 玫瑰金，精致优雅 |
-| **Ocean Depth** | 海洋深邃，湛蓝深邃 |
+| **Rose Gold**       | 玫瑰金，精致优雅   |
+| **Ocean Depth**     | 海洋深邃，湛蓝深邃 |
 
 ### 高对比度主题
 
-| 主题 | 特点 |
-|------|------|
-| **深邃黑** | 纯黑背景，最高对比度 |
-| **纯粹白** | 纯白背景，清晰锐利 |
+| 主题       | 特点                  |
+| ---------- | --------------------- |
+| **深邃黑** | 纯黑背景，最高对比度  |
+| **纯粹白** | 纯白背景，清晰锐利    |
 | **赛博紫** | 霓虹紫/青色，赛博风格 |
-| **日落橙** | 金橙配色，温暖醒目 |
+| **日落橙** | 金橙配色，温暖醒目    |
 
 ### 自定义主题
 
@@ -312,9 +333,9 @@ src/renderer/components/
 ### 插件组件示例
 
 ```tsx
-import React, { useState } from 'react';
-import PluginWindow from '../PluginWindow/PluginWindow';
-import './YourPlugin.css';
+import React, { useState } from "react";
+import PluginWindow from "../PluginWindow/PluginWindow";
+import "./YourPlugin.css";
 
 interface YourPluginProps {
   onClose: () => void;
@@ -325,9 +346,9 @@ interface YourPluginProps {
 const YourPlugin: React.FC<YourPluginProps> = ({
   onClose,
   onMinimize,
-  onMaximize
+  onMaximize,
 }) => {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
 
   return (
     <PluginWindow
@@ -363,11 +384,11 @@ export default YourPlugin;
 const plugins: Plugin[] = [
   // ... 其他插件
   {
-    id: 'your-plugin',
-    name: '你的插件',
-    description: '插件描述',
-    icon: '🔧'
-  }
+    id: "your-plugin",
+    name: "你的插件",
+    description: "插件描述",
+    icon: "🔧",
+  },
 ];
 ```
 
@@ -428,6 +449,7 @@ const plugins: Plugin[] = [
 **Q: npm install 失败？**
 
 A: 尝试以下方案：
+
 ```bash
 # 清除缓存
 npm cache clean --force
@@ -442,6 +464,7 @@ pnpm install
 **Q: better-sqlite3 编译失败？**
 
 A: 确保安装了构建工具：
+
 - Windows: 安装 Visual Studio Build Tools
 - macOS: `xcode-select --install`
 - Linux: `sudo apt-get install build-essential`
@@ -451,6 +474,7 @@ A: 确保安装了构建工具：
 **Q: 应用白屏？**
 
 A: 检查：
+
 1. 开发者工具是否有错误
 2. 端口 5173 是否被占用
 3. 尝试清除缓存：`rm -rf node_modules dist && npm install`
@@ -458,6 +482,7 @@ A: 检查：
 **Q: 插件不显示？**
 
 A: 确保：
+
 1. manifest.json 格式正确
 2. 插件已在 App.tsx 中注册
 3. 检查是否被禁用（设置 → 插件管理）
@@ -467,6 +492,7 @@ A: 确保：
 **Q: 打包失败？**
 
 A: 检查：
+
 1. `npm run build` 是否成功
 2. electron-builder.yml 配置是否正确
 3. 系统是否安装了对应平台的打包工具
@@ -474,8 +500,9 @@ A: 检查：
 **Q: 打包后应用无法启动？**
 
 A: 检查：
+
 1. package.json 的 main 路径是否正确
-2. 是否有相对路径问题（使用 __dirname）
+2. 是否有相对路径问题（使用 \_\_dirname）
 3. 查看日志文件了解详细错误
 
 ## 贡献指南

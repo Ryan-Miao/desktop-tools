@@ -42,14 +42,15 @@ npm start
 
 在开始开发前，请先分类你的变更：
 
-| 类型 | 描述 | 测试要求 | 设计审批 |
-|------|------|----------|----------|
-| **Critical** | 核心代码、破坏性变更、安全 | 80%覆盖+E2E+性能 | ✅ 必需 |
-| **Major** | 新功能、架构变更 | 70%覆盖+集成测试 | ✅ 必需 |
-| **Minor** | Bug修复、小增强 | 复现测试+边界测试 | ❌ 不需要 |
-| **Trivial** | UI调整、配置、文档 | 现有测试通过 | ❌ 不需要 |
+| 类型         | 描述                       | 测试要求          | 设计审批  |
+| ------------ | -------------------------- | ----------------- | --------- |
+| **Critical** | 核心代码、破坏性变更、安全 | 80%覆盖+E2E+性能  | ✅ 必需   |
+| **Major**    | 新功能、架构变更           | 70%覆盖+集成测试  | ✅ 必需   |
+| **Minor**    | Bug修复、小增强            | 复现测试+边界测试 | ❌ 不需要 |
+| **Trivial**  | UI调整、配置、文档         | 现有测试通过      | ❌ 不需要 |
 
 **变更分类决策树**:
+
 ```
 是否修改 src/main/ 或 src/shared/？
 ├─ 是 → Critical（需要设计审批 + 80%测试）
@@ -67,6 +68,7 @@ npm start
 **对于Critical或Major变更，必须**:
 
 1. **创建设计文档** (使用模板: `doc/templates/DESIGN_DOC_TEMPLATE.md`)
+
    ```bash
    cp doc/templates/DESIGN_DOC_TEMPLATE.md doc/designs/my-feature.md
    ```
@@ -94,17 +96,20 @@ npm start
 ### 开发检查点
 
 **开发前**:
+
 - [ ] 分类变更类型
 - [ ] 如Critical/Major，创建设计文档
 - [ ] 设计文档已批准
 
 **开发中**:
+
 - [ ] 测试优先编写（TDD）
 - [ ] 频繁提交（Conventional Commits）
 - [ ] 每次提交后运行测试
 - [ ] 检查类型错误
 
 **提交前**:
+
 - [ ] 所有测试通过
 - [ ] 覆盖率达标
 - [ ] Lint通过
@@ -115,10 +120,11 @@ npm start
 ### 详细规范
 
 完整的AI开发规范请参考:
-- [AI开发规范](./doc/AI_DEVELOPMENT_STANDARDS.md) - 完整的开发标准和流程
-- [变更分类指南](./doc/CHANGE_CLASSIFICATION.md) - 详细的变更分类标准和示例
-- [代码评审检查清单](./doc/CODE_REVIEW_CHECKLIST.md) - PR评审检查清单
-- [测试指南](./doc/TESTING.md) - TDD流程和最佳实践
+
+- [AI开发规范](../devdoc/ai/claude.md) - 完整的开发标准和流程
+- [变更分类指南](../devdoc/standards/change_classification.md) - 详细的变更分类标准和示例
+- [代码评审检查清单](../devdoc/standards/code_review.md) - PR评审检查清单
+- [测试指南](../devdoc/standards/testing.md) - TDD流程和最佳实践
 
 ### Pre-commit自动化
 
@@ -174,6 +180,7 @@ npm run test:e2e
 ```
 
 **类型**:
+
 - `feat`: 新功能
 - `fix`: 问题修复
 - `docs`: 文档更新
@@ -184,6 +191,7 @@ npm run test:e2e
 - `chore`: 构建/工具链相关
 
 **示例**:
+
 ```
 feat(plugin): add markdown preview for Notepad
 
@@ -240,12 +248,14 @@ git push origin feature/your-feature-name
 ### 什么代码需要测试？
 
 **必须测试（核心代码）**:
+
 - `src/main/` - 整个主进程
 - `src/shared/types/` - 类型定义
 - `src/shared/logger/` - 日志框架
 - `src/renderer/services/` - 渲染服务
 
 **建议测试**:
+
 - UI组件
 - 插件代码
 - 工具函数
@@ -281,19 +291,21 @@ npm run test:e2e
 
 ### 测试文档
 
-详细的测试指南请参考: [测试指南](./doc/TESTING.md)
+详细的测试指南请参考: [测试指南](../devdoc/standards/testing.md)
 
 ## 插件开发
 
 ### 插件文档
 
 详细的插件开发指南请参考：
-- [插件开发指南](./doc/PLUGIN_DEVELOPMENT.md)
-- [快速开始](./doc/QUICK_START.md)
+
+- [插件开发指南](./PLUGIN_DEVELOPMENT.md)
+- [快速开始](./QUICK_START.md)
 
 ### 插件示例
 
 参考现有插件实现：
+
 - [Calculator Plugin](./plugins/calculator/)
 - [TodoList Plugin](./plugins/todo-list/)
 

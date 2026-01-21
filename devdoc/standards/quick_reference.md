@@ -32,6 +32,7 @@ npm start   # 终端2
 ```
 
 **快速记忆**:
+
 - **Critical**: 核心、破坏、安全 → 设计文档 + 80%测试
 - **Major**: 新功能、架构 → 设计文档 + 70%测试
 - **Minor**: Bug修复、小增强 → 复现测试
@@ -63,6 +64,7 @@ npm start   # 终端2
 - [ ] 文档已更新
 
 **核心代码额外要求**:
+
 - [ ] 80%行/函数/语句覆盖率
 - [ ] 70%分支覆盖率
 - [ ] JSDoc完整
@@ -116,6 +118,7 @@ npm run test:e2e
 ```
 
 **覆盖率要求**:
+
 - 核心代码: **80%** (行/函数/语句), **70%** (分支)
 - UI组件: 60% (行/函数/语句), 50% (分支)
 
@@ -155,6 +158,7 @@ npx commitlint       # conventional commits
 ## 📁 核心代码路径
 
 **必须满足80%覆盖率**:
+
 ```
 src/main/              # 主进程
   ├── index.ts
@@ -243,14 +247,14 @@ src/renderer/services/
 
 ## 📚 关键文档链接
 
-| 文档 | 路径 | 用途 |
-|------|------|------|
-| AI开发规范 | `doc/AI_DEVELOPMENT_STANDARDS.md` | 完整标准 |
-| 变更分类 | `doc/CHANGE_CLASSIFICATION.md` | 分类详解 |
-| 代码评审清单 | `doc/CODE_REVIEW_CHECKLIST.md` | PR评审 |
-| 测试指南 | `doc/TESTING.md` | TDD和测试 |
-| 设计文档模板 | `doc/templates/DESIGN_DOC_TEMPLATE.md` | 设计模板 |
-| 迁移指南模板 | `doc/templates/MIGRATION_GUIDE_TEMPLATE.md` | 迁移模板 |
+| 文档         | 路径                                        | 用途      |
+| ------------ | ------------------------------------------- | --------- |
+| AI开发规范   | `doc/AI_DEVELOPMENT_STANDARDS.md`           | 完整标准  |
+| 变更分类     | `doc/CHANGE_CLASSIFICATION.md`              | 分类详解  |
+| 代码评审清单 | `doc/CODE_REVIEW_CHECKLIST.md`              | PR评审    |
+| 测试指南     | `doc/TESTING.md`                            | TDD和测试 |
+| 设计文档模板 | `doc/templates/DESIGN_DOC_TEMPLATE.md`      | 设计模板  |
+| 迁移指南模板 | `doc/templates/MIGRATION_GUIDE_TEMPLATE.md` | 迁移模板  |
 
 ---
 

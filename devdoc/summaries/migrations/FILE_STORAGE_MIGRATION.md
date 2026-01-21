@@ -11,6 +11,7 @@
 ### 1. 数据存储位置变化
 
 #### **之前（localStorage）**
+
 ```
 浏览器localStorage
 ├── todo-storage (5-10MB限制)
@@ -18,6 +19,7 @@
 ```
 
 #### **之后（文件系统）**
+
 ```
 ~/.config/desktop-tool/plugins-data/
 ├── todolist.json (无限制)
@@ -126,26 +128,26 @@
 
 ```typescript
 // 主要功能
-- savePluginData(pluginId, data)    // 保存插件数据
-- loadPluginData(pluginId)           // 加载插件数据
-- deletePluginData(pluginId)         // 删除插件数据
-- hasPluginData(pluginId)            // 检查数据是否存在
-- getAllPluginDataFiles()            // 获取所有插件数据文件列表
-- exportPluginData(pluginId, path)   // 导出数据
-- importPluginData(pluginId, path)   // 导入数据
-- getDataDirectory()                 // 获取数据目录路径
-- openDataDirectory()                // 在文件管理器中打开数据目录
+-savePluginData(pluginId, data) - // 保存插件数据
+  loadPluginData(pluginId) - // 加载插件数据
+  deletePluginData(pluginId) - // 删除插件数据
+  hasPluginData(pluginId) - // 检查数据是否存在
+  getAllPluginDataFiles() - // 获取所有插件数据文件列表
+  exportPluginData(pluginId, path) - // 导出数据
+  importPluginData(pluginId, path) - // 导入数据
+  getDataDirectory() - // 获取数据目录路径
+  openDataDirectory(); // 在文件管理器中打开数据目录
 ```
 
 #### 渲染进程服务 (`src/renderer/services/FileStorageService.ts`)
 
 ```typescript
 // 通过IPC与主进程通信
-- savePluginData(pluginId, data)
-- loadPluginData(pluginId)
-- migrateFromLocalStorage(pluginId, key)
-- getDataDirectory()
-- openDataDirectory()
+-savePluginData(pluginId, data) -
+  loadPluginData(pluginId) -
+  migrateFromLocalStorage(pluginId, key) -
+  getDataDirectory() -
+  openDataDirectory();
 ```
 
 ### 2. IPC Handlers
@@ -169,16 +171,16 @@
 
 ## 📊 改进对比
 
-| 特性 | localStorage | 文件存储 |
-|-----|-------------|---------|
-| **容量限制** | 5-10MB | 无限制 |
-| **数据访问** | 仅浏览器 | 任何文本编辑器 |
-| **备份方式** | 导出JSON | 直接复制文件 |
-| **跨设备同步** | 困难 | 简单（复制文件夹） |
-| **数据迁移** | 需要应用支持 | 直接复制文件 |
-| **版本控制** | 不友好 | 友好（Git等） |
-| **数据分析** | 困难 | 简单（脚本处理） |
-| **手动编辑** | DevTools | 任何编辑器 |
+| 特性           | localStorage | 文件存储           |
+| -------------- | ------------ | ------------------ |
+| **容量限制**   | 5-10MB       | 无限制             |
+| **数据访问**   | 仅浏览器     | 任何文本编辑器     |
+| **备份方式**   | 导出JSON     | 直接复制文件       |
+| **跨设备同步** | 困难         | 简单（复制文件夹） |
+| **数据迁移**   | 需要应用支持 | 直接复制文件       |
+| **版本控制**   | 不友好       | 友好（Git等）      |
+| **数据分析**   | 困难         | 简单（脚本处理）   |
+| **手动编辑**   | DevTools     | 任何编辑器         |
 
 ---
 
@@ -189,6 +191,7 @@
 **之前**：数据隐藏在浏览器localStorage中，需要DevTools才能访问
 
 **之后**：
+
 ```bash
 # 查看数据目录
 ls ~/.config/desktop-tool/plugins-data/
@@ -203,11 +206,13 @@ cat ~/.config/desktop-tool/plugins-data/notepad.json
 ### 2. 数据备份
 
 **之前**：
+
 - 需要打开应用
 - 导出功能
 - 选择保存位置
 
 **之后**：
+
 ```bash
 # 直接复制整个数据文件夹
 cp -r ~/.config/desktop-tool/plugins-data ~/backup/
@@ -221,12 +226,14 @@ cp ~/.config/desktop-tool/plugins-data/todolist.json ~/backup/
 **场景：更换电脑或重装系统**
 
 **之前**：
+
 1. 打开应用
 2. 导出所有数据
 3. 传输到新设备
 4. 在新设备上导入
 
 **之后**：
+
 ```bash
 # 直接复制配置文件夹
 scp -r ~/.config/desktop-tool/ user@new-device:~/.config/desktop-tool/
@@ -254,15 +261,17 @@ with json.load(open('todolist.json'))['todos'] as todos:
 ### 1. 自动保存机制
 
 **TodoList**:
+
 ```typescript
 // 每次数据变更后自动保存
 addTodo: (todoData) => {
   // ... 创建任务
   get().saveToFile(); // 自动保存
-}
+};
 ```
 
 **Notepad**:
+
 ```typescript
 // 防抖保存（500ms）
 useEffect(() => {

@@ -1,4 +1,5 @@
 ## 变更描述
+
 <!-- 简洁清晰地描述这个PR做了什么 -->
 
 **变更类型**: [Critical / Major / Minor / Trivial]
@@ -63,11 +64,13 @@ Closes #(issue编号)
 ### API变更
 
 **旧API**:
+
 ```typescript
 // 代码示例
 ```
 
 **新API**:
+
 ```typescript
 // 代码示例
 ```
@@ -113,6 +116,7 @@ src/shared/types/xxx.ts      90%
 ```
 
 **验证命令**:
+
 ```bash
 npm run test:verify-coverage
 ```
@@ -158,8 +162,8 @@ npm run test:verify-coverage
 
 ### 开发流程
 
-- [ ] 我已阅读 [AI开发规范](../doc/AI_DEVELOPMENT_STANDARDS.md)
-- [ ] 我已阅读 [变更分类指南](../doc/CHANGE_CLASSIFICATION.md)
+- [ ] 我已阅读 [AI开发规范](../devdoc/ai/claude.md)
+- [ ] 我已阅读 [变更分类指南](../devdoc/standards/change_classification.md)
 - [ ] 变更类型已正确分类
 
 ### Critical/Major变更额外要求
