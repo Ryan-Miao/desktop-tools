@@ -75,8 +75,10 @@
 .editBtn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 8px 16px;
+  min-width: 80px;
   background: var(--primary-color, #667eea);
   color: white;
   border: none;
@@ -85,6 +87,8 @@
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  pointer-events: auto;
+  user-select: none;
 }
 
 .editBtn:active {
