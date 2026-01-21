@@ -65,24 +65,25 @@ describe("TodoCard Component", () => {
   });
 
   it("should toggle todo completion when checkbox is clicked", () => {
+    // Initialize store with the mock todo
+    const store = useTodoStore.getState();
+    store.todos = [mockTodo];
+
     render(<TodoCard todo={mockTodo} onClick={() => {}} isSelected={false} />);
 
     const checkbox = screen.getByRole("checkbox");
     fireEvent.click(checkbox);
 
-    const store = useTodoStore.getState();
-    expect(store.todos).toHaveLength(1);
-    expect(store.todos[0].completed).toBe(true);
+    const updatedStore = useTodoStore.getState();
+    expect(updatedStore.todos).toHaveLength(1);
+    expect(updatedStore.todos[0].completed).toBe(true);
   });
 
   it("should display priority indicator", () => {
-    const { container } = render(
-      <TodoCard todo={mockTodo} onClick={() => {}} isSelected={false} />,
-    );
+    render(<TodoCard todo={mockTodo} onClick={() => {}} isSelected={false} />);
 
-    // Check for priority class
-    const cardElement = container.querySelector(".high");
-    expect(cardElement).toBeInTheDocument();
+    // Priority is displayed as emoji (🔴 for high)
+    expect(screen.getByText(/🔴/)).toBeInTheDocument();
   });
 
   it("should display subtasks count", () => {
@@ -115,7 +116,10 @@ describe("TodoCard Component", () => {
       <TodoCard todo={overdueTodo} onClick={() => {}} isSelected={false} />,
     );
 
-    const overdueElement = container.querySelector(".overdue");
-    expect(overdueElement).toBeInTheDocument();
+    // Check for overdue class on the todoCard element
+    // CSS modules rewrite class names, so check if the className string contains 'overdue'
+    const todoCardElement = container.querySelector("[class*='todoCard']");
+    expect(todoCardElement).toBeInTheDocument();
+    expect(todoCardElement?.className).toContain("overdue");
   });
 });
