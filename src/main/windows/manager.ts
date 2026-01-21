@@ -1,7 +1,7 @@
-import { BrowserWindow, screen, ipcMain } from 'electron';
-import path from 'path';
-import { WindowConfig, WindowState } from '@shared/types/plugin';
-import { PluginStore } from '../services/PluginStore';
+import { BrowserWindow, screen, ipcMain } from "electron";
+import path from "path";
+import { WindowConfig, WindowState } from "@shared/types/plugin";
+import { PluginStore } from "../services/PluginStore";
 
 /**
  * 增强的窗口管理器
@@ -27,71 +27,73 @@ export class WindowManager {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
     // 尝试恢复窗口状态
-    const savedState = await this.store.getWindowState('main');
+    const savedState = await this.store.getWindowState("main");
 
-    const windowConfig = savedState ? {
-      width: savedState.width || Math.min(900, width - 100),
-      height: savedState.height || Math.min(700, height - 100),
-      x: savedState.x || (width - Math.min(900, width - 100)) / 2,
-      y: savedState.y || (height - Math.min(700, height - 100)) / 2
-    } : {
-      width: Math.min(900, width - 100),
-      height: Math.min(700, height - 100),
-      x: (width - Math.min(900, width - 100)) / 2,
-      y: (height - Math.min(700, height - 100)) / 2
-    };
+    const windowConfig = savedState
+      ? {
+          width: savedState.width || Math.min(900, width - 100),
+          height: savedState.height || Math.min(700, height - 100),
+          x: savedState.x || (width - Math.min(900, width - 100)) / 2,
+          y: savedState.y || (height - Math.min(700, height - 100)) / 2,
+        }
+      : {
+          width: Math.min(900, width - 100),
+          height: Math.min(700, height - 100),
+          x: (width - Math.min(900, width - 100)) / 2,
+          y: (height - Math.min(700, height - 100)) / 2,
+        };
 
     this.mainWindow = new BrowserWindow({
       ...windowConfig,
       transparent: true,
-      backgroundColor: '#00000000',
-      vibrancy: 'under-window',
-      visualEffectState: 'active',
+      backgroundColor: "#00000000",
+      vibrancy: "under-window",
+      visualEffectState: "active",
       roundedCorners: true,
-      titleBarStyle: 'hiddenInset',
+      titleBarStyle: "hiddenInset",
       frame: false,
       show: false,
       webPreferences: {
-        preload: path.join(__dirname, '../preload/index.js'),
+        preload: path.join(__dirname, "../preload/index.js"),
         contextIsolation: true,
         nodeIntegration: false,
-        devTools: true // 启用开发者工具
-      }
+        devTools: true, // 启用开发者工具
+      },
     });
 
     // 开发者工具初始状态（由调试模式控制）
     // 不自动打开，通过设置面板的调试模式控制
 
     // Load app
-    if (process.env.NODE_ENV === 'development') {
-      this.mainWindow.loadURL('http://localhost:5173');
+    if (process.env.NODE_ENV === "development") {
+      this.mainWindow.loadURL("http://localhost:5173");
     } else {
-      this.mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+      this.mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
     }
 
     // Show window when ready
-    this.mainWindow.once('ready-to-show', () => {
+    this.mainWindow.once("ready-to-show", () => {
       this.mainWindow?.show();
     });
 
     // Listen for maximize/unmaximize events
-    this.mainWindow.on('maximize', () => {
-      this.mainWindow?.webContents.send('window:maximized');
-      this.saveWindowState('main', this.mainWindow);
+    this.mainWindow.on("maximize", () => {
+      this.mainWindow?.webContents.send("window:maximized");
+      this.saveWindowState("main", this.mainWindow);
     });
 
-    this.mainWindow.on('unmaximize', () => {
-      this.mainWindow?.webContents.send('window:unmaximized');
-      this.saveWindowState('main', this.mainWindow);
+    this.mainWindow.on("unmaximize", () => {
+      this.mainWindow?.webContents.send("window:unmaximized");
+      this.saveWindowState("main", this.mainWindow);
     });
 
     // Save state on move and resize
-    this.mainWindow.on('moved', () => {
-      this.saveWindowState('main', this.mainWindow);
+    this.mainWindow.on("moved", () => {
+      this.saveWindowState("main", this.mainWindow);
     });
 
-    this.mainWindow.on('resized', () => {
-      this.saveWindowState('main', this.mainWindow);
+    this.mainWindow.on("resized", () => {
+      this.saveWindowState("main", this.mainWindow);
     });
 
     // 恢复最大化状态
@@ -112,7 +114,7 @@ export class WindowManager {
     windowId: string,
     pluginId: string,
     config: WindowConfig,
-    urlHash?: string
+    urlHash?: string,
   ): Promise<BrowserWindow> {
     // 检查是否已存在
     if (this.pluginWindows.has(windowId)) {
@@ -139,7 +141,7 @@ export class WindowManager {
       resizable: config.resizable ?? true,
       maximizable: config.maximizable ?? true,
       minimizable: config.minimizable ?? true,
-      closable: config.closable ?? true
+      closable: config.closable ?? true,
     };
 
     const pluginWindow = new BrowserWindow({
@@ -158,57 +160,57 @@ export class WindowManager {
       vibrancy: windowConfig.vibrancy as any,
       show: false, // 先不显示，等待内容加载
       webPreferences: {
-        preload: path.join(__dirname, '../preload/index.js'),
+        preload: path.join(__dirname, "../preload/index.js"),
         contextIsolation: true,
         nodeIntegration: windowConfig.nodeIntegration ?? false,
         webSecurity: windowConfig.webSecurity ?? true,
-        devTools: true // 启用开发者工具
-      }
+        devTools: true, // 启用开发者工具
+      },
     });
 
     // 加载插件内容
     const hash = urlHash || `#plugin-standalone/${pluginId}`;
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       pluginWindow.loadURL(`http://localhost:5173${hash}`);
     } else {
-      pluginWindow.loadFile(path.join(__dirname, '../renderer/index.html'), {
-        hash: hash.replace('#', '')
+      pluginWindow.loadFile(path.join(__dirname, "../renderer/index.html"), {
+        hash: hash.replace("#", ""),
       });
     }
 
     // 等待内容加载完成后显示窗口
-    pluginWindow.once('ready-to-show', () => {
+    pluginWindow.once("ready-to-show", () => {
       pluginWindow?.show();
     });
 
     // 窗口关闭时清理
-    pluginWindow.on('closed', async () => {
+    pluginWindow.on("closed", async () => {
       await this.store.deleteWindowState(windowId);
       this.pluginWindows.delete(windowId);
     });
 
     // 保存窗口状态
-    pluginWindow.on('moved', () => {
+    pluginWindow.on("moved", () => {
       this.saveWindowState(windowId, pluginWindow);
     });
 
-    pluginWindow.on('resized', () => {
+    pluginWindow.on("resized", () => {
       this.saveWindowState(windowId, pluginWindow);
     });
 
-    pluginWindow.on('maximize', () => {
+    pluginWindow.on("maximize", () => {
       this.saveWindowState(windowId, pluginWindow);
     });
 
-    pluginWindow.on('unmaximize', () => {
+    pluginWindow.on("unmaximize", () => {
       this.saveWindowState(windowId, pluginWindow);
     });
 
-    pluginWindow.on('minimize', () => {
+    pluginWindow.on("minimize", () => {
       this.saveWindowState(windowId, pluginWindow);
     });
 
-    pluginWindow.on('restore', () => {
+    pluginWindow.on("restore", () => {
       this.saveWindowState(windowId, pluginWindow);
     });
 
@@ -231,7 +233,7 @@ export class WindowManager {
   }
 
   closeAllPluginWindows(): void {
-    for (const [windowId] of this.pluginWindows.keys()) {
+    for (const [windowId] of this.pluginWindows.entries()) {
       this.closePluginWindow(windowId);
     }
   }
@@ -246,7 +248,10 @@ export class WindowManager {
 
   // ==================== Window State Management ====================
 
-  private async saveWindowState(windowId: string, window: BrowserWindow | null): Promise<void> {
+  private async saveWindowState(
+    windowId: string,
+    window: BrowserWindow | null,
+  ): Promise<void> {
     if (!window || window.isDestroyed()) return;
 
     const bounds = window.getBounds();
@@ -258,13 +263,15 @@ export class WindowManager {
       height: bounds.height,
       isMaximized: window.isMaximized(),
       isMinimized: window.isMinimized(),
-      isFullscreen: window.isFullScreen()
+      isFullscreen: window.isFullScreen(),
     };
 
     await this.store.saveWindowState(windowId, state);
   }
 
-  private async loadWindowState(windowId: string): Promise<WindowState | undefined> {
+  private async loadWindowState(
+    windowId: string,
+  ): Promise<WindowState | undefined> {
     return await this.store.getWindowState(windowId);
   }
 
@@ -343,88 +350,108 @@ export class WindowManager {
 
   private setupIpcHandlers(): void {
     // Plugin window operations
-    ipcMain.handle('plugin-window:create', async (_event, { windowId, pluginId, config }) => {
-      await this.createPluginWindow(windowId, pluginId, config);
-      return { windowCreated: true };
-    });
+    ipcMain.handle(
+      "plugin-window:create",
+      async (_event, { windowId, pluginId, config }) => {
+        await this.createPluginWindow(windowId, pluginId, config);
+        return { windowCreated: true };
+      },
+    );
 
-    ipcMain.handle('plugin-window:close', async (_event, windowId) => {
+    ipcMain.handle("plugin-window:close", async (_event, windowId) => {
       this.closePluginWindow(windowId);
       return { windowClosed: true };
     });
 
-    ipcMain.handle('plugin-window:get-state', async (_event, windowId) => {
+    ipcMain.handle("plugin-window:get-state", async (_event, windowId) => {
       return await this.loadWindowState(windowId);
     });
 
-    ipcMain.handle('plugin-window:set-state', async (_event, { windowId, state }) => {
-      await this.store.saveWindowState(windowId, state);
-      return { stateSaved: true };
-    });
+    ipcMain.handle(
+      "plugin-window:set-state",
+      async (_event, { windowId, state }) => {
+        await this.store.saveWindowState(windowId, state);
+        return { stateSaved: true };
+      },
+    );
 
     // Main window operations
-    ipcMain.handle('window:minimize', () => {
+    ipcMain.handle("window:minimize", () => {
       this.minimize();
       return { minimized: true };
     });
 
-    ipcMain.handle('window:maximize', () => {
+    ipcMain.handle("window:maximize", () => {
       this.maximize();
       return { maximized: this.isMaximized() };
     });
 
-    ipcMain.handle('window:restore', () => {
+    ipcMain.handle("window:restore", () => {
       if (this.mainWindow) {
         this.mainWindow.restore();
       }
       return { restored: true };
     });
 
-    ipcMain.handle('window:close', () => {
+    ipcMain.handle("window:close", () => {
       this.close();
       return { closed: true };
     });
 
     // Standalone plugin window operations
-    ipcMain.handle('standalone-window:minimize', async (_event, windowId: string) => {
-      this.minimizePluginWindow(windowId);
-      return { minimized: true };
-    });
+    ipcMain.handle(
+      "standalone-window:minimize",
+      async (_event, windowId: string) => {
+        this.minimizePluginWindow(windowId);
+        return { minimized: true };
+      },
+    );
 
-    ipcMain.handle('standalone-window:maximize', async (_event, windowId: string) => {
-      this.maximizePluginWindow(windowId);
-      return { maximized: this.isPluginWindowMaximized(windowId) };
-    });
+    ipcMain.handle(
+      "standalone-window:maximize",
+      async (_event, windowId: string) => {
+        this.maximizePluginWindow(windowId);
+        return { maximized: this.isPluginWindowMaximized(windowId) };
+      },
+    );
 
-    ipcMain.handle('standalone-window:close', async (_event, windowId: string) => {
-      this.closePluginWindow(windowId);
-      return { closed: true };
-    });
+    ipcMain.handle(
+      "standalone-window:close",
+      async (_event, windowId: string) => {
+        this.closePluginWindow(windowId);
+        return { closed: true };
+      },
+    );
 
-    ipcMain.handle('standalone-window:is-maximized', async (_event, windowId: string) => {
-      return this.isPluginWindowMaximized(windowId);
-    });
+    ipcMain.handle(
+      "standalone-window:is-maximized",
+      async (_event, windowId: string) => {
+        return this.isPluginWindowMaximized(windowId);
+      },
+    );
 
-    ipcMain.handle('window:toggle-devtools', () => {
+    ipcMain.handle("window:toggle-devtools", () => {
       if (this.mainWindow && !this.mainWindow.isDestroyed()) {
         if (this.mainWindow.webContents.isDevToolsOpened()) {
           this.mainWindow.webContents.closeDevTools();
         } else {
           this.mainWindow.webContents.openDevTools();
         }
-        return { devToolsOpened: this.mainWindow.webContents.isDevToolsOpened() };
+        return {
+          devToolsOpened: this.mainWindow.webContents.isDevToolsOpened(),
+        };
       }
       return { devToolsOpened: false };
     });
 
-    ipcMain.handle('window:is-maximized', () => {
+    ipcMain.handle("window:is-maximized", () => {
       return this.isMaximized();
     });
 
-    ipcMain.handle('window:start-drag', () => {
+    ipcMain.handle("window:start-drag", () => {
       if (this.mainWindow) {
         // 拖拽由渲染进程处理
-        this.mainWindow.webContents.send('window:start-drag');
+        this.mainWindow.webContents.send("window:start-drag");
       }
     });
   }
@@ -436,19 +463,19 @@ export class WindowManager {
     this.closeAllPluginWindows();
 
     // 移除所有 IPC 处理器
-    ipcMain.removeHandler('plugin-window:create');
-    ipcMain.removeHandler('plugin-window:close');
-    ipcMain.removeHandler('plugin-window:get-state');
-    ipcMain.removeHandler('plugin-window:set-state');
-    ipcMain.removeHandler('window:minimize');
-    ipcMain.removeHandler('window:maximize');
-    ipcMain.removeHandler('window:restore');
-    ipcMain.removeHandler('window:close');
-    ipcMain.removeHandler('window:is-maximized');
-    ipcMain.removeHandler('window:start-drag');
-    ipcMain.removeHandler('standalone-window:minimize');
-    ipcMain.removeHandler('standalone-window:maximize');
-    ipcMain.removeHandler('standalone-window:close');
-    ipcMain.removeHandler('standalone-window:is-maximized');
+    ipcMain.removeHandler("plugin-window:create");
+    ipcMain.removeHandler("plugin-window:close");
+    ipcMain.removeHandler("plugin-window:get-state");
+    ipcMain.removeHandler("plugin-window:set-state");
+    ipcMain.removeHandler("window:minimize");
+    ipcMain.removeHandler("window:maximize");
+    ipcMain.removeHandler("window:restore");
+    ipcMain.removeHandler("window:close");
+    ipcMain.removeHandler("window:is-maximized");
+    ipcMain.removeHandler("window:start-drag");
+    ipcMain.removeHandler("standalone-window:minimize");
+    ipcMain.removeHandler("standalone-window:maximize");
+    ipcMain.removeHandler("standalone-window:close");
+    ipcMain.removeHandler("standalone-window:is-maximized");
   }
 }

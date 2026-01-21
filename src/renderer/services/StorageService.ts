@@ -3,9 +3,9 @@
  * 提供数据持久化功能
  */
 
-import { createLogger } from '../../shared/logger';
+import { createLogger } from "../../shared/logger";
 
-const logger = createLogger('StorageService');
+const logger = createLogger("StorageService");
 
 export interface PluginState {
   id: string;
@@ -18,13 +18,13 @@ export interface PluginState {
 
 export interface AppSettings {
   themeId: string;
-  language: 'zh-CN' | 'en-US';
+  language: "zh-CN" | "en-US";
   hardwareAcceleration: boolean;
   animations: boolean;
   autoSave: boolean;
   debugMode: boolean;
   panelOpacity: number; // 0-100, default 85
-  layoutMode: 'grid-icons' | 'grid' | 'list'; // 布局模式：图标网格、普通网格、列表
+  layoutMode: "grid-icons" | "grid" | "list"; // 布局模式：图标网格、普通网格、列表
   gridColumns: number; // 网格布局每列数量（3-10）
   showFavoritesOnly: boolean; // 是否只显示常用插件
   logDirectory?: string; // 日志文件目录（仅 Electron）
@@ -38,8 +38,8 @@ export interface StorageData {
 }
 
 class StorageService {
-  private readonly STORAGE_KEY = 'desktop-tool-data';
-  private readonly VERSION = '1.0.0';
+  private readonly STORAGE_KEY = "desktop-tool-data";
+  // private readonly VERSION = '1.0.0'; // 未来版本控制使用
   private cache: StorageData | null = null;
   private cacheTimestamp: number = 0;
   private readonly CACHE_DURATION = 1000; // 1 second cache
@@ -47,20 +47,20 @@ class StorageService {
   // 默认数据
   private readonly defaultData: StorageData = {
     appSettings: {
-      themeId: 'light-blue',
-      language: 'zh-CN',
+      themeId: "light-blue",
+      language: "zh-CN",
       hardwareAcceleration: true,
       animations: true,
       autoSave: true,
       debugMode: false,
       panelOpacity: 85,
-      layoutMode: 'grid',
+      layoutMode: "grid",
       gridColumns: 6,
-      showFavoritesOnly: false
+      showFavoritesOnly: false,
     },
     plugins: [],
     colorHistory: [],
-    base64History: []
+    base64History: [],
   };
 
   /**
@@ -70,7 +70,7 @@ class StorageService {
     const now = Date.now();
 
     // Return cached data if still valid
-    if (this.cache && (now - this.cacheTimestamp) < this.CACHE_DURATION) {
+    if (this.cache && now - this.cacheTimestamp < this.CACHE_DURATION) {
       return this.cache;
     }
 
@@ -84,14 +84,14 @@ class StorageService {
           ...parsed,
           appSettings: {
             ...this.defaultData.appSettings,
-            ...parsed.appSettings
-          }
+            ...parsed.appSettings,
+          },
         };
         this.cacheTimestamp = now;
         return this.cache!;
       }
     } catch (error) {
-      logger.error('Error reading from localStorage', { error });
+      logger.error("Error reading from localStorage", { error });
     }
 
     this.cache = { ...this.defaultData };
@@ -109,7 +109,7 @@ class StorageService {
       this.cache = data;
       this.cacheTimestamp = Date.now();
     } catch (error) {
-      logger.error('Error saving to localStorage', { error });
+      logger.error("Error saving to localStorage", { error });
     }
   }
 
@@ -140,7 +140,7 @@ class StorageService {
    * 获取单个插件状态
    */
   getPluginState(pluginId: string): PluginState | undefined {
-    return this.getData().plugins.find(p => p.id === pluginId);
+    return this.getData().plugins.find((p) => p.id === pluginId);
   }
 
   /**
@@ -148,7 +148,7 @@ class StorageService {
    */
   updatePluginState(pluginId: string, updates: Partial<PluginState>): void {
     const data = this.getData();
-    const index = data.plugins.findIndex(p => p.id === pluginId);
+    const index = data.plugins.findIndex((p) => p.id === pluginId);
 
     if (index >= 0) {
       data.plugins[index] = { ...data.plugins[index], ...updates };
@@ -160,7 +160,7 @@ class StorageService {
         favorite: false,
         order: data.plugins.length,
         lastUsed: Date.now(),
-        ...updates
+        ...updates,
       });
     }
 
@@ -172,7 +172,7 @@ class StorageService {
    */
   deletePluginState(pluginId: string): void {
     const data = this.getData();
-    data.plugins = data.plugins.filter(p => p.id !== pluginId);
+    data.plugins = data.plugins.filter((p) => p.id !== pluginId);
     this.saveData(data);
   }
 
@@ -209,9 +209,9 @@ class StorageService {
   getFavoritePlugins(): string[] {
     const plugins = this.getData().plugins;
     return plugins
-      .filter(p => p.favorite)
+      .filter((p) => p.favorite)
       .sort((a, b) => a.order - b.order)
-      .map(p => p.id);
+      .map((p) => p.id);
   }
 
   /**
@@ -220,9 +220,9 @@ class StorageService {
   getNonFavoritePlugins(): string[] {
     const plugins = this.getData().plugins;
     return plugins
-      .filter(p => !p.favorite)
+      .filter((p) => !p.favorite)
       .sort((a, b) => a.order - b.order)
-      .map(p => p.id);
+      .map((p) => p.id);
   }
 
   /**
@@ -233,7 +233,7 @@ class StorageService {
     const newPlugins: PluginState[] = [];
 
     pluginIds.forEach((id, index) => {
-      const plugin = data.plugins.find(p => p.id === id);
+      const plugin = data.plugins.find((p) => p.id === id);
       if (plugin) {
         newPlugins.push({ ...plugin, order: index });
       }
@@ -248,7 +248,7 @@ class StorageService {
    */
   addColorToHistory(color: string): void {
     const data = this.getData();
-    const history = data.colorHistory.filter(c => c !== color);
+    const history = data.colorHistory.filter((c) => c !== color);
     history.unshift(color);
     data.colorHistory = history.slice(0, 20); // 保留最近20个
     this.saveData(data);
@@ -287,13 +287,13 @@ class StorageService {
 
       // 验证数据格式
       if (!imported.appSettings || !Array.isArray(imported.plugins)) {
-        throw new Error('Invalid data format');
+        throw new Error("Invalid data format");
       }
 
       this.saveData(imported);
       return true;
     } catch (error) {
-      logger.error('Error importing data', { error });
+      logger.error("Error importing data", { error });
       return false;
     }
   }
@@ -320,9 +320,9 @@ class StorageService {
         return `${kb.toFixed(2)} KB`;
       }
     } catch (error) {
-      logger.error('Error calculating storage size', { error });
+      logger.error("Error calculating storage size", { error });
     }
-    return '0 KB';
+    return "0 KB";
   }
 
   /**
@@ -337,10 +337,10 @@ class StorageService {
     manifest?: any;
   }> {
     try {
-      const data = localStorage.getItem('installed-remote-plugins');
+      const data = localStorage.getItem("installed-remote-plugins");
       return data ? JSON.parse(data) : [];
     } catch (error) {
-      logger.error('Error reading installed remote plugins', { error });
+      logger.error("Error reading installed remote plugins", { error });
       return [];
     }
   }
@@ -350,14 +350,14 @@ class StorageService {
    */
   isRemotePluginInstalled(packageName: string): boolean {
     const installed = this.getInstalledRemotePlugins();
-    return installed.some(p => p.packageName === packageName);
+    return installed.some((p) => p.packageName === packageName);
   }
 
   /**
    * 获取已安装的远程插件包名列表
    */
   getInstalledRemotePluginPackageNames(): string[] {
-    return this.getInstalledRemotePlugins().map(p => p.packageName);
+    return this.getInstalledRemotePlugins().map((p) => p.packageName);
   }
 }
 

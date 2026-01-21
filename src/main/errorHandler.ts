@@ -5,8 +5,8 @@
  * Logs errors and provides graceful degradation
  */
 
-import { logger } from '../shared/logger';
-import { app } from 'electron';
+import { logger } from "../shared/logger";
+import { app } from "electron";
 
 export interface ErrorContext {
   [key: string]: any;
@@ -21,7 +21,7 @@ export class GlobalErrorHandler {
    */
   static setup() {
     if (this.isSetup) {
-      logger.warn('[GlobalErrorHandler] Already setup, skipping');
+      logger.warn("[GlobalErrorHandler] Already setup, skipping");
       return;
     }
 
@@ -29,23 +29,23 @@ export class GlobalErrorHandler {
     this.setupUnhandledRejectionHandler();
 
     this.isSetup = true;
-    logger.info('[GlobalErrorHandler] Global error handlers registered');
+    logger.info("[GlobalErrorHandler] Global error handlers registered");
   }
 
   /**
    * Handle uncaught exceptions
    */
   private static setupUncaughtExceptionHandler() {
-    process.on('uncaughtException', (error: Error) => {
-      logger.error('[GlobalErrorHandler] Uncaught Exception', {
+    process.on("uncaughtException", (error: Error) => {
+      logger.error("[GlobalErrorHandler] Uncaught Exception", {
         error: error.message,
         stack: error.stack,
         name: error.name,
       });
 
       // In development, show the error and continue
-      if (process.env.NODE_ENV === 'development') {
-        logger.error('[GlobalErrorHandler] Error details:', error);
+      if (process.env.NODE_ENV === "development") {
+        logger.error("[GlobalErrorHandler] Error details:", error);
         // Don't quit in dev mode to allow debugging
         return;
       }
@@ -56,10 +56,10 @@ export class GlobalErrorHandler {
       }, 1000);
     });
 
-    process.on('uncaughtExceptionMonitor', (error: Error) => {
+    process.on("uncaughtExceptionMonitor", (error: Error) => {
       // This event is emitted before uncaughtException
       // Use it for monitoring/logging without affecting process behavior
-      logger.error('[GlobalErrorHandler] Uncaught Exception Monitor', {
+      logger.error("[GlobalErrorHandler] Uncaught Exception Monitor", {
         error: error.message,
         stack: error.stack,
       });
@@ -70,39 +70,52 @@ export class GlobalErrorHandler {
    * Handle unhandled promise rejections
    */
   private static setupUnhandledRejectionHandler() {
-    process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
-      logger.error('[GlobalErrorHandler] Unhandled Promise Rejection', {
-        reason: reason instanceof Error ? {
-          message: reason.message,
-          stack: reason.stack,
-          name: reason.name,
-        } : reason,
-        promise: promise.toString(),
-      });
-
-      // Log additional details in development
-      if (process.env.NODE_ENV === 'development') {
-        logger.warn('[GlobalErrorHandler] Promise rejection details:', {
-          reason,
-          promise,
+    process.on(
+      "unhandledRejection",
+      (reason: unknown, promise: Promise<unknown>) => {
+        logger.error("[GlobalErrorHandler] Unhandled Promise Rejection", {
+          reason:
+            reason instanceof Error
+              ? {
+                  message: reason.message,
+                  stack: reason.stack,
+                  name: reason.name,
+                }
+              : reason,
+          promise: promise.toString(),
         });
-      }
 
-      // Don't exit the app for unhandled rejections
-      // They're less critical than uncaught exceptions
-    });
+        // Log additional details in development
+        if (process.env.NODE_ENV === "development") {
+          logger.warn("[GlobalErrorHandler] Promise rejection details:", {
+            reason,
+            promise,
+          });
+        }
+
+        // Don't exit the app for unhandled rejections
+        // They're less critical than uncaught exceptions
+      },
+    );
   }
 
   /**
    * Log error with context
    */
-  static logError(context: string, error: Error | unknown, additionalContext?: ErrorContext) {
+  static logError(
+    context: string,
+    error: Error | unknown,
+    additionalContext?: ErrorContext,
+  ) {
     logger.error(`[GlobalErrorHandler] Error in ${context}`, {
-      error: error instanceof Error ? {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      } : error,
+      error:
+        error instanceof Error
+          ? {
+              message: error.message,
+              stack: error.stack,
+              name: error.name,
+            }
+          : error,
       ...additionalContext,
     });
   }
@@ -113,7 +126,7 @@ export class GlobalErrorHandler {
   static async handleAsync<T>(
     operation: () => Promise<T>,
     context: string,
-    fallback?: T
+    fallback?: T,
   ): Promise<T | undefined> {
     try {
       return await operation();
@@ -129,7 +142,7 @@ export class GlobalErrorHandler {
   static handleSync<T>(
     operation: () => T,
     context: string,
-    fallback?: T
+    fallback?: T,
   ): T | undefined {
     try {
       return operation();
@@ -145,9 +158,9 @@ export class GlobalErrorHandler {
  */
 export function handleAsyncErrors(context: string) {
   return function (
-    target: any,
+    _target: any,
     propertyKey: string,
-    descriptor: PropertyDescriptor
+    descriptor: PropertyDescriptor,
   ) {
     const originalMethod = descriptor.value;
 
@@ -155,11 +168,9 @@ export function handleAsyncErrors(context: string) {
       try {
         return await originalMethod.apply(this, args);
       } catch (error) {
-        GlobalErrorHandler.logError(
-          `${context}.${propertyKey}`,
-          error,
-          { args }
-        );
+        GlobalErrorHandler.logError(`${context}.${propertyKey}`, error, {
+          args,
+        });
         throw error; // Re-throw to allow caller to handle
       }
     };

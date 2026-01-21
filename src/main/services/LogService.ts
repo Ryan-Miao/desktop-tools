@@ -3,15 +3,15 @@
  * 负责写入日志文件
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { app } from 'electron';
+import * as fs from "fs";
+import * as path from "path";
+import { app } from "electron";
 
 export enum LogLevel {
   DEBUG = 0,
   INFO = 1,
   WARN = 2,
-  ERROR = 3
+  ERROR = 3,
 }
 
 export interface LogEntry {
@@ -19,7 +19,7 @@ export interface LogEntry {
   level: LogLevel;
   message: string;
   data?: any;
-  platform?: 'desktop' | 'web';
+  platform?: "desktop" | "web";
   module?: string;
 }
 
@@ -40,7 +40,7 @@ export interface LogStats {
 
 class LogService {
   private logDirectory: string;
-  private logFileName: string = 'app.log';
+  private logFileName: string = "app.log";
   private maxLogSize: number = 10 * 1024 * 1024; // 10MB
   private maxLogFiles: number = 5;
   private maxLogAge: number = 30 * 24 * 60 * 60 * 1000; // 30天
@@ -51,7 +51,7 @@ class LogService {
 
   constructor() {
     // 设置日志目录为用户数据目录
-    this.logDirectory = path.join(app.getPath('userData'), 'logs');
+    this.logDirectory = path.join(app.getPath("userData"), "logs");
     this.ensureLogDirectory();
 
     // 启动时清理旧日志
@@ -95,7 +95,7 @@ class LogService {
         fs.mkdirSync(directory, { recursive: true });
         this.logDirectory = directory;
       } catch (error) {
-        console.error('Failed to create log directory:', error);
+        console.error("Failed to create log directory:", error);
         throw new Error(`Invalid log directory: ${directory}`);
       }
     }
@@ -106,9 +106,9 @@ class LogService {
    */
   private formatLogEntry(entry: LogEntry): string {
     const timestamp = entry.timestamp;
-    const levelStr = LogLevel[entry.level] || 'DEBUG';
+    const levelStr = LogLevel[entry.level] || "DEBUG";
     const level = levelStr.padEnd(5);
-    const dataStr = entry.data ? ` | ${JSON.stringify(entry.data)}` : '';
+    const dataStr = entry.data ? ` | ${JSON.stringify(entry.data)}` : "";
     return `[${timestamp}] ${level} ${entry.message}${dataStr}\n`;
   }
 
@@ -128,8 +128,14 @@ class LogService {
     if (stats.size >= this.maxLogSize) {
       // 轮转现有的日志文件
       for (let i = this.maxLogFiles - 1; i >= 1; i--) {
-        const oldFile = path.join(this.logDirectory, `${this.logFileName}.${i}`);
-        const newFile = path.join(this.logDirectory, `${this.logFileName}.${i + 1}`);
+        const oldFile = path.join(
+          this.logDirectory,
+          `${this.logFileName}.${i}`,
+        );
+        const newFile = path.join(
+          this.logDirectory,
+          `${this.logFileName}.${i + 1}`,
+        );
 
         if (fs.existsSync(oldFile)) {
           if (i === this.maxLogFiles - 1) {
@@ -160,13 +166,13 @@ class LogService {
       this.rotateLogFileIfNeeded();
 
       const logFilePath = this.getLogFilePath();
-      const content = this.writeQueue.join('');
+      const content = this.writeQueue.join("");
       this.writeQueue = [];
 
       // 追加写入日志文件
       await fs.promises.appendFile(logFilePath, content);
     } catch (error) {
-      console.error('Failed to write log:', error);
+      console.error("Failed to write log:", error);
     } finally {
       this.isWriting = false;
 
@@ -218,11 +224,11 @@ class LogService {
     }
 
     try {
-      const content = fs.readFileSync(logFilePath, 'utf-8');
-      const allLines = content.split('\n').filter(line => line.trim());
+      const content = fs.readFileSync(logFilePath, "utf-8");
+      const allLines = content.split("\n").filter((line) => line.trim());
       return allLines.slice(-lines);
     } catch (error) {
-      console.error('Failed to read log file:', error);
+      console.error("Failed to read log file:", error);
       return [];
     }
   }
@@ -247,15 +253,18 @@ class LogService {
 
     for (const logFile of logFiles) {
       try {
-        const content = fs.readFileSync(logFile, 'utf-8');
-        const lines = content.split('\n').filter(line => line.trim());
+        const content = fs.readFileSync(logFile, "utf-8");
+        const lines = content.split("\n").filter((line) => line.trim());
 
         for (const line of lines) {
           const entry = this.parseLogLine(line);
           if (!entry) continue;
 
           // 过滤条件
-          if (options.minLevel !== undefined && entry.level < options.minLevel) {
+          if (
+            options.minLevel !== undefined &&
+            entry.level < options.minLevel
+          ) {
             continue;
           }
 
@@ -264,7 +273,8 @@ class LogService {
           }
 
           if (options.keyword) {
-            const searchText = `${entry.message} ${JSON.stringify(entry.data || '')}`.toLowerCase();
+            const searchText =
+              `${entry.message} ${JSON.stringify(entry.data || "")}`.toLowerCase();
             if (!searchText.includes(options.keyword.toLowerCase())) {
               continue;
             }
@@ -302,9 +312,9 @@ class LogService {
         [LogLevel.DEBUG]: 0,
         [LogLevel.INFO]: 0,
         [LogLevel.WARN]: 0,
-        [LogLevel.ERROR]: 0
+        [LogLevel.ERROR]: 0,
       },
-      byModule: {}
+      byModule: {},
     };
 
     for (const log of logs) {
@@ -312,7 +322,7 @@ class LogService {
       stats.byLevel[log.level]++;
 
       // 按模块统计
-      const module = log.module || 'unknown';
+      const module = log.module || "unknown";
       stats.byModule[module] = (stats.byModule[module] || 0) + 1;
     }
 
@@ -328,18 +338,24 @@ class LogService {
       const match = line.match(/^\[([^\]]+)\]\s+(\w+)\s+(.+)$/);
       if (!match) return null;
 
-      const [, timestamp, levelStr, messageAndData] = match;
+      const timestamp = match[1] ?? "";
+      const levelStr = match[2] ?? "";
+      const messageAndData = match[3] ?? "";
+
       const level = this.parseLogLevel(levelStr);
 
       // 分离消息和数据
       let message = messageAndData;
       let data: any;
 
-      if (messageAndData.includes(' | ')) {
-        const [msg, dataStr] = messageAndData.split(' | ');
-        message = msg;
+      if (messageAndData.includes(" | ")) {
+        const parts = messageAndData.split(" | ");
+        message = parts[0] ?? "";
+        const dataStr = parts[1];
         try {
-          data = JSON.parse(dataStr);
+          if (dataStr) {
+            data = JSON.parse(dataStr);
+          }
         } catch {
           // 数据解析失败，忽略
         }
@@ -349,7 +365,7 @@ class LogService {
         timestamp,
         level,
         message,
-        data
+        data,
       };
     } catch {
       return null;
@@ -411,7 +427,7 @@ class LogService {
         console.log(`LogService: Cleaned ${cleanedCount} old log file(s)`);
       }
     } catch (error) {
-      console.error('Failed to clean old logs:', error);
+      console.error("Failed to clean old logs:", error);
     }
   }
 
@@ -420,12 +436,15 @@ class LogService {
    */
   private startCleanupTask(): void {
     // 每天清理一次（24小时）
-    this.cleanupTimer = setInterval(() => {
-      this.cleanOldLogs();
-    }, 24 * 60 * 60 * 1000);
+    this.cleanupTimer = setInterval(
+      () => {
+        this.cleanOldLogs();
+      },
+      24 * 60 * 60 * 1000,
+    );
 
     // 应用退出时清理定时器
-    app.on('will-quit', () => {
+    app.on("will-quit", () => {
       if (this.cleanupTimer) {
         clearInterval(this.cleanupTimer);
       }
@@ -487,7 +506,7 @@ class LogService {
             files.push({
               name: entry,
               size: stats.size,
-              modified: stats.mtime
+              modified: stats.mtime,
             });
           } catch {
             // 忽略无法读取的文件

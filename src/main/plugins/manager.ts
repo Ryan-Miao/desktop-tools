@@ -1,9 +1,9 @@
-import fs from 'fs';
-import path from 'path';
-import JSZip from 'jszip';
-import { app } from 'electron';
-import EventEmitter from 'eventemitter3';
-import semver from 'semver';
+import fs from "fs";
+import path from "path";
+import JSZip from "jszip";
+import { app } from "electron";
+import EventEmitter from "eventemitter3";
+import semver from "semver";
 import {
   IPlugin,
   PluginManifest,
@@ -15,12 +15,12 @@ import {
   PluginEventTypeEvent,
   IPluginManager,
   PluginContext,
-  PluginStorage
-} from '@shared/types/plugin';
-import { PluginStore } from '../services/PluginStore';
-import { createLogger } from '../../shared/logger';
+  PluginStorage,
+} from "@shared/types/plugin";
+import { PluginStore } from "../services/PluginStore";
+import { createLogger } from "../../shared/logger";
 
-const logger = createLogger('PluginManager');
+const logger = createLogger("PluginManager");
 
 /**
  * 增强的插件管理器
@@ -44,11 +44,14 @@ export class PluginManager implements IPluginManager {
   private initialized = false;
   private mainWindow: Electron.BrowserWindow | null = null;
 
-  constructor(store: PluginStore, mainWindow: Electron.BrowserWindow | null = null) {
+  constructor(
+    store: PluginStore,
+    mainWindow: Electron.BrowserWindow | null = null,
+  ) {
     this.store = store;
     this.mainWindow = mainWindow;
-    this.builtinPluginsDir = path.join(process.cwd(), 'plugins');
-    this.userDataPluginsDir = path.join(app.getPath('userData'), 'plugins');
+    this.builtinPluginsDir = path.join(process.cwd(), "plugins");
+    this.userDataPluginsDir = path.join(app.getPath("userData"), "plugins");
     this.ensurePluginsDir();
   }
 
@@ -69,7 +72,7 @@ export class PluginManager implements IPluginManager {
       logger.debug(`Event sent: ${channel}`);
     } else {
       logger.error(`Cannot broadcast event: ${channel}`, {
-        reason: this.mainWindow ? 'destroyed' : 'mainWindow is null'
+        reason: this.mainWindow ? "destroyed" : "mainWindow is null",
       });
     }
   }
@@ -94,7 +97,7 @@ export class PluginManager implements IPluginManager {
     this.startFileWatcher();
 
     this.initialized = true;
-    logger.info('PluginManager initialized');
+    logger.info("PluginManager initialized");
   }
 
   async destroy(): Promise<void> {
@@ -115,17 +118,17 @@ export class PluginManager implements IPluginManager {
 
   private startFileWatcher(): void {
     try {
-      const chokidar = require('chokidar');
+      const chokidar = require("chokidar");
 
       this.watcher = chokidar.watch(this.userDataPluginsDir, {
         ignored: /(^|[\/\\])\../,
-        persistent: true
+        persistent: true,
       });
 
       // 监听插件目录添加
-      this.watcher.on('addDir', async (pluginPath: string) => {
+      this.watcher.on("addDir", async (pluginPath: string) => {
         const pluginId = path.basename(pluginPath);
-        const manifestPath = path.join(pluginPath, 'manifest.json');
+        const manifestPath = path.join(pluginPath, "manifest.json");
 
         // 等待 manifest 文件创建完成
         const maxWait = 5000; // 最多等待5秒
@@ -137,20 +140,26 @@ export class PluginManager implements IPluginManager {
               await this.install(pluginPath);
               logger.info(`Plugin detected and loaded: ${pluginId}`);
               this.emit(PluginEventType.LOADED, pluginId);
-              this.broadcastEvent('plugin:loaded', pluginId);
+              this.broadcastEvent("plugin:loaded", pluginId);
             } catch (error) {
-              logger.error(`Failed to auto-load plugin: ${pluginId}`, { error });
-              this.emit(PluginEventType.ERROR, pluginId, error instanceof Error ? error : undefined);
-              this.broadcastEvent('plugin:error', pluginId, error);
+              logger.error(`Failed to auto-load plugin: ${pluginId}`, {
+                error,
+              });
+              this.emit(
+                PluginEventType.ERROR,
+                pluginId,
+                error instanceof Error ? error : undefined,
+              );
+              this.broadcastEvent("plugin:error", pluginId, error);
             }
             break;
           }
-          await new Promise(resolve => setTimeout(resolve, checkInterval));
+          await new Promise((resolve) => setTimeout(resolve, checkInterval));
         }
       });
 
       // 监听插件目录删除
-      this.watcher.on('unlinkDir', async (pluginPath: string) => {
+      this.watcher.on("unlinkDir", async (pluginPath: string) => {
         const pluginId = path.basename(pluginPath);
 
         logger.info(`Plugin directory deleted: ${pluginId}`);
@@ -164,9 +173,11 @@ export class PluginManager implements IPluginManager {
             // 清理数据库状态（目录已被删除，不需要再删）
             await this.store.deleteState(id);
             this.pluginStates.delete(id);
-            logger.info(`Plugin cleaned up after directory deletion: ${pluginId}`);
+            logger.info(
+              `Plugin cleaned up after directory deletion: ${pluginId}`,
+            );
             this.emit(PluginEventType.UNLOADED, id);
-            this.broadcastEvent('plugin:unloaded', id);
+            this.broadcastEvent("plugin:unloaded", id);
             found = true;
             break;
           }
@@ -181,8 +192,8 @@ export class PluginManager implements IPluginManager {
       });
 
       // 监听 manifest 文件修改
-      this.watcher.on('change', async (manifestPath: string) => {
-        if (manifestPath.endsWith('manifest.json')) {
+      this.watcher.on("change", async (manifestPath: string) => {
+        if (manifestPath.endsWith("manifest.json")) {
           const pluginDir = path.dirname(manifestPath);
           const pluginId = path.basename(pluginDir);
 
@@ -193,11 +204,15 @@ export class PluginManager implements IPluginManager {
                 await this.reload(id);
                 logger.info(`Plugin reloaded: ${pluginId}`);
                 this.emit(PluginEventType.UPDATED, pluginId);
-                this.broadcastEvent('plugin:updated', pluginId);
+                this.broadcastEvent("plugin:updated", pluginId);
               } catch (error) {
                 logger.error(`Failed to reload plugin: ${pluginId}`, { error });
-                this.emit(PluginEventType.ERROR, pluginId, error instanceof Error ? error : undefined);
-                this.broadcastEvent('plugin:error', pluginId, error);
+                this.emit(
+                  PluginEventType.ERROR,
+                  pluginId,
+                  error instanceof Error ? error : undefined,
+                );
+                this.broadcastEvent("plugin:error", pluginId, error);
               }
               break;
             }
@@ -206,8 +221,8 @@ export class PluginManager implements IPluginManager {
       });
 
       // 监听文件删除（例如 manifest.json 被删除）
-      this.watcher.on('unlink', async (filePath: string) => {
-        if (filePath.endsWith('manifest.json')) {
+      this.watcher.on("unlink", async (filePath: string) => {
+        if (filePath.endsWith("manifest.json")) {
           const pluginDir = path.dirname(filePath);
           const pluginId = path.basename(pluginDir);
 
@@ -219,9 +234,11 @@ export class PluginManager implements IPluginManager {
               await this.unload(id);
               await this.store.deleteState(id);
               this.pluginStates.delete(id);
-              logger.info(`Plugin cleaned up after manifest deletion: ${pluginId}`);
+              logger.info(
+                `Plugin cleaned up after manifest deletion: ${pluginId}`,
+              );
               this.emit(PluginEventType.UNLOADED, id);
-              this.broadcastEvent('plugin:unloaded', id);
+              this.broadcastEvent("plugin:unloaded", id);
               break;
             }
           }
@@ -232,10 +249,10 @@ export class PluginManager implements IPluginManager {
         }
       });
 
-      logger.info('File watcher started', { path: this.userDataPluginsDir });
+      logger.info("File watcher started", { path: this.userDataPluginsDir });
     } catch (error) {
-      logger.warn('Failed to start file watcher', { error });
-      logger.warn('Hot-reload disabled');
+      logger.warn("Failed to start file watcher", { error });
+      logger.warn("Hot-reload disabled");
     }
   }
 
@@ -264,20 +281,25 @@ export class PluginManager implements IPluginManager {
         const pluginId = state.id;
 
         // 检查文件是否存在
-        const builtinPath = this.findPluginPath(pluginId, this.builtinPluginsDir);
+        const builtinPath = this.findPluginPath(
+          pluginId,
+          this.builtinPluginsDir,
+        );
         const userPath = this.findPluginPath(pluginId, this.userDataPluginsDir);
 
-        const fileExists = (builtinPath !== null) || (userPath !== null);
+        const fileExists = builtinPath !== null || userPath !== null;
 
         if (!fileExists) {
           // 文件不存在但状态存在，清理状态
-          logger.warn(`Plugin file missing but state exists: ${pluginId}, cleaning up`);
+          logger.warn(
+            `Plugin file missing but state exists: ${pluginId}, cleaning up`,
+          );
           await this.store.deleteState(pluginId);
           this.pluginStates.delete(pluginId);
         }
       }
     } catch (error) {
-      logger.error('Error validating plugin states', { error });
+      logger.error("Error validating plugin states", { error });
     }
   }
 
@@ -288,7 +310,7 @@ export class PluginManager implements IPluginManager {
 
     for (const dir of pluginDirs) {
       const pluginPath = path.join(this.builtinPluginsDir, dir);
-      const manifestPath = path.join(pluginPath, 'manifest.json');
+      const manifestPath = path.join(pluginPath, "manifest.json");
 
       if (fs.existsSync(manifestPath)) {
         try {
@@ -307,7 +329,7 @@ export class PluginManager implements IPluginManager {
 
     for (const dir of pluginDirs) {
       const pluginPath = path.join(this.userDataPluginsDir, dir);
-      const manifestPath = path.join(pluginPath, 'manifest.json');
+      const manifestPath = path.join(pluginPath, "manifest.json");
 
       if (fs.existsSync(manifestPath)) {
         try {
@@ -350,11 +372,11 @@ export class PluginManager implements IPluginManager {
 
     for (const dir of pluginDirs) {
       const pluginPath = path.join(searchDir, dir);
-      const manifestPath = path.join(pluginPath, 'manifest.json');
+      const manifestPath = path.join(pluginPath, "manifest.json");
 
       if (fs.existsSync(manifestPath)) {
         try {
-          const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
           if (manifest.id === pluginId) {
             return pluginPath;
           }
@@ -367,9 +389,12 @@ export class PluginManager implements IPluginManager {
     return null;
   }
 
-  private async loadPlugin(pluginPath: string, source: PluginSource): Promise<void> {
-    const manifestPath = path.join(pluginPath, 'manifest.json');
-    const manifestContent = fs.readFileSync(manifestPath, 'utf-8');
+  private async loadPlugin(
+    pluginPath: string,
+    source: PluginSource,
+  ): Promise<void> {
+    const manifestPath = path.join(pluginPath, "manifest.json");
+    const manifestContent = fs.readFileSync(manifestPath, "utf-8");
     const manifest: PluginManifest = JSON.parse(manifestContent);
 
     // 验证 manifest
@@ -391,11 +416,11 @@ export class PluginManager implements IPluginManager {
         return state?.customData?.[key];
       },
       set: async (key: string, value: any) => {
-        const state = await this.store.getState(manifest.id) || {
+        const state = (await this.store.getState(manifest.id)) || {
           id: manifest.id,
           enabled: true,
           installed: true,
-          source
+          source,
         };
         state.customData = state.customData || {};
         state.customData[key] = value;
@@ -418,7 +443,7 @@ export class PluginManager implements IPluginManager {
       getAll: async () => {
         const state = await this.store.getState(manifest.id);
         return state?.customData || {};
-      }
+      },
     };
 
     // 创建插件上下文
@@ -430,15 +455,21 @@ export class PluginManager implements IPluginManager {
       logger: {
         info: (...args: any[]) => logger.info(`[${manifest.name}]`, ...args),
         error: (...args: any[]) => logger.error(`[${manifest.name}]`, ...args),
-        warn: (...args: any[]) => logger.warn(`[${manifest.name}]`, ...args)
+        warn: (...args: any[]) => logger.warn(`[${manifest.name}]`, ...args),
       },
-      storage
+      storage,
     };
 
     // 动态加载插件入口
     // Try loading from dist/plugins first (built by Vite), then fallback to source plugins/
     const pluginName = path.basename(pluginPath);
-    const distEntryPath = path.join(process.cwd(), 'dist', 'plugins', pluginName, 'index.js');
+    const distEntryPath = path.join(
+      process.cwd(),
+      "dist",
+      "plugins",
+      pluginName,
+      "index.js",
+    );
 
     let entryPath = distEntryPath;
     let pluginInstance: IPlugin;
@@ -458,19 +489,19 @@ export class PluginManager implements IPluginManager {
         const PluginConstructor = pluginModule.default || pluginModule;
 
         // 创建插件实例
-        if (typeof PluginConstructor === 'function') {
+        if (typeof PluginConstructor === "function") {
           pluginInstance = new PluginConstructor();
-        } else if (typeof PluginConstructor === 'object') {
+        } else if (typeof PluginConstructor === "object") {
           // 如果是对象，直接使用
           pluginInstance = PluginConstructor;
         } else {
-          throw new Error('Invalid plugin export');
+          throw new Error("Invalid plugin export");
         }
       } else {
         // Built-in plugin without entry - create empty instance
         pluginInstance = {
           onActivate: async () => {},
-          onDeactivate: async () => {}
+          onDeactivate: async () => {},
         } as IPlugin;
       }
 
@@ -489,7 +520,7 @@ export class PluginManager implements IPluginManager {
       pluginInstance = {
         manifest,
         onLoad: async () => {},
-        onUnload: async () => {}
+        onUnload: async () => {},
       };
     }
 
@@ -505,7 +536,7 @@ export class PluginManager implements IPluginManager {
         installed: true,
         source,
         installedAt: Date.now(),
-        customData: {}
+        customData: {},
       };
     }
     this.pluginStates.set(manifest.id, state);
@@ -618,7 +649,7 @@ export class PluginManager implements IPluginManager {
     // 解析插件路径（可能是 .zip 文件）
     let installDir: string;
 
-    if (pluginPath.endsWith('.zip')) {
+    if (pluginPath.endsWith(".zip")) {
       // 解压 ZIP 文件
       installDir = await this.extractPlugin(pluginPath);
     } else {
@@ -627,12 +658,14 @@ export class PluginManager implements IPluginManager {
     }
 
     // 读取 manifest
-    const manifestPath = path.join(installDir, 'manifest.json');
+    const manifestPath = path.join(installDir, "manifest.json");
     if (!fs.existsSync(manifestPath)) {
-      throw new Error('manifest.json not found in plugin');
+      throw new Error("manifest.json not found in plugin");
     }
 
-    const manifest: PluginManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+    const manifest: PluginManifest = JSON.parse(
+      fs.readFileSync(manifestPath, "utf-8"),
+    );
 
     // 验证 manifest
     this.validateManifest(manifest);
@@ -641,17 +674,22 @@ export class PluginManager implements IPluginManager {
     const existingState = await this.store.getState(manifest.id);
     if (existingState && existingState.installed) {
       // 检查插件文件是否实际存在
-      const existingPath = this.findPluginPath(manifest.id, this.userDataPluginsDir);
+      const existingPath = this.findPluginPath(
+        manifest.id,
+        this.userDataPluginsDir,
+      );
       if (existingPath && fs.existsSync(existingPath)) {
         logger.info(`Plugin already installed: ${manifest.id}`);
         return;
       }
       // 文件不存在但状态存在，清除旧状态并重新安装
-      logger.info(`Plugin state exists but files missing, reinstalling: ${manifest.id}`);
+      logger.info(
+        `Plugin state exists but files missing, reinstalling: ${manifest.id}`,
+      );
     }
 
     // 如果是 ZIP 安装，复制到用户插件目录
-    if (pluginPath.endsWith('.zip')) {
+    if (pluginPath.endsWith(".zip")) {
       const targetDir = path.join(this.userDataPluginsDir, manifest.id);
       if (fs.existsSync(targetDir)) {
         fs.rmSync(targetDir, { recursive: true });
@@ -669,17 +707,24 @@ export class PluginManager implements IPluginManager {
     // 加载插件
     await this.loadPlugin(installDir, PluginSource.LOCAL);
 
-    logger.info(`Plugin installed: ${manifest.name}`, { pluginId: manifest.id });
+    logger.info(`Plugin installed: ${manifest.name}`, {
+      pluginId: manifest.id,
+    });
 
     this.emit(PluginEventType.LOADED, manifest.id);
-    this.broadcastEvent('plugin:loaded', manifest.id);
-    this.broadcastEvent('plugin:installed', manifest.id);
+    this.broadcastEvent("plugin:loaded", manifest.id);
+    this.broadcastEvent("plugin:installed", manifest.id);
 
-    logger.debug(`Plugin installation events broadcast complete`, { pluginId: manifest.id });
+    logger.debug(`Plugin installation events broadcast complete`, {
+      pluginId: manifest.id,
+    });
   }
 
   private async extractPlugin(zipPath: string): Promise<string> {
-    const tempDir = path.join(app.getPath('temp'), `plugin-extract-${Date.now()}`);
+    const tempDir = path.join(
+      app.getPath("temp"),
+      `plugin-extract-${Date.now()}`,
+    );
 
     // 读取 ZIP 文件
     const zip = new JSZip();
@@ -699,8 +744,8 @@ export class PluginManager implements IPluginManager {
       }
 
       // 写入文件
-      if (!entry.dir) {
-        const buffer = await entry.async('arraybuffer');
+      if (entry && !entry.dir) {
+        const buffer = await entry.async("arraybuffer");
         fs.writeFileSync(entryPath, Buffer.from(buffer));
       }
     }
@@ -729,20 +774,23 @@ export class PluginManager implements IPluginManager {
       logger.info(`Plugin uninstalled: ${pluginId}`);
 
       this.emit(PluginEventType.UNLOADED, pluginId);
-      this.broadcastEvent('plugin:unloaded', pluginId);
-      this.broadcastEvent('plugin:uninstalled', pluginId);
+      this.broadcastEvent("plugin:unloaded", pluginId);
+      this.broadcastEvent("plugin:uninstalled", pluginId);
 
-      logger.debug(`Plugin uninstallation events broadcast complete`, { pluginId });
+      logger.debug(`Plugin uninstallation events broadcast complete`, {
+        pluginId,
+      });
     } catch (error) {
       // 捕获并记录异常
       logger.error(`Error during uninstall of ${pluginId}`, { error });
-      throw error;  // 重新抛出，让上层处理
+      throw error; // 重新抛出，让上层处理
     }
   }
 
   async export(pluginId: string, outputPath: string): Promise<void> {
-    const pluginPath = this.findPluginPath(pluginId, this.builtinPluginsDir) ||
-                      this.findPluginPath(pluginId, this.userDataPluginsDir);
+    const pluginPath =
+      this.findPluginPath(pluginId, this.builtinPluginsDir) ||
+      this.findPluginPath(pluginId, this.userDataPluginsDir);
 
     if (!pluginPath) {
       throw new Error(`Plugin not found: ${pluginId}`);
@@ -753,11 +801,16 @@ export class PluginManager implements IPluginManager {
 
     // 检查是否有编译后的版本
     const pluginName = path.basename(pluginPath);
-    const distPluginPath = path.join(process.cwd(), 'dist', 'plugins', pluginName);
-    const hasCompiledVersion = fs.existsSync(distPluginPath);
+    const distPluginPath = path.join(
+      process.cwd(),
+      "dist",
+      "plugins",
+      pluginName,
+    );
+    const _hasCompiledVersion = fs.existsSync(distPluginPath);
 
     // 添加插件文件
-    const addFiles = (dir: string, base: string = '') => {
+    const addFiles = (dir: string, base: string = "") => {
       const files = fs.readdirSync(dir);
       for (const file of files) {
         const filePath = path.join(dir, file);
@@ -768,7 +821,11 @@ export class PluginManager implements IPluginManager {
           addFiles(filePath, relativePath);
         } else {
           // 跳过无用的文件
-          if (file.includes('node_modules') || file.includes('.test.') || file.includes('.spec.')) {
+          if (
+            file.includes("node_modules") ||
+            file.includes(".test.") ||
+            file.includes(".spec.")
+          ) {
             return;
           }
 
@@ -780,21 +837,21 @@ export class PluginManager implements IPluginManager {
     };
 
     // 读取 manifest.json（不修改 entry）
-    const manifestPath = path.join(pluginPath, 'manifest.json');
+    const manifestPath = path.join(pluginPath, "manifest.json");
     let manifest: any = {};
     if (fs.existsSync(manifestPath)) {
-      manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+      manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
       // 保持原始 entry，不修改
     }
 
     // 添加 manifest
-    zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+    zip.file("manifest.json", JSON.stringify(manifest, null, 2));
 
     // 添加其他文件
     addFiles(pluginPath);
 
     // 生成 ZIP
-    const content = await zip.generateAsync({ type: 'nodebuffer' });
+    const content = await zip.generateAsync({ type: "nodebuffer" });
     fs.writeFileSync(outputPath, content as Buffer);
 
     logger.info(`Plugin exported to: ${outputPath}`);
@@ -814,7 +871,7 @@ export class PluginManager implements IPluginManager {
 
   async checkUpdates(): Promise<void> {
     // TODO: 实现检查插件更新
-    logger.info('Plugin updates check requested');
+    logger.info("Plugin updates check requested");
   }
 
   // ==================== Events ====================
@@ -832,7 +889,7 @@ export class PluginManager implements IPluginManager {
       type,
       pluginId,
       timestamp: Date.now(),
-      error
+      error,
     };
     this.eventEmitter.emit(type, event);
   }
@@ -840,7 +897,7 @@ export class PluginManager implements IPluginManager {
   // ==================== Validation ====================
 
   private validateManifest(manifest: PluginManifest): void {
-    const required = ['id', 'name', 'version', 'description', 'author', 'icon'];
+    const required = ["id", "name", "version", "description", "author", "icon"];
     for (const field of required) {
       if (!(field in manifest)) {
         throw new Error(`Missing required field in manifest: ${field}`);

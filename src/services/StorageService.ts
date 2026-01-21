@@ -8,9 +8,9 @@
  * - Error recovery
  */
 
-import { logger } from '../shared/logger';
-import { fileStorageService } from '../renderer/services/FileStorageService';
-import { debounce } from '../renderer/utils/debounce';
+import { logger } from "../shared/logger";
+import { fileStorageService } from "../renderer/services/FileStorageService";
+// import { debounce } from '../renderer/utils/debounce';
 
 interface CacheEntry<T = any> {
   data: T;
@@ -72,8 +72,13 @@ class UnifiedStorageService {
   /**
    * Set data in storage with caching and debounced persistence
    */
-  async set(key: string, value: any, options: StorageOptions = {}): Promise<boolean> {
-    const { persistImmediately = false, fallbackToLocalStorage = true } = options;
+  async set(
+    key: string,
+    value: any,
+    options: StorageOptions = {},
+  ): Promise<boolean> {
+    const { persistImmediately = false, fallbackToLocalStorage = true } =
+      options;
 
     // Update cache immediately
     this.cache.set(key, {
@@ -116,7 +121,9 @@ class UnifiedStorageService {
       return;
     }
 
-    logger.debug(`[UnifiedStorage] Flushing save queue (${this.saveQueue.size} items)`);
+    logger.debug(
+      `[UnifiedStorage] Flushing save queue (${this.saveQueue.size} items)`,
+    );
 
     const itemsToSave = Array.from(this.saveQueue.entries());
     this.saveQueue.clear();
@@ -131,7 +138,7 @@ class UnifiedStorageService {
           // Re-add to queue on failure
           this.saveQueue.set(key, value);
         }
-      })
+      }),
     );
   }
 
@@ -141,7 +148,7 @@ class UnifiedStorageService {
   private async _persistImmediate(
     key: string,
     value: any,
-    fallbackToLocalStorage: boolean
+    fallbackToLocalStorage: boolean,
   ): Promise<boolean> {
     try {
       const success = await fileStorageService.savePluginData(key, value);
@@ -155,7 +162,7 @@ class UnifiedStorageService {
         logger.debug(`[UnifiedStorage] Persisted: ${key}`);
         return true;
       } else {
-        throw new Error('Storage service returned false');
+        throw new Error("Storage service returned false");
       }
     } catch (error) {
       logger.error(`[UnifiedStorage] Failed to persist ${key}`, { error });
@@ -167,9 +174,12 @@ class UnifiedStorageService {
           logger.info(`[UnifiedStorage] Fell back to localStorage for: ${key}`);
           return true;
         } catch (fallbackError) {
-          logger.error(`[UnifiedStorage] LocalStorage fallback failed for ${key}`, {
-            error: fallbackError,
-          });
+          logger.error(
+            `[UnifiedStorage] LocalStorage fallback failed for ${key}`,
+            {
+              error: fallbackError,
+            },
+          );
           return false;
         }
       }
@@ -230,7 +240,7 @@ class UnifiedStorageService {
    */
   clearCache(): void {
     this.cache.clear();
-    logger.info('[UnifiedStorage] Cache cleared');
+    logger.info("[UnifiedStorage] Cache cleared");
   }
 
   /**
@@ -251,7 +261,7 @@ class UnifiedStorageService {
     }
 
     await this._flushSaveQueue();
-    logger.info('[UnifiedStorage] All pending writes flushed');
+    logger.info("[UnifiedStorage] All pending writes flushed");
   }
 
   /**
@@ -290,7 +300,7 @@ class UnifiedStorageService {
         } catch (error) {
           logger.warn(`[UnifiedStorage] Failed to preload ${key}`, { error });
         }
-      })
+      }),
     );
 
     logger.info(`[UnifiedStorage] Preloaded ${keys.length} keys`);
@@ -324,7 +334,9 @@ class UnifiedStorageService {
       this.saveQueue.set(key, value);
     });
 
-    logger.info(`[UnifiedStorage] Imported ${Object.keys(data).length} cache entries`);
+    logger.info(
+      `[UnifiedStorage] Imported ${Object.keys(data).length} cache entries`,
+    );
 
     // Schedule persist
     this._schedulePersist();
@@ -335,8 +347,8 @@ class UnifiedStorageService {
 export const unifiedStorageService = new UnifiedStorageService();
 
 // Auto-flush on page unload
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', async () => {
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeunload", async () => {
     await unifiedStorageService.flush();
   });
 }

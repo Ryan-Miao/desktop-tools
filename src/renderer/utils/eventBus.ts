@@ -9,9 +9,9 @@
  * - Event history tracking
  */
 
-import { logger } from '../../shared/logger';
+import { logger } from "../../shared/logger";
 
-export type EventPriority = 'high' | 'normal' | 'low';
+export type EventPriority = "high" | "normal" | "low";
 export type EventCallback = (...args: any[]) => void | Promise<void>;
 
 interface QueuedEvent {
@@ -25,6 +25,12 @@ interface Listener {
   callback: EventCallback;
   priority: EventPriority;
   once: boolean;
+  context?: string;
+}
+
+interface SubscriptionOptions {
+  priority?: EventPriority;
+  once?: boolean;
   context?: string;
 }
 
@@ -46,9 +52,9 @@ class EventEmitter {
   on(
     event: string,
     callback: EventCallback,
-    options: { priority?: EventPriority; once?: boolean; context?: string } = {}
+    options: SubscriptionOptions = {},
   ): () => void {
-    const { priority = 'normal', once = false, context } = options;
+    const { priority = "normal", once = false, context } = options;
 
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
@@ -57,7 +63,9 @@ class EventEmitter {
     const listener: Listener = { callback, priority, once, context };
     this.listeners.get(event)!.add(listener);
 
-    logger.debug(`[EventBus] Subscribed to "${event}" (priority: ${priority}, once: ${once})`);
+    logger.debug(
+      `[EventBus] Subscribed to "${event}" (priority: ${priority}, once: ${once})`,
+    );
 
     // Return cleanup function
     return () => {
@@ -69,7 +77,11 @@ class EventEmitter {
   /**
    * Subscribe to an event (one-time only)
    */
-  once(event: string, callback: EventCallback, options?: Omit<typeof options, 'once'>): () => void {
+  once(
+    event: string,
+    callback: EventCallback,
+    options?: Omit<SubscriptionOptions, "once">,
+  ): () => void {
     return this.on(event, callback, { ...options, once: true });
   }
 
@@ -79,23 +91,20 @@ class EventEmitter {
    * @param args - Arguments to pass to callbacks
    * @param options - Emit options
    */
-  emit(
-    event: string,
-    ...args: any[]
-  ): void;
+  emit(event: string, ...args: any[]): void;
   emit(
     event: string,
     options: { priority?: EventPriority; delay?: number },
     ...args: any[]
   ): void;
   emit(event: string, optionsOrArgs: any, ...args: any[]): void {
-    let priority: EventPriority = 'normal';
+    let priority: EventPriority = "normal";
     let delay: number | undefined;
     let eventArgs: any[] = [];
 
     // Handle overloaded signatures
-    if (typeof optionsOrArgs === 'object' && optionsOrArgs !== null) {
-      priority = optionsOrArgs.priority || 'normal';
+    if (typeof optionsOrArgs === "object" && optionsOrArgs !== null) {
+      priority = optionsOrArgs.priority || "normal";
       delay = optionsOrArgs.delay;
       eventArgs = args;
     } else {
@@ -113,7 +122,7 @@ class EventEmitter {
     // Enforce max queue size
     if (this.eventQueue.length > this.maxQueueSize) {
       this.eventQueue.shift(); // Remove oldest event
-      logger.warn('[EventBus] Event queue full, dropped oldest event');
+      logger.warn("[EventBus] Event queue full, dropped oldest event");
     }
 
     // Process queue immediately or after delay
@@ -206,7 +215,7 @@ class EventEmitter {
   removeAll(): void {
     this.listeners.clear();
     this.eventQueue = [];
-    logger.info('[EventBus] Cleared all listeners and event queue');
+    logger.info("[EventBus] Cleared all listeners and event queue");
   }
 
   /**
@@ -220,7 +229,7 @@ class EventEmitter {
   } {
     const listenersCount = Array.from(this.listeners.values()).reduce(
       (sum, set) => sum + set.size,
-      0
+      0,
     );
 
     return {
@@ -251,20 +260,19 @@ export const eventBus = new EventEmitter();
 
 // Define event names
 export const AppEvents = {
-  PLUGINS_CHANGED: 'app:plugins-changed',
-  THEME_CHANGED: 'app:theme-changed',
-  SETTINGS_CHANGED: 'app:settings-changed',
-  WINDOW_STATE_CHANGED: 'app:window-state-changed',
-  ERROR_OCCURRED: 'app:error-occurred',
+  PLUGINS_CHANGED: "app:plugins-changed",
+  THEME_CHANGED: "app:theme-changed",
+  SETTINGS_CHANGED: "app:settings-changed",
+  WINDOW_STATE_CHANGED: "app:window-state-changed",
+  ERROR_OCCURRED: "app:error-occurred",
 } as const;
 
 export type AppEventName = keyof typeof AppEvents;
 
 // Log stats every 60 seconds for debugging
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
   setInterval(() => {
     const stats = eventBus.getStats();
-    logger.debug('[EventBus] Stats:', stats);
+    logger.debug("[EventBus] Stats:", stats);
   }, 60000);
 }
-
