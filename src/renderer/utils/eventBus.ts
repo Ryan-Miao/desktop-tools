@@ -180,8 +180,11 @@ class EventEmitter {
       return;
     }
 
-    // Convert to array to safely modify Set during iteration
-    const listenersArray = Array.from(listeners);
+    // Convert to array and sort by priority
+    const priorityOrder = { high: 3, normal: 2, low: 1 };
+    const listenersArray = Array.from(listeners).sort(
+      (a, b) => priorityOrder[b.priority] - priorityOrder[a.priority],
+    );
 
     for (const listener of listenersArray) {
       try {
