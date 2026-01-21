@@ -73,12 +73,13 @@
 }
 
 .editBtn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 16px;
-  min-width: 80px;
+  padding: 10px 16px;
+  min-height: 44px;
+  min-width: 88px;
   background: var(--primary-color, #667eea);
   color: white;
   border: none;
@@ -87,8 +88,9 @@
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.15s ease, box-shadow 0.15s ease;
-  pointer-events: auto;
   user-select: none;
+  position: relative;
+  z-index: 1;
 }
 
 .editBtn:active {
