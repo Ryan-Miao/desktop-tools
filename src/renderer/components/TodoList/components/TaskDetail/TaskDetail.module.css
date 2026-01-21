@@ -84,12 +84,7 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.editBtn:hover {
-  background: var(--primary-color-dark, #5568d3);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .editBtn:active {
