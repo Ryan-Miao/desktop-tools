@@ -95,7 +95,7 @@ describe("CalendarView Component", () => {
       completed: false,
       priority: "high" as const,
       listId: "list-inbox",
-      dueDate: new Date().toISOString().split("T")[0],
+      dueDate: new Date().toISOString().split("T")[0], // Today
       order: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -108,7 +108,7 @@ describe("CalendarView Component", () => {
       completed: true,
       priority: "medium" as const,
       listId: "list-inbox",
-      dueDate: new Date(Date.now() + 86400000).toISOString().split("T")[0],
+      dueDate: new Date().toISOString().split("T")[0], // Also today for testing
       order: 1,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

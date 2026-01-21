@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { useTodoStore, Todo, List } from '../useTodoStore';
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { renderHook, act } from "@testing-library/react";
+import { useTodoStore, Todo, List } from "../useTodoStore";
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -20,145 +20,155 @@ const localStorageMock = (() => {
   };
 })();
 
-Object.defineProperty(global, 'localStorage', {
+Object.defineProperty(global, "localStorage", {
   value: localStorageMock,
 });
 
-describe('useTodoStore', () => {
+describe("useTodoStore", () => {
   beforeEach(() => {
     // Clear localStorage before each test
     localStorage.clear();
-    // Reset store state
-    const { reset } = useTodoStore.getState() as any;
-    if (reset) reset();
+
+    // Completely reset store state
+    const store = useTodoStore.getState();
+
+    // Reset todos
+    store.todos = [];
+
+    // Reset lists to default (don't use set() as it might trigger side effects)
+    // We'll let the initialize function handle this
+    store.currentView = "list-inbox";
+    store.searchQuery = "";
   });
 
-  describe('Initial State', () => {
-    it('should have correct initial state', () => {
+  describe("Initial State", () => {
+    it("should have correct initial state", () => {
       const { result } = renderHook(() => useTodoStore());
 
       expect(result.current.todos).toEqual([]);
       expect(result.current.lists).toHaveLength(3);
-      expect(result.current.currentView).toBe('list-inbox');
-      expect(result.current.searchQuery).toBe('');
+      expect(result.current.currentView).toBe("list-inbox");
+      expect(result.current.searchQuery).toBe("");
     });
 
-    it('should have default lists', () => {
+    it("should have default lists", () => {
       const { result } = renderHook(() => useTodoStore());
 
-      const inboxList = result.current.lists.find(l => l.id === 'list-inbox');
+      const inboxList = result.current.lists.find((l) => l.id === "list-inbox");
       expect(inboxList).toBeDefined();
-      expect(inboxList?.name).toBe('收集箱');
+      expect(inboxList?.name).toBe("收集箱");
       expect(inboxList?.isInbox).toBe(true);
     });
   });
 
-  describe('addTodo', () => {
-    it('should add a new todo', () => {
+  describe("addTodo", () => {
+    it("should add a new todo", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
         result.current.addTodo({
-          title: 'Test Task',
+          title: "Test Task",
           completed: false,
-          priority: 'none',
-          listId: 'list-inbox',
+          priority: "none",
+          listId: "list-inbox",
         });
       });
 
       expect(result.current.todos).toHaveLength(1);
-      expect(result.current.todos[0].title).toBe('Test Task');
+      expect(result.current.todos[0].title).toBe("Test Task");
       expect(result.current.todos[0].completed).toBe(false);
-      expect(result.current.todos[0].listId).toBe('list-inbox');
+      expect(result.current.todos[0].listId).toBe("list-inbox");
       expect(result.current.todos[0].subtasks).toEqual([]);
       expect(result.current.todos[0].createdAt).toBeDefined();
     });
 
-    it('should add multiple todos', () => {
+    it("should add multiple todos", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
         result.current.addTodo({
-          title: 'First Task',
+          title: "First Task",
           completed: false,
-          priority: 'none',
-          listId: 'list-inbox',
+          priority: "none",
+          listId: "list-inbox",
         });
       });
 
       act(() => {
         result.current.addTodo({
-          title: 'Second Task',
+          title: "Second Task",
           completed: false,
-          priority: 'high',
-          listId: 'list-inbox',
-          dueDate: '2025-01-20',
+          priority: "high",
+          listId: "list-inbox",
+          dueDate: "2025-01-20",
         });
       });
 
       expect(result.current.todos).toHaveLength(2);
-      expect(result.current.todos[0].title).toBe('Second Task'); // Newest first
-      expect(result.current.todos[1].title).toBe('First Task');
+      expect(result.current.todos[0].title).toBe("Second Task"); // Newest first
+      expect(result.current.todos[1].title).toBe("First Task");
     });
 
-    it('should add todo with priority', () => {
+    it("should add todo with priority", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
         result.current.addTodo({
-          title: 'High Priority Task',
+          title: "High Priority Task",
           completed: false,
-          priority: 'high',
-          listId: 'list-inbox',
+          priority: "high",
+          listId: "list-inbox",
         });
       });
 
-      expect(result.current.todos[0].priority).toBe('high');
+      expect(result.current.todos[0].priority).toBe("high");
     });
 
-    it('should add todo with due date', () => {
+    it("should add todo with due date", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
         result.current.addTodo({
-          title: 'Task with Due Date',
+          title: "Task with Due Date",
           completed: false,
-          priority: 'none',
-          listId: 'list-inbox',
-          dueDate: '2025-01-25',
+          priority: "none",
+          listId: "list-inbox",
+          dueDate: "2025-01-25",
         });
       });
 
-      expect(result.current.todos[0].dueDate).toBe('2025-01-25');
+      expect(result.current.todos[0].dueDate).toBe("2025-01-25");
     });
 
-    it('should add todo with description', () => {
+    it("should add todo with description", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
         result.current.addTodo({
-          title: 'Task with Description',
-          description: 'This is a detailed description',
+          title: "Task with Description",
+          description: "This is a detailed description",
           completed: false,
-          priority: 'none',
-          listId: 'list-inbox',
+          priority: "none",
+          listId: "list-inbox",
         });
       });
 
-      expect(result.current.todos[0].description).toBe('This is a detailed description');
+      expect(result.current.todos[0].description).toBe(
+        "This is a detailed description",
+      );
     });
   });
 
-  describe('updateTodo', () => {
-    it('should update todo properties', () => {
+  describe("updateTodo", () => {
+    it("should update todo properties", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
         result.current.addTodo({
-          title: 'Original Title',
+          title: "Original Title",
           completed: false,
-          priority: 'none',
-          listId: 'list-inbox',
+          priority: "none",
+          listId: "list-inbox",
         });
       });
 
@@ -166,26 +176,26 @@ describe('useTodoStore', () => {
 
       act(() => {
         result.current.updateTodo(todoId, {
-          title: 'Updated Title',
-          priority: 'high',
+          title: "Updated Title",
+          priority: "high",
         });
       });
 
-      expect(result.current.todos[0].title).toBe('Updated Title');
-      expect(result.current.todos[0].priority).toBe('high');
+      expect(result.current.todos[0].title).toBe("Updated Title");
+      expect(result.current.todos[0].priority).toBe("high");
     });
   });
 
-  describe('toggleTodo', () => {
-    it('should toggle todo completion', () => {
+  describe("toggleTodo", () => {
+    it("should toggle todo completion", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
         result.current.addTodo({
-          title: 'Test Task',
+          title: "Test Task",
           completed: false,
-          priority: 'none',
-          listId: 'list-inbox',
+          priority: "none",
+          listId: "list-inbox",
         });
       });
 
@@ -209,16 +219,16 @@ describe('useTodoStore', () => {
     });
   });
 
-  describe('deleteTodo', () => {
-    it('should delete a todo', () => {
+  describe("deleteTodo", () => {
+    it("should delete a todo", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
         result.current.addTodo({
-          title: 'Task to Delete',
+          title: "Task to Delete",
           completed: false,
-          priority: 'none',
-          listId: 'list-inbox',
+          priority: "none",
+          listId: "list-inbox",
         });
       });
 
@@ -234,46 +244,46 @@ describe('useTodoStore', () => {
     });
   });
 
-  describe('Subtasks', () => {
-    it('should add a subtask', () => {
+  describe("Subtasks", () => {
+    it("should add a subtask", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
         result.current.addTodo({
-          title: 'Parent Task',
+          title: "Parent Task",
           completed: false,
-          priority: 'none',
-          listId: 'list-inbox',
+          priority: "none",
+          listId: "list-inbox",
         });
       });
 
       const todoId = result.current.todos[0].id;
 
       act(() => {
-        result.current.addSubTask(todoId, 'First Subtask');
+        result.current.addSubTask(todoId, "First Subtask");
       });
 
       expect(result.current.todos[0].subtasks).toHaveLength(1);
-      expect(result.current.todos[0].subtasks[0].title).toBe('First Subtask');
+      expect(result.current.todos[0].subtasks[0].title).toBe("First Subtask");
       expect(result.current.todos[0].subtasks[0].completed).toBe(false);
     });
 
-    it('should toggle subtask completion', () => {
+    it("should toggle subtask completion", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
         result.current.addTodo({
-          title: 'Parent Task',
+          title: "Parent Task",
           completed: false,
-          priority: 'none',
-          listId: 'list-inbox',
+          priority: "none",
+          listId: "list-inbox",
         });
       });
 
       const todoId = result.current.todos[0].id;
 
       act(() => {
-        result.current.addSubTask(todoId, 'Subtask to Toggle');
+        result.current.addSubTask(todoId, "Subtask to Toggle");
       });
 
       const subtaskId = result.current.todos[0].subtasks[0].id;
@@ -285,22 +295,22 @@ describe('useTodoStore', () => {
       expect(result.current.todos[0].subtasks[0].completed).toBe(true);
     });
 
-    it('should delete a subtask', () => {
+    it("should delete a subtask", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
         result.current.addTodo({
-          title: 'Parent Task',
+          title: "Parent Task",
           completed: false,
-          priority: 'none',
-          listId: 'list-inbox',
+          priority: "none",
+          listId: "list-inbox",
         });
       });
 
       const todoId = result.current.todos[0].id;
 
       act(() => {
-        result.current.addSubTask(todoId, 'Subtask to Delete');
+        result.current.addSubTask(todoId, "Subtask to Delete");
       });
 
       expect(result.current.todos[0].subtasks).toHaveLength(1);
@@ -314,91 +324,95 @@ describe('useTodoStore', () => {
       expect(result.current.todos[0].subtasks).toHaveLength(0);
     });
 
-    it('should update a subtask', () => {
+    it("should update a subtask", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
         result.current.addTodo({
-          title: 'Parent Task',
+          title: "Parent Task",
           completed: false,
-          priority: 'none',
-          listId: 'list-inbox',
+          priority: "none",
+          listId: "list-inbox",
         });
       });
 
       const todoId = result.current.todos[0].id;
 
       act(() => {
-        result.current.addSubTask(todoId, 'Original Title');
+        result.current.addSubTask(todoId, "Original Title");
       });
 
       const subtaskId = result.current.todos[0].subtasks[0].id;
 
       act(() => {
-        result.current.updateSubTask(todoId, subtaskId, 'Updated Title');
+        result.current.updateSubTask(todoId, subtaskId, "Updated Title");
       });
 
-      expect(result.current.todos[0].subtasks[0].title).toBe('Updated Title');
+      expect(result.current.todos[0].subtasks[0].title).toBe("Updated Title");
     });
   });
 
-  describe('List Management', () => {
-    it('should add a custom list', () => {
+  describe("List Management", () => {
+    it("should add a custom list", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
-        result.current.addList('Work', '💼', '#3B82F6');
+        result.current.addList("Work", "💼", "#3B82F6");
       });
 
       expect(result.current.lists).toHaveLength(4);
-      const workList = result.current.lists.find(l => l.name === 'Work');
+      const workList = result.current.lists.find((l) => l.name === "Work");
       expect(workList).toBeDefined();
-      expect(workList?.icon).toBe('💼');
-      expect(workList?.color).toBe('#3B82F6');
+      expect(workList?.icon).toBe("💼");
+      expect(workList?.color).toBe("#3B82F6");
     });
 
-    it('should update a list name', () => {
+    it("should update a list name", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
-        result.current.addList('Personal', '🏠', '#10B981');
+        result.current.addList("Personal", "🏠", "#10B981");
       });
 
-      const listId = result.current.lists.find(l => l.name === 'Personal')?.id!;
+      const listId = result.current.lists.find(
+        (l) => l.name === "Personal",
+      )?.id!;
 
       act(() => {
-        result.current.updateList(listId, 'Home');
+        result.current.updateList(listId, "Home");
       });
 
-      expect(result.current.lists.find(l => l.id === listId)?.name).toBe('Home');
+      expect(result.current.lists.find((l) => l.id === listId)?.name).toBe(
+        "Home",
+      );
     });
 
-    it('should not delete inbox list', () => {
+    it("should not delete inbox list", () => {
       const { result } = renderHook(() => useTodoStore());
 
       const initialListCount = result.current.lists.length;
 
       act(() => {
-        result.current.deleteList('list-inbox');
+        result.current.deleteList("list-inbox");
       });
 
       expect(result.current.lists).toHaveLength(initialListCount);
     });
 
-    it('should delete custom list and move todos to inbox', () => {
+    it("should delete custom list and move todos to inbox", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
-        result.current.addList('Work', '💼', '#3B82F6');
+        result.current.addList("Work", "💼", "#3B82F6");
       });
 
-      const workList = result.current.lists.find(l => l.name === 'Work')!;
+      const workList = result.current.lists.find((l) => l.name === "Work")!;
 
       act(() => {
         result.current.addTodo({
-          title: 'Work Task',
+          title: "Work Task",
           completed: false,
-          priority: 'none',
+          priority: "none",
           listId: workList.id,
         });
       });
@@ -409,91 +423,93 @@ describe('useTodoStore', () => {
         result.current.deleteList(workList.id);
       });
 
-      expect(result.current.lists.find(l => l.id === workList.id)).toBeUndefined();
-      expect(result.current.todos[0].listId).toBe('list-inbox');
+      expect(
+        result.current.lists.find((l) => l.id === workList.id),
+      ).toBeUndefined();
+      expect(result.current.todos[0].listId).toBe("list-inbox");
     });
   });
 
-  describe('getFilteredTodos', () => {
+  describe("getFilteredTodos", () => {
     beforeEach(() => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
         // Add task to inbox
         result.current.addTodo({
-          title: 'Inbox Task',
+          title: "Inbox Task",
           completed: false,
-          priority: 'none',
-          listId: 'list-inbox',
+          priority: "none",
+          listId: "list-inbox",
         });
 
         // Add task for today
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split("T")[0];
         result.current.addTodo({
-          title: 'Today Task',
+          title: "Today Task",
           completed: false,
-          priority: 'none',
-          listId: 'list-inbox',
+          priority: "none",
+          listId: "list-inbox",
           dueDate: today,
         });
       });
     });
 
-    it('should filter todos by inbox view', () => {
+    it("should filter todos by inbox view", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
-        result.current.setCurrentView('list-inbox');
+        result.current.setCurrentView("list-inbox");
       });
 
       const filtered = result.current.getFilteredTodos();
       expect(filtered.length).toBeGreaterThan(0);
     });
 
-    it('should filter todos by search query', () => {
+    it("should filter todos by search query", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
-        result.current.setSearchQuery('Inbox');
+        result.current.setSearchQuery("Inbox");
       });
 
       const filtered = result.current.getFilteredTodos();
-      expect(filtered.every(t => t.title.includes('Inbox'))).toBe(true);
+      expect(filtered.every((t) => t.title.includes("Inbox"))).toBe(true);
     });
   });
 
-  describe('UI State', () => {
-    it('should change current view', () => {
+  describe("UI State", () => {
+    it("should change current view", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
-        result.current.setCurrentView('today');
+        result.current.setCurrentView("today");
       });
 
-      expect(result.current.currentView).toBe('today');
+      expect(result.current.currentView).toBe("today");
     });
 
-    it('should set search query', () => {
+    it("should set search query", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
-        result.current.setSearchQuery('test query');
+        result.current.setSearchQuery("test query");
       });
 
-      expect(result.current.searchQuery).toBe('test query');
+      expect(result.current.searchQuery).toBe("test query");
     });
   });
 
-  describe('Helpers', () => {
-    it('should get todo by id', () => {
+  describe("Helpers", () => {
+    it("should get todo by id", () => {
       const { result } = renderHook(() => useTodoStore());
 
       act(() => {
         result.current.addTodo({
-          title: 'Test Task',
+          title: "Test Task",
           completed: false,
-          priority: 'none',
-          listId: 'list-inbox',
+          priority: "none",
+          listId: "list-inbox",
         });
       });
 
@@ -501,16 +517,16 @@ describe('useTodoStore', () => {
       const todo = result.current.getTodoById(todoId);
 
       expect(todo).toBeDefined();
-      expect(todo?.title).toBe('Test Task');
+      expect(todo?.title).toBe("Test Task");
     });
 
-    it('should get list by id', () => {
+    it("should get list by id", () => {
       const { result } = renderHook(() => useTodoStore());
 
-      const list = result.current.getListById('list-inbox');
+      const list = result.current.getListById("list-inbox");
 
       expect(list).toBeDefined();
-      expect(list?.name).toBe('收集箱');
+      expect(list?.name).toBe("收集箱");
     });
   });
 });
