@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import SearchBox from "./components/SearchBox";
 import PluginList from "./components/PluginList";
 import WindowControls from "./components/WindowControls";
