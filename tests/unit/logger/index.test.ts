@@ -214,24 +214,186 @@ describe("UnifiedLogger", () => {
   });
 
   describe("query and getStats", () => {
+    beforeEach(() => {
+      // Clean up any electron mocks to ensure test isolation
+      delete (window as any).electron;
+    });
+
     it("should not throw when calling query", async () => {
       const testLogger = new UnifiedLogger();
 
       await expect(testLogger.query()).resolves.toBeDefined();
     });
 
-    it("should not throw when calling getStats", async () => {
-      const testLogger = new UnifiedLogger();
+    it("should return empty array in web mode when calling query", async () => {
+      // Ensure no electron mock exists
+      delete (window as any).electron;
 
-      // Just check it doesn't throw - getStats may return undefined in test env
-      await testLogger.getStats();
-      expect(true).toBe(true); // If we get here, no error was thrown
+      const testLogger = new UnifiedLogger();
+      (testLogger as any).isDesktop = false;
+
+      const result = await testLogger.query();
+
+      expect(result).toEqual([]);
     });
 
     it("should handle query options without throwing", async () => {
       const testLogger = new UnifiedLogger();
 
       await expect(testLogger.query({ level: "error" })).resolves.toBeDefined();
+    });
+
+    it("should query logs via IPC in desktop mode", async () => {
+      const mockLogs = [
+        {
+          timestamp: "2026-01-22T00:00:00.000Z",
+          level: 1,
+          message: "Test log",
+          data: undefined,
+        },
+      ];
+      const mockElectron = {
+        ipcRenderer: {
+          invoke: vi.fn().mockResolvedValue(mockLogs),
+        },
+      };
+      (window as any).electron = mockElectron;
+
+      const testLogger = new UnifiedLogger();
+      (testLogger as any).isDesktop = true;
+
+      const result = await testLogger.query({ level: "info" });
+
+      expect(mockElectron.ipcRenderer.invoke).toHaveBeenCalledWith(
+        "log:query",
+        { level: "info" },
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0].timestamp).toBeInstanceOf(Date);
+
+      // Cleanup
+      delete (window as any).electron;
+    });
+
+    it("should handle query errors gracefully", async () => {
+      const mockElectron = {
+        ipcRenderer: {
+          invoke: vi.fn().mockRejectedValue(new Error("Query failed")),
+        },
+      };
+      (window as any).electron = mockElectron;
+
+      const testLogger = new UnifiedLogger();
+      (testLogger as any).isDesktop = true;
+
+      // Should not throw, return empty array on error
+      const result = await testLogger.query();
+      expect(result).toEqual([]);
+
+      // Cleanup
+      delete (window as any).electron;
+    });
+
+    it("should return empty stats in web mode", async () => {
+      // Ensure no electron mock exists
+      delete (window as any).electron;
+
+      const testLogger = new UnifiedLogger();
+      // Explicitly set to web mode
+      (testLogger as any).isDesktop = false;
+
+      const stats = await testLogger.getStats();
+
+      // In web mode, should return empty stats
+      expect(stats).toEqual({ total: 0, byLevel: {}, byModule: {} });
+    });
+
+    it("should handle IPC errors gracefully", async () => {
+      const testLogger = new UnifiedLogger({ minLevel: LogLevel.DEBUG });
+
+      // Mock electron to simulate desktop mode with IPC error
+      const mockElectron = {
+        ipcRenderer: {
+          invoke: vi.fn().mockRejectedValue(new Error("IPC connection failed")),
+        },
+      };
+      (window as any).electron = mockElectron;
+
+      // Force desktop mode
+      (testLogger as any).isDesktop = true;
+
+      // Should not throw, return empty stats on error
+      const stats = await testLogger.getStats();
+      expect(stats).toBeDefined();
+      expect(mockElectron.ipcRenderer.invoke).toHaveBeenCalledWith("log:stats");
+
+      // Cleanup
+      delete (window as any).electron;
+    });
+
+    it("should call ipcRenderer when in desktop mode", async () => {
+      const mockStats = {
+        total: 100,
+        byLevel: { info: 50, error: 10 },
+        byModule: { TestModule: 25 },
+      };
+      const mockElectron = {
+        ipcRenderer: {
+          invoke: vi.fn().mockResolvedValue(mockStats),
+        },
+      };
+      (window as any).electron = mockElectron;
+
+      const testLogger = new UnifiedLogger();
+      (testLogger as any).isDesktop = true;
+
+      const stats = await testLogger.getStats();
+
+      expect(stats).toEqual(mockStats);
+      expect(mockElectron.ipcRenderer.invoke).toHaveBeenCalledWith("log:stats");
+
+      // Cleanup
+      delete (window as any).electron;
+    });
+  });
+
+  describe("IPC error handling", () => {
+    let spyConsoleError: any;
+
+    beforeEach(() => {
+      spyConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      spyConsoleError.mockRestore();
+    });
+
+    it("should handle ipcRenderer.send errors gracefully", () => {
+      const mockElectron = {
+        ipcRenderer: {
+          send: vi.fn().mockImplementation(() => {
+            throw new Error("IPC send failed");
+          }),
+        },
+      };
+      (window as any).electron = mockElectron;
+
+      const testLogger = new UnifiedLogger({ minLevel: LogLevel.DEBUG });
+
+      // This should trigger sendToMainProcess which will call ipcRenderer.send
+      // The error should be caught and logged, not thrown
+      expect(() => {
+        testLogger.debug("Test message that will fail to send");
+      }).not.toThrow();
+
+      // Verify error was logged
+      expect(spyConsoleError).toHaveBeenCalledWith(
+        "[Logger] Failed to send log to main process:",
+        expect.any(Error),
+      );
+
+      // Cleanup
+      delete (window as any).electron;
     });
   });
 
