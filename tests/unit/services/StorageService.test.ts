@@ -370,12 +370,30 @@ describe("StorageService", () => {
       const size = storageService.getStorageSize();
       expect(size).toBe("0 KB");
     });
+
+    it("should handle localStorage errors gracefully when getting size", () => {
+      vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+        throw new Error("Read error");
+      });
+
+      const size = storageService.getStorageSize();
+      expect(size).toBe("0 KB");
+    });
   });
 
   describe("remote plugins", () => {
     it("should get installed remote plugins", () => {
       const installed = storageService.getInstalledRemotePlugins();
       expect(Array.isArray(installed)).toBe(true);
+    });
+
+    it("should handle localStorage errors gracefully when getting remote plugins", () => {
+      vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+        throw new Error("Read error");
+      });
+
+      const installed = storageService.getInstalledRemotePlugins();
+      expect(installed).toEqual([]);
     });
 
     it("should check if remote plugin is installed", () => {

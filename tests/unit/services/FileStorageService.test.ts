@@ -334,6 +334,23 @@ describe("FileStorageService", () => {
 
       expect(result).toBe(false);
     });
+
+    it("should return false when IPC not available", async () => {
+      delete (window as any).electron;
+
+      const result = await fileStorageService.openDataDirectory();
+
+      expect(result).toBe(false);
+    });
+
+    it("should handle errors gracefully", async () => {
+      const mockInvoke = vi.fn().mockRejectedValue(new Error("Open error"));
+      (window as any).electron = { ipcRenderer: { invoke: mockInvoke } };
+
+      const result = await fileStorageService.openDataDirectory();
+
+      expect(result).toBe(false);
+    });
   });
 
   describe("migrateFromLocalStorage", () => {
