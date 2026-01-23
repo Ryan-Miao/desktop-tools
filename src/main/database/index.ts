@@ -1,88 +1,171 @@
-import Database from 'better-sqlite3';
-import path from 'path';
-import fs from 'fs';
-import { app, dialog } from 'electron';
-import { ClockSettings } from '@shared/types/config';
-import { createLogger } from '../../shared/logger';
+import Database from "@vscode/sqlite3";
+import path from "path";
+import fs from "fs";
+import { app, dialog } from "electron";
+import { ClockSettings } from "@shared/types/config";
+import { createLogger } from "../../shared/logger";
 
-const logger = createLogger('Database');
+const logger = createLogger("Database");
+
+// Helper to promisify Database methods
+function dbRun(
+  db: Database.Database,
+  sql: string,
+  params: any[] = [],
+): Promise<Database.RunResult> {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function (err) {
+      if (err) reject(err);
+      else resolve(this);
+    });
+  });
+}
+
+function dbGet(
+  db: Database.Database,
+  sql: string,
+  params: any[] = [],
+): Promise<any> {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
+  });
+}
+
+function dbAll(
+  db: Database.Database,
+  sql: string,
+  params: any[] = [],
+): Promise<any[]> {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
+  });
+}
+
+function dbExec(db: Database.Database, sql: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    db.exec(sql, (err) => {
+      if (err) reject(err);
+      else resolve();
+    });
+  });
+}
 
 export class DatabaseService {
   private db: Database.Database | null = null;
 
-  async initialize() {
-    const dbPath = path.join(app.getPath('userData'), 'data.db');
-    this.db = new Database(dbPath);
+  async initialize(): Promise<void> {
+    const dbPath = path.join(app.getPath("userData"), "data.db");
 
-    // Enable foreign keys
-    this.db.pragma('foreign_keys = ON');
+    return new Promise((resolve, reject) => {
+      // Use require to get the correct constructor
+      const SQLite3 = require("@vscode/sqlite3");
+      this.db = new SQLite3.Database(dbPath, (err: Error | null) => {
+        if (err) {
+          logger.error("Failed to open database", { error: err.message });
+          reject(err);
+          return;
+        }
 
-    // Create tables
-    this.createTables();
+        // Create tables and continue
+        this.createTables()
+          .then(() => {
+            // Add test data (dev only)
+            if (process.env.NODE_ENV !== "production") {
+              setTimeout(() => {
+                this.seedTestData().catch(() => {
+                  // Ignore errors
+                });
+              }, 100);
+            }
 
-    // 添加测试数据（仅开发环境）- 在表创建后执行
-    if (process.env.NODE_ENV !== 'production') {
-      // Use setTimeout to ensure tables are fully created
-      setTimeout(() => {
-        this.seedTestData();
-      }, 100);
-    }
-
-    // Only log in development or when debug mode is enabled
-    if (process.env.NODE_ENV !== 'production') {
-      logger.info('Database initialized', { path: dbPath });
-    }
+            if (process.env.NODE_ENV !== "production") {
+              logger.info("Database initialized", { path: dbPath });
+            }
+            resolve();
+          })
+          .catch(reject);
+      });
+    });
   }
 
-  private seedTestData() {
+  private async seedTestData(): Promise<void> {
     if (!this.db) return;
 
     try {
-      // 检查是否已有数据
-      const keyboardCount = this.db.prepare('SELECT COUNT(*) as count FROM keyboard_stats').get() as { count: number };
+      // Check if data already exists
+      const keyboardCount = (await dbGet(
+        this.db,
+        "SELECT COUNT(*) as count FROM keyboard_stats",
+      )) as { count: number };
+
       if (keyboardCount.count > 0) {
-        return; // 已有数据，不添加测试数据
+        return;
       }
 
-      if (process.env.NODE_ENV !== 'production') {
-        logger.info('Seeding test data...');
+      if (process.env.NODE_ENV !== "production") {
+        logger.info("Seeding test data...");
       }
 
-    // 生成最近7天的测试数据
-    const now = Date.now();
-    const dayMs = 24 * 60 * 60 * 1000;
+      // Generate test data for last 7 days
+      const now = Date.now();
+      const dayMs = 24 * 60 * 60 * 1000;
 
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(now - i * dayMs);
-      // 使用每天中午12点的时间戳
-      const timestamp = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0).toISOString();
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now - i * dayMs);
+        const timestamp = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+          12,
+          0,
+          0,
+        ).toISOString();
 
-      // 随机生成数据
-      const keyboardCount = Math.floor(Math.random() * 5000) + 1000;
-      const mouseClickCount = Math.floor(Math.random() * 3000) + 500;
-      const mouseMoveDistance = Math.floor(Math.random() * 50000) + 10000;
+        const keyboardCount = Math.floor(Math.random() * 5000) + 1000;
+        const mouseClickCount = Math.floor(Math.random() * 3000) + 500;
+        const mouseMoveDistance = Math.floor(Math.random() * 50000) + 10000;
 
-      // 直接插入数据库
-      this.db.prepare('INSERT INTO keyboard_stats (count, timestamp) VALUES (?, ?)').run(keyboardCount, timestamp);
-      this.db.prepare('INSERT INTO mouse_click_stats (button, count, timestamp) VALUES (?, ?, ?)').run('left', mouseClickCount, timestamp);
-      this.db.prepare('INSERT INTO mouse_move_stats (distance, timestamp) VALUES (?, ?)').run(mouseMoveDistance, timestamp);
-    }
+        await dbRun(
+          this.db,
+          "INSERT INTO keyboard_stats (count, timestamp) VALUES (?, ?)",
+          [keyboardCount, timestamp],
+        );
+        await dbRun(
+          this.db,
+          "INSERT INTO mouse_click_stats (button, count, timestamp) VALUES (?, ?, ?)",
+          ["left", mouseClickCount, timestamp],
+        );
+        await dbRun(
+          this.db,
+          "INSERT INTO mouse_move_stats (distance, timestamp) VALUES (?, ?)",
+          [mouseMoveDistance, timestamp],
+        );
+      }
 
-    if (process.env.NODE_ENV !== 'production') {
-      logger.info('Test data seeded successfully');
-    }
+      if (process.env.NODE_ENV !== "production") {
+        logger.info("Test data seeded successfully");
+      }
     } catch (error) {
-      // Table might not exist yet, or other error
-      if (process.env.NODE_ENV !== 'production') {
-        logger.info('Skipping test data seeding', { error: error instanceof Error ? error.message : error });
+      if (process.env.NODE_ENV !== "production") {
+        logger.info("Skipping test data seeding", {
+          error: error instanceof Error ? error.message : error,
+        });
       }
     }
   }
 
-  private createTables() {
+  private async createTables(): Promise<void> {
     if (!this.db) return;
 
-    this.db.exec(`
+    await dbExec(
+      this.db,
+      `
       -- Clock settings table
       CREATE TABLE IF NOT EXISTS clock_settings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -148,44 +231,50 @@ export class DatabaseService {
 
       CREATE UNIQUE INDEX IF NOT EXISTS idx_plugin_data_plugin_id
         ON plugin_data(plugin_id);
-    `);
+    `,
+    );
   }
 
   // Clock settings operations
-  getClockSettings(): ClockSettings | null {
+  async getClockSettings(): Promise<ClockSettings | null> {
     if (!this.db) return null;
 
-    const stmt = this.db.prepare('SELECT * FROM clock_settings WHERE id = 1');
-    return stmt.get() as ClockSettings | null;
+    const row = await dbGet(
+      this.db,
+      "SELECT * FROM clock_settings WHERE id = 1",
+    );
+    return row as ClockSettings | null;
   }
 
-  updateClockSettings(settings: Partial<ClockSettings>): void {
+  async updateClockSettings(settings: Partial<ClockSettings>): Promise<void> {
     if (!this.db) return;
 
-    const stmt = this.db.prepare(`
+    await dbRun(
+      this.db,
+      `
       UPDATE clock_settings
       SET theme = ?, color = ?, font_family = ?, font_size = ?,
           opacity = ?, position_x = ?, position_y = ?,
           work_duration = ?, break_duration = ?, enable_reminder = ?
       WHERE id = 1
-    `);
-
-    stmt.run(
-      settings.theme,
-      settings.color,
-      settings.fontFamily,
-      settings.fontSize,
-      settings.opacity,
-      settings.positionX,
-      settings.positionY,
-      settings.workDuration,
-      settings.breakDuration,
-      settings.enableReminder ? 1 : 0
+    `,
+      [
+        settings.theme,
+        settings.color,
+        settings.fontFamily,
+        settings.fontSize,
+        settings.opacity,
+        settings.positionX,
+        settings.positionY,
+        settings.workDuration,
+        settings.breakDuration,
+        settings.enableReminder ? 1 : 0,
+      ],
     );
   }
 
   // Statistics operations
-  saveKeyboardStats(count: number): void {
+  async saveKeyboardStats(count: number): Promise<void> {
     if (!this.db) return;
 
     const now = new Date();
@@ -196,29 +285,34 @@ export class DatabaseService {
       now.getHours(),
       0,
       0,
-      0
+      0,
     ).toISOString();
 
     // First try to update existing record
-    const updateStmt = this.db.prepare(`
+    const result = await dbRun(
+      this.db,
+      `
       UPDATE keyboard_stats
       SET count = count + ?
       WHERE timestamp = ?
-    `);
-
-    const result = updateStmt.run(count, hourTimestamp);
+    `,
+      [count, hourTimestamp],
+    );
 
     // If no rows were updated, insert a new record
     if (result.changes === 0) {
-      const insertStmt = this.db.prepare(`
+      await dbRun(
+        this.db,
+        `
         INSERT INTO keyboard_stats (count, timestamp)
         VALUES (?, ?)
-      `);
-      insertStmt.run(count, hourTimestamp);
+      `,
+        [count, hourTimestamp],
+      );
     }
   }
 
-  saveMouseClickStats(button: string, count: number): void {
+  async saveMouseClickStats(button: string, count: number): Promise<void> {
     if (!this.db) return;
 
     const now = new Date();
@@ -229,29 +323,34 @@ export class DatabaseService {
       now.getHours(),
       0,
       0,
-      0
+      0,
     ).toISOString();
 
     // First try to update existing record
-    const updateStmt = this.db.prepare(`
+    const result = await dbRun(
+      this.db,
+      `
       UPDATE mouse_click_stats
       SET count = count + ?
       WHERE button = ? AND timestamp = ?
-    `);
-
-    const result = updateStmt.run(count, button, hourTimestamp);
+    `,
+      [count, button, hourTimestamp],
+    );
 
     // If no rows were updated, insert a new record
     if (result.changes === 0) {
-      const insertStmt = this.db.prepare(`
+      await dbRun(
+        this.db,
+        `
         INSERT INTO mouse_click_stats (button, count, timestamp)
         VALUES (?, ?, ?)
-      `);
-      insertStmt.run(button, count, hourTimestamp);
+      `,
+        [button, count, hourTimestamp],
+      );
     }
   }
 
-  saveMouseMoveStats(distance: number): void {
+  async saveMouseMoveStats(distance: number): Promise<void> {
     if (!this.db) return;
 
     const now = new Date();
@@ -262,180 +361,238 @@ export class DatabaseService {
       now.getHours(),
       0,
       0,
-      0
+      0,
     ).toISOString();
 
     // First try to update existing record
-    const updateStmt = this.db.prepare(`
+    const result = await dbRun(
+      this.db,
+      `
       UPDATE mouse_move_stats
       SET distance = distance + ?
       WHERE timestamp = ?
-    `);
-
-    const result = updateStmt.run(distance, hourTimestamp);
+    `,
+      [distance, hourTimestamp],
+    );
 
     // If no rows were updated, insert a new record
     if (result.changes === 0) {
-      const insertStmt = this.db.prepare(`
+      await dbRun(
+        this.db,
+        `
         INSERT INTO mouse_move_stats (distance, timestamp)
         VALUES (?, ?)
-      `);
-      insertStmt.run(distance, hourTimestamp);
+      `,
+        [distance, hourTimestamp],
+      );
     }
   }
 
-  getKeyboardStats(startDate: Date, endDate: Date): any[] {
+  async getKeyboardStats(startDate: Date, endDate: Date): Promise<any[]> {
     if (!this.db) return [];
 
-    const stmt = this.db.prepare(`
+    return dbAll(
+      this.db,
+      `
       SELECT timestamp, count
       FROM keyboard_stats
       WHERE timestamp BETWEEN ? AND ?
       ORDER BY timestamp ASC
-    `);
-
-    return stmt.all(startDate.toISOString(), endDate.toISOString());
+    `,
+      [startDate.toISOString(), endDate.toISOString()],
+    );
   }
 
-  getMouseClickStats(startDate: Date, endDate: Date): any[] {
+  async getMouseClickStats(startDate: Date, endDate: Date): Promise<any[]> {
     if (!this.db) return [];
 
-    const stmt = this.db.prepare(`
+    return dbAll(
+      this.db,
+      `
       SELECT timestamp, button, count
       FROM mouse_click_stats
       WHERE timestamp BETWEEN ? AND ?
       ORDER BY timestamp ASC
-    `);
-
-    return stmt.all(startDate.toISOString(), endDate.toISOString());
+    `,
+      [startDate.toISOString(), endDate.toISOString()],
+    );
   }
 
-  getMouseMoveStats(startDate: Date, endDate: Date): any[] {
+  async getMouseMoveStats(startDate: Date, endDate: Date): Promise<any[]> {
     if (!this.db) return [];
 
-    const stmt = this.db.prepare(`
+    return dbAll(
+      this.db,
+      `
       SELECT timestamp, distance
       FROM mouse_move_stats
       WHERE timestamp BETWEEN ? AND ?
       ORDER BY timestamp ASC
-    `);
-
-    return stmt.all(startDate.toISOString(), endDate.toISOString());
+    `,
+      [startDate.toISOString(), endDate.toISOString()],
+    );
   }
 
   // Plugin data operations
   /**
-   * 保存或更新插件数据
+   * Save or update plugin data
    */
-  savePluginData(pluginId: string, pluginName: string, pluginVersion: string | undefined, dataJson: string): void {
+  async savePluginData(
+    pluginId: string,
+    pluginName: string,
+    pluginVersion: string | undefined,
+    dataJson: string,
+  ): Promise<void> {
     if (!this.db) return;
 
     const now = new Date().toISOString();
 
     // First try to update existing record
-    const updateStmt = this.db.prepare(`
+    const result = await dbRun(
+      this.db,
+      `
       UPDATE plugin_data
       SET plugin_name = ?, plugin_version = ?, data_json = ?, updated_at = ?
       WHERE plugin_id = ?
-    `);
-
-    const result = updateStmt.run(pluginName, pluginVersion, dataJson, now, pluginId);
+    `,
+      [pluginName, pluginVersion, dataJson, now, pluginId],
+    );
 
     // If no rows were updated, insert a new record
     if (result.changes === 0) {
-      const insertStmt = this.db.prepare(`
+      await dbRun(
+        this.db,
+        `
         INSERT INTO plugin_data (plugin_id, plugin_name, plugin_version, data_json, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?)
-      `);
-      insertStmt.run(pluginId, pluginName, pluginVersion, dataJson, now, now);
+      `,
+        [pluginId, pluginName, pluginVersion, dataJson, now, now],
+      );
     }
   }
 
   /**
-   * 获取插件数据
+   * Get plugin data
    */
-  getPluginData(pluginId: string): { plugin_id: string; plugin_name: string; plugin_version: string; data_json: string } | null {
+  async getPluginData(
+    pluginId: string,
+  ): Promise<{
+    plugin_id: string;
+    plugin_name: string;
+    plugin_version: string;
+    data_json: string;
+  } | null> {
     if (!this.db) return null;
 
-    const stmt = this.db.prepare('SELECT * FROM plugin_data WHERE plugin_id = ?');
-    return stmt.get(pluginId) as any;
+    const row = await dbGet(
+      this.db,
+      "SELECT * FROM plugin_data WHERE plugin_id = ?",
+      [pluginId],
+    );
+    return row as any;
   }
 
   /**
-   * 获取所有插件数据
+   * Get all plugin data
    */
-  getAllPluginData(): any[] {
+  async getAllPluginData(): Promise<any[]> {
     if (!this.db) return [];
 
-    const stmt = this.db.prepare('SELECT * FROM plugin_data ORDER BY plugin_name ASC');
-    return stmt.all();
+    return dbAll(this.db, "SELECT * FROM plugin_data ORDER BY plugin_name ASC");
   }
 
   /**
-   * 删除插件数据
+   * Delete plugin data
    */
-  deletePluginData(pluginId: string): void {
+  async deletePluginData(pluginId: string): Promise<void> {
     if (!this.db) return;
 
-    const stmt = this.db.prepare('DELETE FROM plugin_data WHERE plugin_id = ?');
-    stmt.run(pluginId);
+    await dbRun(this.db, "DELETE FROM plugin_data WHERE plugin_id = ?", [
+      pluginId,
+    ]);
   }
 
   /**
-   * 获取插件列表（用于备份选择）
+   * Get plugin list (for backup selection)
    */
-  getPluginList(): Array<{ plugin_id: string; plugin_name: string; plugin_version: string }> {
+  async getPluginList(): Promise<
+    Array<{ plugin_id: string; plugin_name: string; plugin_version: string }>
+  > {
     if (!this.db) return [];
 
-    const stmt = this.db.prepare('SELECT plugin_id, plugin_name, plugin_version FROM plugin_data ORDER BY plugin_name ASC');
-    return stmt.all() as Array<{ plugin_id: string; plugin_name: string; plugin_version: string }>;
+    const rows = await dbAll(
+      this.db,
+      "SELECT plugin_id, plugin_name, plugin_version FROM plugin_data ORDER BY plugin_name ASC",
+    );
+    return rows as Array<{
+      plugin_id: string;
+      plugin_name: string;
+      plugin_version: string;
+    }>;
   }
 
   // Export stats to CSV
-  async exportStats(data: any[]): Promise<{ success: boolean; filePath?: string; error?: string }> {
+  async exportStats(
+    data: any[],
+  ): Promise<{ success: boolean; filePath?: string; error?: string }> {
     try {
       // Show save dialog
       const result = await dialog.showSaveDialog({
-        title: '导出统计数据',
-        defaultPath: path.join(app.getPath('downloads'), `stats_${Date.now()}.csv`),
+        title: "导出统计数据",
+        defaultPath: path.join(
+          app.getPath("downloads"),
+          `stats_${Date.now()}.csv`,
+        ),
         filters: [
-          { name: 'CSV Files', extensions: ['csv'] },
-          { name: 'All Files', extensions: ['*'] }
-        ]
+          { name: "CSV Files", extensions: ["csv"] },
+          { name: "All Files", extensions: ["*"] },
+        ],
       });
 
       if (!result.filePath) {
-        return { success: false, error: '用户取消操作' };
+        return { success: false, error: "用户取消操作" };
       }
 
       // Generate CSV content
-      const headers = ['日期', '键盘次数', '鼠标点击', '移动距离(米)'];
-      const rows = data.map(item => [
-        new Date(item.date).toLocaleString('zh-CN'),
+      const headers = ["日期", "键盘次数", "鼠标点击", "移动距离(米)"];
+      const rows = data.map((item) => [
+        new Date(item.date).toLocaleString("zh-CN"),
         item.keyboard_count || 0,
         item.mouse_click_count || 0,
-        ((item.mouse_move_distance || 0) / 1000).toFixed(2)
+        ((item.mouse_move_distance || 0) / 1000).toFixed(2),
       ]);
 
       const csvContent = [
-        headers.join(','),
-        ...rows.map(row => row.join(','))
-      ].join('\n');
+        headers.join(","),
+        ...rows.map((row) => row.join(",")),
+      ].join("\n");
 
       // Write to file
-      fs.writeFileSync(result.filePath, '\uFEFF' + csvContent, 'utf-8');
+      fs.writeFileSync(result.filePath, "\uFEFF" + csvContent, "utf-8");
 
       return { success: true, filePath: result.filePath };
     } catch (error) {
-      logger.error('Export failed', { error });
-      return { success: false, error: error instanceof Error ? error.message : '导出失败' };
+      logger.error("Export failed", { error });
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "导出失败",
+      };
     }
   }
 
-  close() {
-    if (this.db) {
-      this.db.close();
-      this.db = null;
-    }
+  close(): Promise<void> {
+    return new Promise((resolve) => {
+      if (this.db) {
+        this.db.close((err) => {
+          this.db = null;
+          if (err) {
+            logger.error("Error closing database", { error: err.message });
+          }
+          resolve();
+        });
+      } else {
+        resolve();
+      }
+    });
   }
 }

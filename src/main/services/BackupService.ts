@@ -77,7 +77,7 @@ export class BackupService {
           fs.mkdirSync(pluginsDir, { recursive: true });
 
           // 获取要备份的插件列表
-          let pluginList = this.db.getPluginList();
+          let pluginList = await this.db.getPluginList();
 
           // 如果指定了插件ID，只备份这些插件
           if (options.pluginIds && options.pluginIds.length > 0) {
@@ -88,7 +88,9 @@ export class BackupService {
 
           // 导出每个插件的数据
           for (const plugin of pluginList) {
-            const pluginData = this.db.getPluginData(plugin.plugin_id) as {
+            const pluginData = (await this.db.getPluginData(
+              plugin.plugin_id,
+            )) as {
               plugin_id: string;
               plugin_name: string;
               plugin_version: string;
@@ -206,9 +208,7 @@ export class BackupService {
   /**
    * 预览备份文件内容
    */
-  async previewBackup(
-    backupPath: string,
-  ): Promise<{
+  async previewBackup(backupPath: string): Promise<{
     success: boolean;
     manifest?: BackupManifest;
     pluginData?: any[];

@@ -1,0 +1,302 @@
+# AI 开发完整规范
+
+## 一、需求复杂度评估
+
+### 1.1 简单需求
+
+**定义**：单文件修改、小 bug 修复、样式调整
+
+**流程**：
+
+- 直接开发
+- 开发后测试 + 复盘
+
+**检查点**：
+
+- [ ] 变更分类
+- [ ] 功能范围确认（≤3 文件）
+- [ ] 核心文件保护检查
+- [ ] 测试通过
+- [ ] 复盘报告
+
+### 1.2 中等需求
+
+**定义**：2-3 个文件、新功能、小型重构
+
+**流程**：
+
+1. Plan with file → 生成 `aidoc/plan/[功能名].md`
+2. 用户批准方案
+3. 开发实现
+4. 测试验证
+5. 复盘汇报 → `aidoc/report/[功能名]-[日期].md`
+
+**检查点**：
+
+- [ ] 设计方案（Plan 文件）
+- [ ] 用户批准
+- [ ] 测试通过
+- [ ] 复盘报告
+
+### 1.3 复杂需求
+
+**定义**：>3 个文件、架构变更、核心功能
+
+**流程**：
+
+1. Plan with file + UI/UX 设计
+2. 用户批准方案
+3. 开发实现
+4. 测试验证
+5. 复盘汇报
+
+**检查点**：
+
+- [ ] 完整设计方案（Plan 文件）
+- [ ] UI/UX 设计方案（如需要）
+- [ ] 用户批准
+- [ ] 测试通过
+- [ ] 复盘报告
+
+---
+
+## 二、开发流程（强制）
+
+### 2.1 开发前检查点
+
+**简单需求**：
+
+- [ ] 变更分类
+- [ ] 功能范围确认（≤3 文件）
+- [ ] 核心文件保护检查
+
+**中等/复杂需求**：
+
+- [ ] 完整设计方案（Plan 文件）
+- [ ] UI/UX 设计方案（如需要）
+- [ ] 用户批准
+
+### 2.2 开发中规范
+
+**代码规范**：
+
+- 日志：使用 `createLogger`
+- 样式：CSS 变量（强制）
+- UI：内联确认 + Toast，禁止 confirm/alert
+
+**变更限制**：
+
+- 单次 ≤3 文件
+- Critical 变更必须通知用户
+
+### 2.3 开发后检查点（强制）
+
+**验证顺序**：
+
+```bash
+# 1. 类型检查
+npm run type-check
+
+# 2. Lint
+npm run lint
+
+# 3. 测试
+npm test
+
+# 4. 覆盖率
+npm run test:coverage
+```
+
+**通过标准**：
+
+- ✅ 类型检查 0 错误
+- ✅ Lint 0 错误（警告可接受）
+- ✅ 所有测试通过
+- ✅ 覆盖率：core ≥90%, 其他 ≥85%
+
+### 2.4 完成后复盘（强制）
+
+**复盘模板**：
+
+```markdown
+# [功能名称] 开发复盘
+
+## 一、功能总结
+
+- **功能名称**：
+- **复杂度**：简单/中等/复杂
+- **文件数**：
+
+## 二、规范遵循
+
+- ✅/❌ 变更分类
+- ✅/❌ 文件数控制（≤3）
+- ✅/❌ 检查点完成
+
+## 三、测试结果
+
+- **覆盖率**：核心 **%, 其他 **%
+- **通过率**：\_\_%
+
+## 四、问题与改进
+
+- **未遵循项**：
+- **原因**：
+- **改进措施**：
+```
+
+**文件位置**：`aidoc/report/[功能名]-[日期].md`
+
+**提交前提**：
+
+- ✅ 所有检查点通过
+- ✅ 复盘报告已创建
+
+---
+
+## 三、项目特定规范
+
+### 3.1 通信规范
+
+**IPC 通道命名**：`模块:动作`
+
+```typescript
+// 示例
+"plugin:open-standalone";
+"standalone-window:close";
+"backup:create";
+```
+
+**错误处理**：统一使用 `createLogger`
+
+```typescript
+import { createLogger } from "../../shared/logger";
+
+const logger = createLogger("ModuleName");
+
+logger.error("Operation failed", { error: err.message });
+```
+
+### 3.2 日志规范
+
+| 级别      | 用途         | 示例场景                       |
+| --------- | ------------ | ------------------------------ |
+| **DEBUG** | 开发调试信息 | 函数调用、变量值、中间状态     |
+| **INFO**  | 重要业务流程 | 用户操作、状态变更、数据持久化 |
+| **WARN**  | 警告信息     | 非预期数据、降级操作、性能问题 |
+| **ERROR** | 错误信息     | 异常、失败操作、系统错误       |
+
+### 3.3 Window 使用规范
+
+- 独立窗口使用 `PluginWindow` 组件
+- ESC 快捷关闭
+- 状态持久化
+
+```tsx
+import PluginWindow from "../PluginWindow/PluginWindow";
+
+<PluginWindow
+  title="插件名称"
+  icon="🚀"
+  onClose={onClose}
+  onMinimize={onMinimize}
+  onMaximize={onMaximize}
+  className="plugin-standalone"
+  pluginId="plugin-id"
+  showStandaloneButton={false}
+>
+  {/* 插件内容 */}
+</PluginWindow>;
+```
+
+### 3.4 插件开发规范
+
+详细指南：[doc/PLUGIN_DEVELOPMENT.md](../doc/PLUGIN_DEVELOPMENT.md)
+
+---
+
+## 四、检查清单
+
+### 4.1 开发前
+
+- [ ] 复杂度评估
+- [ ] 变更分类
+- [ ] 设计方案（如需要）
+- [ ] UI 方案（如需要）
+
+### 4.2 开发后
+
+- [ ] type-check 通过
+- [ ] lint 通过
+- [ ] test 通过
+- [ ] 覆盖率达标
+
+### 4.3 完成后
+
+- [ ] 复盘报告
+- [ ] 计划归档
+- [ ] 代码提交
+
+---
+
+## 五、Skills 使用
+
+### 5.1 Plan with File
+
+**场景**：中等/复杂需求
+
+**输出**：`aidoc/plan/[功能名].md`
+
+**包含内容**：
+
+- 需求分析
+- 技术方案
+- 文件变更清单
+- 测试计划
+- 风险评估
+
+### 5.2 UI/UX Pro Max
+
+**场景**：涉及 UI/界面
+
+**输出**：设计方案（包含在 plan 中）
+
+**包含内容**：
+
+- 布局设计
+- 色彩方案
+- 交互流程
+- 可访问性
+
+---
+
+## 六、常用命令
+
+```bash
+# 开发
+npm run dev              # 开发模式
+npm run build            # 构建项目
+npm run dist             # 打包应用
+
+# 测试
+npm test                 # 运行测试
+npm run test:coverage    # 覆盖率报告
+npm run test:ui          # 测试 UI
+
+# 代码质量
+npm run type-check       # 类型检查
+npm run lint             # 代码检查
+```
+
+---
+
+## 七、参考文档
+
+- **插件开发**: [doc/PLUGIN_DEVELOPMENT.md](../doc/PLUGIN_DEVELOPMENT.md)
+- **项目详细文档**: [doc/README.md](../doc/README.md)
+
+---
+
+**版本**: 4.0
+**强制执行**: 是
+**最后更新**: 2026-01-23

@@ -253,11 +253,11 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
 
   // Clock settings
   ipcMain.handle(IPCChannels.DB_GET_CLOCK_SETTINGS, async () => {
-    return db.getClockSettings();
+    return await db.getClockSettings();
   });
 
   ipcMain.handle(IPCChannels.DB_UPDATE_CLOCK_SETTINGS, async (_, settings) => {
-    db.updateClockSettings(settings);
+    await db.updateClockSettings(settings);
     return { updated: true };
   });
 
@@ -268,9 +268,9 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
       const start = new Date(startDate);
       const end = new Date(endDate);
 
-      const keyboardStats = db.getKeyboardStats(start, end);
-      const mouseClickStats = db.getMouseClickStats(start, end);
-      const mouseMoveStats = db.getMouseMoveStats(start, end);
+      const keyboardStats = await db.getKeyboardStats(start, end);
+      const mouseClickStats = await db.getMouseClickStats(start, end);
+      const mouseMoveStats = await db.getMouseMoveStats(start, end);
 
       // Combine stats by timestamp
       const combinedStats: Map<string, any> = new Map();
@@ -325,7 +325,7 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
   ipcMain.handle(
     IPCChannels.DB_SAVE_KEYBOARD_STATS,
     async (_, count: number) => {
-      db.saveKeyboardStats(count);
+      await db.saveKeyboardStats(count);
       return { saved: true };
     },
   );
@@ -333,7 +333,7 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
   ipcMain.handle(
     IPCChannels.DB_SAVE_MOUSE_CLICK_STATS,
     async (_, button: string, count: number) => {
-      db.saveMouseClickStats(button, count);
+      await db.saveMouseClickStats(button, count);
       return { saved: true };
     },
   );
@@ -341,7 +341,7 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
   ipcMain.handle(
     IPCChannels.DB_SAVE_MOUSE_MOVE_STATS,
     async (_, distance: number) => {
-      db.saveMouseMoveStats(distance);
+      await db.saveMouseMoveStats(distance);
       return { saved: true };
     },
   );
@@ -355,12 +355,12 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
   ipcMain.handle(
     IPCChannels.DB_GET_PLUGIN_DATA,
     async (_, pluginId: string) => {
-      return db.getPluginData(pluginId);
+      return await db.getPluginData(pluginId);
     },
   );
 
   ipcMain.handle(IPCChannels.DB_GET_ALL_PLUGIN_DATA, async () => {
-    return db.getAllPluginData();
+    return await db.getAllPluginData();
   });
 
   ipcMain.handle(
@@ -372,7 +372,7 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
       pluginVersion: string,
       dataJson: string,
     ) => {
-      db.savePluginData(pluginId, pluginName, pluginVersion, dataJson);
+      await db.savePluginData(pluginId, pluginName, pluginVersion, dataJson);
       return { saved: true };
     },
   );
@@ -380,7 +380,7 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
   ipcMain.handle(
     IPCChannels.DB_DELETE_PLUGIN_DATA,
     async (_, pluginId: string) => {
-      db.deletePluginData(pluginId);
+      await db.deletePluginData(pluginId);
       return { deleted: true };
     },
   );
