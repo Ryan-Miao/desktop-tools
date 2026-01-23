@@ -259,7 +259,7 @@ function App() {
         window.electron.ipcRenderer
           .invoke("window:toggle-devtools")
           .catch((error: any) => {
-            console.error("Failed to toggle devtools:", error);
+            logger.error("Failed to toggle devtools", { error });
           });
       }
     };
@@ -287,44 +287,41 @@ function App() {
   }, [plugins, searchQuery]);
 
   const handlePluginClick = async (pluginId: string) => {
-    console.log("[App] handlePluginClick called with:", pluginId);
+    logger.debug("handlePluginClick called", { pluginId });
 
     try {
       // 桌面模式：通过 IPC 创建独立窗口
       if (window.electron?.ipcRenderer) {
         const plugin = plugins.find((p) => p.id === pluginId);
-        console.log("[App] Found plugin:", plugin);
+        logger.debug("Found plugin", { plugin });
 
-        console.log(
-          "[App] Calling plugin:open-standalone with:",
+        logger.debug("Calling plugin:open-standalone", {
           pluginId,
-          plugin?.name || "Plugin",
-        );
+          pluginName: plugin?.name || "Plugin",
+        });
         const result = await window.electron.ipcRenderer.invoke(
           "plugin:open-standalone",
           pluginId,
           plugin?.name || "Plugin",
         );
 
-        console.log("[App] IPC result:", result);
+        logger.debug("IPC result", { result });
 
         if (result.success) {
-          console.log(
-            "[App] Plugin opened successfully, updating last used time",
-          );
+          logger.debug("Plugin opened successfully, updating last used time");
           // 更新最后使用时间
           storageService.updatePluginLastUsed(pluginId);
         } else {
-          console.error("[App] Failed to open plugin:", result.error);
+          logger.error("Failed to open plugin", { error: result.error });
         }
       } else {
         // Web模式：使用modal显示插件
-        console.log("[App] Running in web mode, showing plugin modal");
+        logger.debug("Running in web mode, showing plugin modal");
         setActivePluginId(pluginId);
         storageService.updatePluginLastUsed(pluginId);
       }
     } catch (error) {
-      console.error("[App] Failed to open plugin window:", error);
+      logger.error("Failed to open plugin window", { error });
     }
   };
 

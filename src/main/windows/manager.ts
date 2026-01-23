@@ -2,6 +2,7 @@ import { BrowserWindow, screen, ipcMain } from "electron";
 import path from "path";
 import { WindowConfig, WindowState } from "@shared/types/plugin";
 import { PluginStore } from "../services/PluginStore";
+import { logger } from "../../shared/logger";
 
 /**
  * 增强的窗口管理器
@@ -26,8 +27,15 @@ export class WindowManager {
   async createMainWindow(): Promise<BrowserWindow> {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
-    // 尝试恢复窗口状态
-    const savedState = await this.store.getWindowState("main");
+    // 尝试恢复窗口状态（优雅处理未初始化的情况）
+    let savedState: WindowState | null = null;
+    try {
+      const state = await this.store.getWindowState("main");
+      if (state) savedState = state;
+    } catch (error) {
+      // Database not initialized or other error - use default state
+      logger.debug("Failed to get window state, using defaults", { error });
+    }
 
     const windowConfig = savedState
       ? {
@@ -126,8 +134,18 @@ export class WindowManager {
       this.pluginWindows.delete(windowId);
     }
 
-    // 尝试恢复窗口状态
-    const savedState = await this.store.getWindowState(windowId);
+    // 尝试恢复窗口状态（优雅处理未初始化的情况）
+    let savedState: WindowState | null = null;
+    try {
+      const state = await this.store.getWindowState(windowId);
+      if (state) savedState = state;
+    } catch (error) {
+      // Database not initialized or other error - use default state
+      logger.debug("Failed to get plugin window state, using defaults", {
+        windowId,
+        error,
+      });
+    }
 
     const windowConfig: WindowConfig = {
       width: savedState?.width || config.width,

@@ -1,361 +1,412 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import StandaloneApp from './StandaloneApp';
-import ErrorBoundary from './components/ErrorBoundary';
-import './styles/global.css';
-import './styles/themes.css';
-import './styles/breakpoints.css';
-import './styles/micro-interactions.css';
+import React, { lazy, Suspense } from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import StandaloneApp from "./StandaloneApp";
+import ErrorBoundary from "./components/ErrorBoundary";
+import "./styles/global.css";
+import "./styles/themes.css";
+import "./styles/breakpoints.css";
+import "./styles/micro-interactions.css";
 
-// Import built-in plugins and their manifests
-import { pluginRegistry } from './services/PluginRegistry';
-import CalculatorPad, { calculatorManifest } from './components/CalculatorPad';
-import JSONFormatter, { jsonFormatterManifest } from './components/JSONFormatter';
-import PasswordGenerator, { passwordGeneratorManifest } from './components/PasswordGenerator';
-import UrlCodec, { urlCodecManifest } from './components/UrlCodec';
-import Base64Tool, { base64ToolManifest } from './components/Base64Tool';
-import CryptoTool, { cryptoToolManifest } from './components/CryptoTool';
-import Notepad, { notepadManifest } from './components/Notepad';
-import TodoList, { todoListManifest } from './components/TodoList';
-import OcrTool, { ocrToolManifest } from './components/OcrTool';
-import ColorPicker, { colorPickerManifest } from './components/ColorPicker';
-import UnitConverter, { unitConverterManifest } from './components/UnitConverter';
-import CodeFormatter, { codeFormatterManifest } from './components/CodeFormatter';
-import Ruler, { rulerManifest } from './components/Ruler';
-import Calendar, { calendarManifest } from './components/Calendar';
-import AudioPlayer, { audioPlayerManifest } from './components/AudioPlayer';
-import MiniGames, { miniGamesManifest } from './components/MiniGames';
-import QRCodeGenerator, { qrCodeGeneratorManifest } from './components/QRCodeGenerator';
-import Stopwatch, { stopwatchManifest } from './components/Stopwatch';
-import QuickNote, { quickNoteManifest } from './components/QuickNote';
-import PasswordStrength, { passwordStrengthManifest } from './components/PasswordStrength';
-import ScientificCalculator, { scientificCalculatorManifest } from './components/ScientificCalculator';
-import ColorPalette, { colorPaletteManifest } from './components/ColorPalette';
-import JsonToTs, { jsonToTsManifest } from './components/JsonToTs';
-import RegexTester, { regexTesterManifest } from './components/RegexTester';
-import ProgressCharts, { progressChartsManifest } from './components/ProgressCharts';
-import WorldClock, { worldClockManifest } from './components/WorldClock';
-import MarkdownEditor, { markdownEditorManifest } from './components/MarkdownEditor';
-import KeyboardShortcuts, { keyboardShortcutsManifest } from './components/KeyboardShortcuts';
-import KanbanBoard, { kanbanBoardManifest } from './components/KanbanBoard';
-import PomodoroTimer, { pomodoroTimerManifest } from './components/PomodoroTimer';
-import LinkManager, { linkManagerManifest } from './components/LinkManager';
-import FileHash, { fileHashManifest } from './components/FileHash';
-import UuidGenerator, { uuidGeneratorManifest } from './components/UuidGenerator';
-import TimestampConverter, { timestampConverterManifest } from './components/TimestampConverter';
-import JsonDiff, { jsonDiffManifest } from './components/JsonDiff';
-import DocumentMerger, { documentMergerManifest } from './components/DocumentMerger';
-import SchedulePlanner, { schedulePlannerManifest } from './components/SchedulePlanner';
-import MeetingNotes, { meetingNotesManifest } from './components/MeetingNotes';
-import ArticleCollector, { articleCollectorManifest } from './components/ArticleCollector';
-import GoalTracker, { goalTrackerManifest } from './components/GoalTracker';
-import MindMap, { mindMapManifest } from './components/MindMap';
-import DataPivot, { dataPivotManifest } from './components/DataPivot';
-import GradientGenerator, { gradientGeneratorManifest } from './components/GradientGenerator';
-import ShadowDesigner, { shadowDesignerManifest } from './components/ShadowDesigner';
-import ImageCropper, { imageCropperManifest } from './components/ImageCropper';
-import ColorExtractor, { colorExtractorManifest } from './components/ColorExtractor';
-import LayoutGrid, { layoutGridManifest } from './components/LayoutGrid';
-import AnimationGenerator, { animationGeneratorManifest } from './components/AnimationGenerator';
+// Import plugin registry
+import { pluginRegistry } from "./services/PluginRegistry";
 
-// Register built-in plugins explicitly
-pluginRegistry.register('com.desktop-tool.calculator-pad', {
-  component: CalculatorPad,
-  pluginId: 'com.desktop-tool.calculator-pad',
-  manifest: calculatorManifest
-});
+// Lazy load plugin manifests only (no components loaded yet)
+// Components will be loaded on-demand when plugins are opened
+import { calculatorManifest } from "./components/CalculatorPad";
+import { jsonFormatterManifest } from "./components/JSONFormatter";
+import { passwordGeneratorManifest } from "./components/PasswordGenerator";
+import { urlCodecManifest } from "./components/UrlCodec";
+import { base64ToolManifest } from "./components/Base64Tool";
+import { cryptoToolManifest } from "./components/CryptoTool";
+import { notepadManifest } from "./components/Notepad";
+import { todoListManifest } from "./components/TodoList";
+import { ocrToolManifest } from "./components/OcrTool";
+import { colorPickerManifest } from "./components/ColorPicker";
+import { unitConverterManifest } from "./components/UnitConverter";
+import { codeFormatterManifest } from "./components/CodeFormatter";
+import { rulerManifest } from "./components/Ruler";
+import { calendarManifest } from "./components/Calendar";
+import { audioPlayerManifest } from "./components/AudioPlayer";
+import { miniGamesManifest } from "./components/MiniGames";
+import { qrCodeGeneratorManifest } from "./components/QRCodeGenerator";
+import { stopwatchManifest } from "./components/Stopwatch";
+import { quickNoteManifest } from "./components/QuickNote";
+import { passwordStrengthManifest } from "./components/PasswordStrength";
+import { scientificCalculatorManifest } from "./components/ScientificCalculator";
+import { colorPaletteManifest } from "./components/ColorPalette";
+import { jsonToTsManifest } from "./components/JsonToTs";
+import { regexTesterManifest } from "./components/RegexTester";
+import { progressChartsManifest } from "./components/ProgressCharts";
+import { worldClockManifest } from "./components/WorldClock";
+import { markdownEditorManifest } from "./components/MarkdownEditor";
+import { keyboardShortcutsManifest } from "./components/KeyboardShortcuts";
+import { kanbanBoardManifest } from "./components/KanbanBoard";
+import { pomodoroTimerManifest } from "./components/PomodoroTimer";
+import { linkManagerManifest } from "./components/LinkManager";
+import { fileHashManifest } from "./components/FileHash";
+import { uuidGeneratorManifest } from "./components/UuidGenerator";
+import { timestampConverterManifest } from "./components/TimestampConverter";
+import { jsonDiffManifest } from "./components/JsonDiff";
+import { documentMergerManifest } from "./components/DocumentMerger";
+import { schedulePlannerManifest } from "./components/SchedulePlanner";
+import { meetingNotesManifest } from "./components/MeetingNotes";
+import { articleCollectorManifest } from "./components/ArticleCollector";
+import { goalTrackerManifest } from "./components/GoalTracker";
+import { mindMapManifest } from "./components/MindMap";
+import { dataPivotManifest } from "./components/DataPivot";
+import { gradientGeneratorManifest } from "./components/GradientGenerator";
+import { shadowDesignerManifest } from "./components/ShadowDesigner";
+import { imageCropperManifest } from "./components/ImageCropper";
+import { colorExtractorManifest } from "./components/ColorExtractor";
+import { layoutGridManifest } from "./components/LayoutGrid";
+import { animationGeneratorManifest } from "./components/AnimationGenerator";
 
-pluginRegistry.register('com.desktop-tool.json-formatter', {
-  component: JSONFormatter,
-  pluginId: 'com.desktop-tool.json-formatter',
-  manifest: jsonFormatterManifest
-});
+// Lazy load plugin components
+const lazyPlugins = {
+  "com.desktop-tool.calculator-pad": lazy(
+    () => import("./components/CalculatorPad"),
+  ),
+  "com.desktop-tool.json-formatter": lazy(
+    () => import("./components/JSONFormatter"),
+  ),
+  "com.desktop-tool.plugin.password-generator": lazy(
+    () => import("./components/PasswordGenerator"),
+  ),
+  "com.desktop-tool.plugin.url-codec": lazy(
+    () => import("./components/UrlCodec"),
+  ),
+  "com.desktop-tool.plugin.base64-tool": lazy(
+    () => import("./components/Base64Tool"),
+  ),
+  "com.desktop-tool.plugin.crypto-tool": lazy(
+    () => import("./components/CryptoTool"),
+  ),
+  "com.desktop-tool.plugin.notepad": lazy(() => import("./components/Notepad")),
+  "com.desktop-tool.plugin.todo-list": lazy(
+    () => import("./components/TodoList"),
+  ),
+  "com.desktop-tool.plugin.ocr-tool": lazy(
+    () => import("./components/OcrTool"),
+  ),
+  "com.desktop-tool.plugin.color-picker": lazy(
+    () => import("./components/ColorPicker"),
+  ),
+  "com.desktop-tool.plugin.unit-converter": lazy(
+    () => import("./components/UnitConverter"),
+  ),
+  "com.desktop-tool.plugin.code-formatter": lazy(
+    () => import("./components/CodeFormatter"),
+  ),
+  "com.desktop-tool.plugin.ruler": lazy(() => import("./components/Ruler")),
+  "com.desktop-tool.plugin.calendar": lazy(
+    () => import("./components/Calendar"),
+  ),
+  "com.desktop-tool.plugin.audio-player": lazy(
+    () => import("./components/AudioPlayer"),
+  ),
+  "com.desktop-tool.plugin.mini-games": lazy(
+    () => import("./components/MiniGames"),
+  ),
+  "com.desktop-tool.plugin.qrcode-generator": lazy(
+    () => import("./components/QRCodeGenerator"),
+  ),
+  "com.desktop-tool.plugin.stopwatch": lazy(
+    () => import("./components/Stopwatch"),
+  ),
+  "com.desktop-tool.plugin.quick-note": lazy(
+    () => import("./components/QuickNote"),
+  ),
+  "com.desktop-tool.plugin.password-strength": lazy(
+    () => import("./components/PasswordStrength"),
+  ),
+  "com.desktop-tool.plugin.scientific-calculator": lazy(
+    () => import("./components/ScientificCalculator"),
+  ),
+  "com.desktop-tool.plugin.color-palette": lazy(
+    () => import("./components/ColorPalette"),
+  ),
+  "com.desktop-tool.plugin.json-to-ts": lazy(
+    () => import("./components/JsonToTs"),
+  ),
+  "com.desktop-tool.plugin.regex-tester": lazy(
+    () => import("./components/RegexTester"),
+  ),
+  "com.desktop-tool.plugin.progress-charts": lazy(
+    () => import("./components/ProgressCharts"),
+  ),
+  "com.desktop-tool.plugin.world-clock": lazy(
+    () => import("./components/WorldClock"),
+  ),
+  "com.desktop-tool.plugin.markdown-editor": lazy(
+    () => import("./components/MarkdownEditor"),
+  ),
+  "com.desktop-tool.plugin.keyboard-shortcuts": lazy(
+    () => import("./components/KeyboardShortcuts"),
+  ),
+  "com.desktop-tool.plugin.kanban-board": lazy(
+    () => import("./components/KanbanBoard"),
+  ),
+  "com.desktop-tool.plugin.pomodoro-timer": lazy(
+    () => import("./components/PomodoroTimer"),
+  ),
+  "com.desktop-tool.plugin.link-manager": lazy(
+    () => import("./components/LinkManager"),
+  ),
+  "com.desktop-tool.plugin.file-hash": lazy(
+    () => import("./components/FileHash"),
+  ),
+  "com.desktop-tool.plugin.uuid-generator": lazy(
+    () => import("./components/UuidGenerator"),
+  ),
+  "com.desktop-tool.plugin.timestamp-converter": lazy(
+    () => import("./components/TimestampConverter"),
+  ),
+  "com.desktop-tool.plugin.json-diff": lazy(
+    () => import("./components/JsonDiff"),
+  ),
+  "com.desktop-tool.plugin.document-merger": lazy(
+    () => import("./components/DocumentMerger"),
+  ),
+  "com.desktop-tool.plugin.schedule-planner": lazy(
+    () => import("./components/SchedulePlanner"),
+  ),
+  "com.desktop-tool.plugin.meeting-notes": lazy(
+    () => import("./components/MeetingNotes"),
+  ),
+  "com.desktop-tool.plugin.article-collector": lazy(
+    () => import("./components/ArticleCollector"),
+  ),
+  "com.desktop-tool.plugin.goal-tracker": lazy(
+    () => import("./components/GoalTracker"),
+  ),
+  "com.desktop-tool.plugin.mind-map": lazy(
+    () => import("./components/MindMap"),
+  ),
+  "com.desktop-tool.plugin.data-pivot": lazy(
+    () => import("./components/DataPivot"),
+  ),
+  "com.desktop-tool.plugin.gradient-generator": lazy(
+    () => import("./components/GradientGenerator"),
+  ),
+  "com.desktop-tool.plugin.shadow-designer": lazy(
+    () => import("./components/ShadowDesigner"),
+  ),
+  "com.desktop-tool.plugin.image-cropper": lazy(
+    () => import("./components/ImageCropper"),
+  ),
+  "com.desktop-tool.plugin.color-extractor": lazy(
+    () => import("./components/ColorExtractor"),
+  ),
+  "com.desktop-tool.plugin.layout-grid": lazy(
+    () => import("./components/LayoutGrid"),
+  ),
+  "com.desktop-tool.plugin.animation-generator": lazy(
+    () => import("./components/AnimationGenerator"),
+  ),
+};
 
-pluginRegistry.register('com.desktop-tool.plugin.password-generator', {
-  component: PasswordGenerator,
-  pluginId: 'com.desktop-tool.plugin.password-generator',
-  manifest: passwordGeneratorManifest
-});
+// Register plugin manifests only (components loaded on-demand)
+// This improves initial load time significantly
+pluginRegistry.registerManifest(
+  "com.desktop-tool.calculator-pad",
+  calculatorManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.json-formatter",
+  jsonFormatterManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.password-generator",
+  passwordGeneratorManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.url-codec",
+  urlCodecManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.base64-tool",
+  base64ToolManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.crypto-tool",
+  cryptoToolManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.notepad",
+  notepadManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.todo-list",
+  todoListManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.ocr-tool",
+  ocrToolManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.color-picker",
+  colorPickerManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.unit-converter",
+  unitConverterManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.code-formatter",
+  codeFormatterManifest,
+);
+pluginRegistry.registerManifest("com.desktop-tool.plugin.ruler", rulerManifest);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.calendar",
+  calendarManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.audio-player",
+  audioPlayerManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.mini-games",
+  miniGamesManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.qrcode-generator",
+  qrCodeGeneratorManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.stopwatch",
+  stopwatchManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.quick-note",
+  quickNoteManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.password-strength",
+  passwordStrengthManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.scientific-calculator",
+  scientificCalculatorManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.color-palette",
+  colorPaletteManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.json-to-ts",
+  jsonToTsManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.regex-tester",
+  regexTesterManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.progress-charts",
+  progressChartsManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.world-clock",
+  worldClockManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.markdown-editor",
+  markdownEditorManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.keyboard-shortcuts",
+  keyboardShortcutsManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.kanban-board",
+  kanbanBoardManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.pomodoro-timer",
+  pomodoroTimerManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.link-manager",
+  linkManagerManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.file-hash",
+  fileHashManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.uuid-generator",
+  uuidGeneratorManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.timestamp-converter",
+  timestampConverterManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.json-diff",
+  jsonDiffManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.document-merger",
+  documentMergerManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.schedule-planner",
+  schedulePlannerManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.meeting-notes",
+  meetingNotesManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.article-collector",
+  articleCollectorManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.goal-tracker",
+  goalTrackerManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.mind-map",
+  mindMapManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.data-pivot",
+  dataPivotManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.gradient-generator",
+  gradientGeneratorManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.shadow-designer",
+  shadowDesignerManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.image-cropper",
+  imageCropperManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.color-extractor",
+  colorExtractorManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.layout-grid",
+  layoutGridManifest,
+);
+pluginRegistry.registerManifest(
+  "com.desktop-tool.plugin.animation-generator",
+  animationGeneratorManifest,
+);
 
-pluginRegistry.register('com.desktop-tool.plugin.url-codec', {
-  component: UrlCodec,
-  pluginId: 'com.desktop-tool.plugin.url-codec',
-  manifest: urlCodecManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.base64-tool', {
-  component: Base64Tool,
-  pluginId: 'com.desktop-tool.plugin.base64-tool',
-  manifest: base64ToolManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.crypto-tool', {
-  component: CryptoTool,
-  pluginId: 'com.desktop-tool.plugin.crypto-tool',
-  manifest: cryptoToolManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.notepad', {
-  component: Notepad,
-  pluginId: 'com.desktop-tool.plugin.notepad',
-  manifest: notepadManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.todo-list', {
-  component: TodoList,
-  pluginId: 'com.desktop-tool.plugin.todo-list',
-  manifest: todoListManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.ocr-tool', {
-  component: OcrTool,
-  pluginId: 'com.desktop-tool.plugin.ocr-tool',
-  manifest: ocrToolManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.color-picker', {
-  component: ColorPicker,
-  pluginId: 'com.desktop-tool.plugin.color-picker',
-  manifest: colorPickerManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.unit-converter', {
-  component: UnitConverter,
-  pluginId: 'com.desktop-tool.plugin.unit-converter',
-  manifest: unitConverterManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.code-formatter', {
-  component: CodeFormatter,
-  pluginId: 'com.desktop-tool.plugin.code-formatter',
-  manifest: codeFormatterManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.ruler', {
-  component: Ruler,
-  pluginId: 'com.desktop-tool.plugin.ruler',
-  manifest: rulerManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.calendar', {
-  component: Calendar,
-  pluginId: 'com.desktop-tool.plugin.calendar',
-  manifest: calendarManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.audio-player', {
-  component: AudioPlayer,
-  pluginId: 'com.desktop-tool.plugin.audio-player',
-  manifest: audioPlayerManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.mini-games', {
-  component: MiniGames,
-  pluginId: 'com.desktop-tool.plugin.mini-games',
-  manifest: miniGamesManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.qrcode-generator', {
-  component: QRCodeGenerator,
-  pluginId: 'com.desktop-tool.plugin.qrcode-generator',
-  manifest: qrCodeGeneratorManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.stopwatch', {
-  component: Stopwatch,
-  pluginId: 'com.desktop-tool.plugin.stopwatch',
-  manifest: stopwatchManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.quick-note', {
-  component: QuickNote,
-  pluginId: 'com.desktop-tool.plugin.quick-note',
-  manifest: quickNoteManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.password-strength', {
-  component: PasswordStrength,
-  pluginId: 'com.desktop-tool.plugin.password-strength',
-  manifest: passwordStrengthManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.scientific-calculator', {
-  component: ScientificCalculator,
-  pluginId: 'com.desktop-tool.plugin.scientific-calculator',
-  manifest: scientificCalculatorManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.color-palette', {
-  component: ColorPalette,
-  pluginId: 'com.desktop-tool.plugin.color-palette',
-  manifest: colorPaletteManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.json-to-ts', {
-  component: JsonToTs,
-  pluginId: 'com.desktop-tool.plugin.json-to-ts',
-  manifest: jsonToTsManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.regex-tester', {
-  component: RegexTester,
-  pluginId: 'com.desktop-tool.plugin.regex-tester',
-  manifest: regexTesterManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.progress-charts', {
-  component: ProgressCharts,
-  pluginId: 'com.desktop-tool.plugin.progress-charts',
-  manifest: progressChartsManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.world-clock', {
-  component: WorldClock,
-  pluginId: 'com.desktop-tool.plugin.world-clock',
-  manifest: worldClockManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.markdown-editor', {
-  component: MarkdownEditor,
-  pluginId: 'com.desktop-tool.plugin.markdown-editor',
-  manifest: markdownEditorManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.keyboard-shortcuts', {
-  component: KeyboardShortcuts,
-  pluginId: 'com.desktop-tool.plugin.keyboard-shortcuts',
-  manifest: keyboardShortcutsManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.kanban-board', {
-  component: KanbanBoard,
-  pluginId: 'com.desktop-tool.plugin.kanban-board',
-  manifest: kanbanBoardManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.pomodoro-timer', {
-  component: PomodoroTimer,
-  pluginId: 'com.desktop-tool.plugin.pomodoro-timer',
-  manifest: pomodoroTimerManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.link-manager', {
-  component: LinkManager,
-  pluginId: 'com.desktop-tool.plugin.link-manager',
-  manifest: linkManagerManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.file-hash', {
-  component: FileHash,
-  pluginId: 'com.desktop-tool.plugin.file-hash',
-  manifest: fileHashManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.uuid-generator', {
-  component: UuidGenerator,
-  pluginId: 'com.desktop-tool.plugin.uuid-generator',
-  manifest: uuidGeneratorManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.timestamp-converter', {
-  component: TimestampConverter,
-  pluginId: 'com.desktop-tool.plugin.timestamp-converter',
-  manifest: timestampConverterManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.json-diff', {
-  component: JsonDiff,
-  pluginId: 'com.desktop-tool.plugin.json-diff',
-  manifest: jsonDiffManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.document-merger', {
-  component: DocumentMerger,
-  pluginId: 'com.desktop-tool.plugin.document-merger',
-  manifest: documentMergerManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.schedule-planner', {
-  component: SchedulePlanner,
-  pluginId: 'com.desktop-tool.plugin.schedule-planner',
-  manifest: schedulePlannerManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.meeting-notes', {
-  component: MeetingNotes,
-  pluginId: 'com.desktop-tool.plugin.meeting-notes',
-  manifest: meetingNotesManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.article-collector', {
-  component: ArticleCollector,
-  pluginId: 'com.desktop-tool.plugin.article-collector',
-  manifest: articleCollectorManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.goal-tracker', {
-  component: GoalTracker,
-  pluginId: 'com.desktop-tool.plugin.goal-tracker',
-  manifest: goalTrackerManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.mind-map', {
-  component: MindMap,
-  pluginId: 'com.desktop-tool.plugin.mind-map',
-  manifest: mindMapManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.data-pivot', {
-  component: DataPivot,
-  pluginId: 'com.desktop-tool.plugin.data-pivot',
-  manifest: dataPivotManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.gradient-generator', {
-  component: GradientGenerator,
-  pluginId: 'com.desktop-tool.plugin.gradient-generator',
-  manifest: gradientGeneratorManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.shadow-designer', {
-  component: ShadowDesigner,
-  pluginId: 'com.desktop-tool.plugin.shadow-designer',
-  manifest: shadowDesignerManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.image-cropper', {
-  component: ImageCropper,
-  pluginId: 'com.desktop-tool.plugin.image-cropper',
-  manifest: imageCropperManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.color-extractor', {
-  component: ColorExtractor,
-  pluginId: 'com.desktop-tool.plugin.color-extractor',
-  manifest: colorExtractorManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.layout-grid', {
-  component: LayoutGrid,
-  pluginId: 'com.desktop-tool.plugin.layout-grid',
-  manifest: layoutGridManifest
-});
-
-pluginRegistry.register('com.desktop-tool.plugin.animation-generator', {
-  component: AnimationGenerator,
-  pluginId: 'com.desktop-tool.plugin.animation-generator',
-  manifest: animationGeneratorManifest
-});
+// Export lazy-loaded components for dynamic import
+export { lazyPlugins };
 
 // 路由组件 - 根据hash决定渲染哪个应用
-// Web模式：使用modal显示插件，不需要hash路由
-// 桌面模式：独立窗口需要hash路由来区分StandaloneApp和App
 function Root() {
   const hash = window.location.hash;
 
   // 检查是否是独立窗口模式（桌面Electron独立窗口）
-  const isStandaloneWindow = hash.startsWith('#plugin-standalone/');
+  const isStandaloneWindow = hash.startsWith("#plugin-standalone/");
 
   if (isStandaloneWindow) {
     return <StandaloneApp />;
@@ -365,17 +416,41 @@ function Root() {
 }
 
 // 渲染应用
-const root = ReactDOM.createRoot(document.getElementById('root')!);
-root.render(
-  <React.StrictMode>
-    <ErrorBoundary
-      onError={(error, errorInfo) => {
-        // Custom error handling logic
-        console.error('[App] Error caught by ErrorBoundary:', error, errorInfo);
-      }}
-    >
-      <Root />
-    </ErrorBoundary>
-  </React.StrictMode>
-);
+const root = ReactDOM.createRoot(document.getElementById("root")!);
 
+// Only use StrictMode in development
+const isDevelopment = process.env.NODE_ENV === "development";
+
+root.render(
+  <>
+    <Suspense
+      fallback={
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+            fontSize: "18px",
+            color: "#666",
+          }}
+        >
+          Loading...
+        </div>
+      }
+    >
+      <ErrorBoundary
+        onError={(error, errorInfo) => {
+          // Custom error handling logic
+          console.error(
+            "[App] Error caught by ErrorBoundary:",
+            error,
+            errorInfo,
+          );
+        }}
+      >
+        <Root />
+      </ErrorBoundary>
+    </Suspense>
+  </>,
+);

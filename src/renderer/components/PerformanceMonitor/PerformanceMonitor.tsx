@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import './PerformanceMonitor.css';
+import React, { useState, useEffect } from "react";
+import { createLogger } from "../../../shared/logger";
+import "./PerformanceMonitor.css";
+
+const logger = createLogger("PerformanceMonitor");
 
 interface LogFileInfo {
   name: string;
@@ -11,11 +14,13 @@ interface PerformanceMonitorProps {
   onClose: () => void;
 }
 
-export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ onClose }) => {
-  const [logSize, setLogSize] = useState<string>('0 KB');
+export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
+  onClose,
+}) => {
+  const [logSize, setLogSize] = useState<string>("0 KB");
   const [logFiles, setLogFiles] = useState<LogFileInfo[]>([]);
   const [cleaning, setCleaning] = useState(false);
-  const [lastCleanup, setLastCleanup] = useState<string>('-');
+  const [lastCleanup, setLastCleanup] = useState<string>("-");
 
   // 加载日志信息
   const loadLogInfo = async () => {
@@ -23,14 +28,15 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ onClose 
       if (!window.electron?.ipcRenderer) return;
 
       // 获取日志文件大小
-      const sizeInfo = await window.electron.ipcRenderer.invoke('log:get-size');
+      const sizeInfo = await window.electron.ipcRenderer.invoke("log:get-size");
       setLogSize(`${sizeInfo.totalSizeKB} KB`);
 
       // 获取日志文件信息
-      const files = await window.electron.ipcRenderer.invoke('log:get-file-info');
+      const files =
+        await window.electron.ipcRenderer.invoke("log:get-file-info");
       setLogFiles(files);
     } catch (error) {
-      console.error('Failed to load log info:', error);
+      logger.error("Failed to load log info", { error });
     }
   };
 
@@ -40,11 +46,11 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ onClose 
     try {
       if (!window.electron?.ipcRenderer) return;
 
-      await window.electron.ipcRenderer.invoke('log:clean-old');
+      await window.electron.ipcRenderer.invoke("log:clean-old");
       await loadLogInfo();
-      setLastCleanup(new Date().toLocaleString('zh-CN'));
+      setLastCleanup(new Date().toLocaleString("zh-CN"));
     } catch (error) {
-      console.error('Failed to clean logs:', error);
+      logger.error("Failed to clean logs", { error });
     } finally {
       setCleaning(false);
     }
@@ -63,10 +69,10 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ onClose 
     const diff = now.getTime() - date.getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (days === 0) return '今天';
-    if (days === 1) return '昨天';
+    if (days === 0) return "今天";
+    if (days === 1) return "昨天";
     if (days < 7) return `${days} 天前`;
-    return date.toLocaleDateString('zh-CN');
+    return date.toLocaleDateString("zh-CN");
   };
 
   useEffect(() => {
@@ -80,7 +86,9 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ onClose 
     <div className="performance-monitor">
       <div className="monitor-header">
         <h2>📊 性能监控</h2>
-        <button className="close-button" onClick={onClose}>✕</button>
+        <button className="close-button" onClick={onClose}>
+          ✕
+        </button>
       </div>
 
       <div className="monitor-content">
@@ -107,7 +115,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ onClose 
             onClick={handleCleanLogs}
             disabled={cleaning}
           >
-            {cleaning ? '清理中...' : '🧹 清理旧日志（30天）'}
+            {cleaning ? "清理中..." : "🧹 清理旧日志（30天）"}
           </button>
         </section>
 

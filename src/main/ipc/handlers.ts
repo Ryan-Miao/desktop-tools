@@ -452,7 +452,7 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
     try {
       await logService.write(entry);
     } catch (error) {
-      console.error("[log:write] Failed to write log:", error);
+      logger.error("[log:write] Failed to write log", { error });
     }
   });
 
@@ -461,7 +461,7 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
     try {
       return logService.query(options);
     } catch (error) {
-      console.error("[log:query] Failed to query logs:", error);
+      logger.error("[log:query] Failed to query logs", { error });
       return [];
     }
   });
@@ -471,7 +471,7 @@ export function setupIPCHandlers(mainProcess: MainProcess) {
     try {
       return logService.getStats();
     } catch (error) {
-      console.error("[log:stats] Failed to get stats:", error);
+      logger.error("[log:stats] Failed to get stats", { error });
       return { total: 0, byLevel: {}, byModule: {} };
     }
   });
