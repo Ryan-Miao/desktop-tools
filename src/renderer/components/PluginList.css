@@ -330,7 +330,6 @@
   bottom: calc(100% + 12px);
   left: 0;
   z-index: 1000;
-  pointer-events: none;
   animation: tooltipFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
